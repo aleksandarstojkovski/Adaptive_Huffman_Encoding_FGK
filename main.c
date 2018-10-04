@@ -1,23 +1,56 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int testReadBinaryFile(const char *filename);
+void compressFile(const char *filename);
+void decompressFile(const char *filename);
 
 /*
- * Programma esempio per leggere un carattere dal device urandom.
- *
- * compilazione: cc -std=c99 -o read read.c
+ * compilazione: cc -std=c99 -o algo main.c
  */
-int main(int argc, char * argv[]) {
-    int rc = 0;
-    rc = testReadBinaryFile("../test-res/nofile.bo");
-    rc = testReadBinaryFile("../test-res/32k_ff");
-    rc = testReadBinaryFile("../test-res/32k_random");
-    rc = testReadBinaryFile("../test-res/alice.txt");
-    rc = testReadBinaryFile("../test-res/empty");
-    rc = testReadBinaryFile("../test-res/ff_ff_ff");
-    rc = testReadBinaryFile("../test-res/immagine.tiff");
+int main(int argc, char* argv[])
+{
+    if (argc < 3) {
+        fprintf(stderr, "Not enough parameters. Usage:\n");
+        printf("to compress a file: algo -c <filename_to_compress>\n");
+        printf("to decompress a file: algo -d <filename_to_decompress>\n");
+
+        printf("Start Test read binary files\n");
+
+        int rc = 0;
+        rc = testReadBinaryFile("../test-res/nofile.bo");
+        rc = testReadBinaryFile("../test-res/32k_ff");
+        rc = testReadBinaryFile("../test-res/32k_random");
+        rc = testReadBinaryFile("../test-res/alice.txt");
+        rc = testReadBinaryFile("../test-res/empty");
+        rc = testReadBinaryFile("../test-res/ff_ff_ff");
+        rc = testReadBinaryFile("../test-res/immagine.tiff");
+
+        //fprintf(stderr, "Numero insufficiente di argomenti\n");
+        return 1;
+    }
+
+    if (strcmp(argv[1], "-c") == 0)
+        compressFile(argv[2]);
+    else if (strcmp(argv[1], "-d") == 0)
+        decompressFile(argv[2]);
+    else {
+        fprintf(stderr, "Unexpected argument\n");
+        return 2;
+    }
+
+    return 0;
 }
+
+void decompressFile(const char *filename) {
+    printf("START compressing: %s ...\n", filename);
+}
+
+void compressFile(const char *filename) {
+    printf("START decompressing: %s ...\n", filename);
+}
+
 
 // read binary file
 int testReadBinaryFile(const char *filename) {
