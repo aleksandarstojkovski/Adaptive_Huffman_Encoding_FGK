@@ -10,9 +10,10 @@ struct Node {
     struct Node *right;
     struct Node *parent;
 };
+typedef struct Node Node;
 
-struct Node* createNode(const char value);
-void destroyNode(struct Node *node);
+Node* createNode(const char value);
+void destroyNode(Node *node);
 int initializeTree();
 void destroyTree();
 
@@ -21,8 +22,8 @@ void compressFile(const char *filename);
 void decompressFile(const char *filename);
 
 const unsigned short MAX_POS = 512;
-struct Node *_root = NULL, *_NYT = NULL;
-unsigned short _nextPos = MAX_POS;
+Node *_root = NULL, *_NYT = NULL;
+unsigned short _nextPos = 512;
 
 /*
  * Main function
@@ -114,7 +115,7 @@ void destroyTree() {
 /*
  * Recursively destroy nodes
  */
-void destroyNode(struct Node *node) {
+void destroyNode(Node *node) {
     if(node == NULL)
         return;
 
@@ -150,8 +151,8 @@ void addNewNode(const char value) {
 /*
  * Create a new Node in the heap.
  */
-struct Node *createNode(char value) {
-    struct Node* node = malloc (sizeof(struct Node));
+Node *createNode(char value) {
+    Node* node = malloc (sizeof(Node));
     node->left = NULL;
     node->right = NULL;
     node->parent = NULL;
