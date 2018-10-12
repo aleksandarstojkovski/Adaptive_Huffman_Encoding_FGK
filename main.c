@@ -1,21 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "node.h"
 
-struct Node {
-    char value;
-    unsigned int weight;
-    unsigned short position;
-    struct Node *left;
-    struct Node *right;
-    struct Node *parent;
-};
-typedef struct Node Node;
-
-Node* createNode(const char value);
-void destroyNode(Node *node);
-int initializeTree();
-void destroyTree();
+#define NUM_TEST_FILES 7
+#define BLOCK_SIZE 1024
+//const unsigned short NUM_TEST_FILES = 7;
 
 int readBinaryFile(const char *filename, void (*processChar)(char));
 int compressFile(const char *filename);
@@ -26,13 +16,7 @@ int testReadBinaryFile(const char *filename);
 
 void printUsage();
 
-const unsigned short BLOCK_SIZE = 1024;
-const unsigned short MAX_POS = 512;
 
-Node *_root = NULL, *_NYT = NULL;
-unsigned short _nextPos = 512;
-
-const unsigned short NUM_TEST_FILES = 7;
 char *TEST_FILES[NUM_TEST_FILES] = { "../test-res/32k_ff", "../test-res/32k_random", "../test-res/alice.txt",
                                      "../test-res/empty", "../test-res/ff_ff_ff", "../test-res/immagine.tiff",
                                      "a-bad-filename"};
@@ -122,78 +106,7 @@ int decompressFile(const char *filename) {
     return rc;
 }
 
-/*
- * Initialize the tree with a single NYT node
- */
-int initializeTree() {
-    if(_root != NULL) {
-        perror("root already initialized");
-        return 1;
-    }
 
-    _NYT = _root = createNode(0);
-    return 0;
-}
-
-/*
- * Destroy Tree and reset pointers
- */
-void destroyTree() {
-    destroyNode(_root);
-    _root = NULL;
-    _NYT = NULL;
-}
-
-/*
- * Recursively destroy nodes
- */
-void destroyNode(Node *node) {
-    if(node == NULL)
-        return;
-
-    if(node->left != NULL) {
-        destroyNode(node->left);
-        node->left = NULL;
-    }
-
-    if(node->right != NULL) {
-        destroyNode(node->right);
-        node->right = NULL;
-    }
-
-    free(node);
-}
-
-/*
- * Append a new node to the NYT
- */
-void addNewNode(const char value) {
-    _NYT->weight = 1;
-
-    _NYT->right = createNode(value);
-    _NYT->right->weight = 1;
-    _NYT->right->parent = _NYT;
-
-    _NYT->left = createNode(0);
-    _NYT->left->parent = _NYT;
-
-    _NYT = _NYT->left;
-}
-
-/*
- * Create a new Node in the heap.
- */
-Node *createNode(char value) {
-    Node* node = malloc (sizeof(Node));
-    node->left = NULL;
-    node->right = NULL;
-    node->parent = NULL;
-    node->position = _nextPos;
-    node->weight = 0;
-    node->value = value;
-    _nextPos--;
-    return node;
-}
 
 /*
  *  Read a binary file and call a callback function
