@@ -1,13 +1,14 @@
-//
-// Created by massi on 12.10.2018.
-//
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "node.h"
 
 /*
  * global variables
  */
-Node *_root = NULL, *_NYT = NULL;
+Node *_root = NULL;
+Node *_NYT = NULL;
 unsigned short _nextOrder = MAX_ORDER;
 
 /*
@@ -67,10 +68,11 @@ void addNewNode(const char value) {
     _NYT->right->weight = 1;
     _NYT->right->parent = _NYT;
 
-    //
+    // create left leaf node with no symbol
     _NYT->left = createNode(0);
     _NYT->left->parent = _NYT;
 
+    // the new left node is the new NYT node
     _NYT = _NYT->left;
 }
 
