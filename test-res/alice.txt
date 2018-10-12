@@ -538,7 +538,7 @@ round it, panting, and asking, 'But who has won?'
 
 This question the Dodo could not answer without a great deal of thought,
 and it sat for a long time with one finger pressed upon its forehead
-(the position in which you usually see Shakespeare, in the pictures
+(the order in which you usually see Shakespeare, in the pictures
 of him), while the rest waited in silence. At last the Dodo said,
 'EVERYBODY has won, and all must have prizes.'
 
@@ -2751,7 +2751,7 @@ verse.'
 'But about his toes?' the Mock Turtle persisted. 'How COULD he turn them
 out with his nose, you know?'
 
-'It's the first position in dancing.' Alice said; but was dreadfully
+'It's the first order in dancing.' Alice said; but was dreadfully
 puzzled by the whole thing, and longed to change the subject.
 
 'Go on with the next verse,' the Gryphon repeated impatiently: 'it

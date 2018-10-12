@@ -8,7 +8,7 @@
  * global variables
  */
 Node *_root = NULL, *_NYT = NULL;
-unsigned short _nextPos = MAX_POS;
+unsigned short _nextOrder = MAX_ORDER;
 
 /*
  * Initialize the tree with a single NYT node
@@ -54,14 +54,20 @@ void destroyNode(Node *node) {
 
 /*
  * Append a new node to the NYT
+ * Must be used only for new for symbols (not present in the tree)
  */
 void addNewNode(const char value) {
+    // old NYT should be increased to weight 1
     _NYT->weight = 1;
 
+    // create right leaf note with passed symbol and weight 1
+    // createNode decrease the order each time
+    // therefore right node must be created before left node
     _NYT->right = createNode(value);
     _NYT->right->weight = 1;
     _NYT->right->parent = _NYT;
 
+    //
     _NYT->left = createNode(0);
     _NYT->left->parent = _NYT;
 
@@ -76,9 +82,17 @@ Node *createNode(char value) {
     node->left = NULL;
     node->right = NULL;
     node->parent = NULL;
-    node->position = _nextPos;
+    node->order = _nextOrder;
     node->weight = 0;
     node->value = value;
-    _nextPos--;
+    _nextOrder--;
     return node;
+}
+
+/*
+ * Search Char in Tree
+ */
+Node *searchCharInTree(char ch) {
+    // TODO ALEX
+    return NULL;
 }
