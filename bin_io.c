@@ -4,6 +4,8 @@
 
 #include "bin_io.h"
 
+enum { BLOCK_SIZE = 1024 };
+
 /*
  *  Read a binary file char by char
  *  and call a callback function after each char read

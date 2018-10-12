@@ -28,9 +28,7 @@ int main(int argc, char* argv[])
         printUsage();
         rc = 1;
 
-        for(int i=0; i<NUM_TEST_FILES; i++) {
-            testReadBinaryFile(TEST_FILES[i]);
-        }
+        rc = testReadAllBinaryFiles();
     }
     else if (strcmp(argv[1], "-c") == 0) {
         rc = compressFile(argv[2], argv[3]);

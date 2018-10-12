@@ -12,7 +12,7 @@ const char *_compress_outputp_file;
 /*
  * Compress file
  */
-int compressFile(const char *input_file, const char *output_file) {
+int compressFile(const char * input_file, const char * output_file) {
     _compress_outputp_file = output_file;
     printf("START compressing: %s ...\n", input_file);
 

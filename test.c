@@ -5,7 +5,8 @@
 #include "test.h"
 #include "bin_io.h"
 
-char *TEST_FILES[NUM_TEST_FILES] = {
+enum { NUM_TEST_FILES = 7 };
+static const char * TEST_FILES[NUM_TEST_FILES] = {
         "../test-res/ff_ff_ff",
         "../test-res/alice.txt",
         "../test-res/empty",
@@ -14,6 +15,16 @@ char *TEST_FILES[NUM_TEST_FILES] = {
         "../test-res/immagine.tiff",
         "a-bad-filename" };
 
+int testReadAllBinaryFiles() {
+    int rc = 0;
+    for(int i=0; i<NUM_TEST_FILES; i++) {
+        rc = testReadBinaryFile(TEST_FILES[i]);
+        if(rc != 0)
+            break;
+    }
+
+    return 0;
+}
 
 /*
  * Test Read Binary file
