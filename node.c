@@ -94,7 +94,18 @@ Node *createNode(char value) {
 /*
  * Search Char in Tree
  */
-Node *searchCharInTree(char ch) {
+Node *searchCharInTree(Node *node, char ch) {
     // TODO ALEX
+    while (node->parent != NULL){
+        if (node->value == ch){
+            return node;
+        }
+        if(node->left != NULL){
+            searchCharInTree(node->left, ch);
+        }
+        if(node->right != NULL){
+            searchCharInTree(node->right, ch);
+        }
+    }
     return NULL;
 }
