@@ -14,6 +14,10 @@ struct Node {
 };
 typedef struct Node Node;
 
+Node *_root;
+Node *_NYT;
+
+
 Node* createNode(const char value);
 
 void destroyNode(Node *node);
@@ -22,7 +26,7 @@ int initializeTree();
 
 void destroyTree();
 
-Node *searchCharInTree(char ch);
+Node* searchCharInTree(Node *node, char ch);
 
 void addNewNode(char ch);
 

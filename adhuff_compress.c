@@ -28,7 +28,7 @@ int compressFile(const char *input_file, const char *output_file) {
  * Compress Callback
  */
 void compressCallback(char ch) {
-    Node* node = searchCharInTree(ch);
+    Node* node = searchCharInTree(_root, ch);
     if(node == NULL) {
         // Node not present in tree
         writeBinaryFile(_compress_outputp_file, ch);
