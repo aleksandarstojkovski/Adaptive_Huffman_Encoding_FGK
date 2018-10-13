@@ -9,7 +9,11 @@
  */
 Node *_root = NULL;
 Node *_NYT = NULL;
-unsigned short _nextOrder = MAX_ORDER;
+
+/*
+ * Module variables
+ */
+static unsigned short _nextOrder = MAX_ORDER;
 
 /*
  * Initialize the tree with a single NYT node

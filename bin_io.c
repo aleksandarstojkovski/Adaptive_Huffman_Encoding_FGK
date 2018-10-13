@@ -4,50 +4,38 @@
 
 #include "bin_io.h"
 
-enum { BLOCK_SIZE = 1024 };
+FILE* openReadBinary(const char * filename) {
+    FILE * filePtr = fopen(filename, "rb");
+    if(filePtr == NULL) {
+        perror("cannot open file in [rb] mode");
+    }
+    return filePtr;
+}
+
+FILE* openWriteBinary(const char * filename) {
+    FILE * filePtr = fopen(filename, "wb");
+    if(filePtr == NULL) {
+        perror("cannot open file in [wb] mode");
+    }
+    return filePtr;
+}
+
 
 /*
- *  Read a binary file char by char
- *  and call a callback function after each char read
+ *  Read a binary file in chunk
+ *  for each char read call a callback function
  */
 int readBinaryFile(const char *filename, void (*processChar)(char)) {
-    FILE *file = NULL;
+    FILE * filePtr = openReadBinary(filename);
+
     unsigned char buffer[BLOCK_SIZE];
     size_t bytesRead = 0;
-
-    file = fopen(filename, "rb");
-    if(file == NULL) {
-        perror("cannot open file in [rb] mode");
-        return 1;
-    }
-
     // read up to sizeof(buffer) bytes
-    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0)
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), filePtr)) > 0)
     {
         for(int i=0;i<bytesRead;i++)
             processChar(buffer[i]);
     }
-    fclose(file);
+    fclose(filePtr);
     return 0;
-}
-
-/*
- *  Write a binary file char by char
- *  and call a callback function after each char read
- */
-int writeBinaryFile(const char *filename, char symbol) {
-    FILE *file = NULL;
-    size_t bytesWritten = 0;
-
-    file = fopen(filename, "wb");
-    if(file == NULL) {
-        perror("cannot open file in [wb] mode");
-        return 1;
-    }
-
-    bytesWritten = fwrite(&symbol, sizeof(symbol), 1, file);
-
-    fclose(file);
-    return 0;
-
 }
