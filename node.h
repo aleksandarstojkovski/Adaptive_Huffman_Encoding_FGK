@@ -5,7 +5,7 @@
 #define MAX_ORDER 512
 
 struct Node {
-    char value;
+    short value;
     unsigned int weight;
     unsigned short order;
     struct Node *left;
@@ -14,11 +14,12 @@ struct Node {
 };
 typedef struct Node Node;
 
-Node *_root;
-Node *_NYT;
+static Node * adh_root_node;
+static Node * adh_nyt_node;
 
+Node * createNYT();
 
-Node* createNode(const char value);
+Node * createNode(short value);
 
 void destroyNode(Node *node);
 
@@ -26,8 +27,9 @@ int initializeTree();
 
 void destroyTree();
 
-Node* searchCharInTree(Node *node, char ch);
+Node * searchCharInTree(short ch);
+Node * searchCharFromNode(Node * node, short ch);
 
-void addNewNode(char ch);
+void addNewNode(short ch);
 
 #endif //ALGO_NODE_H

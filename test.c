@@ -30,23 +30,13 @@ int testReadAllBinaryFiles() {
  * Test Read Binary file
  */
 int testReadBinaryFile(const char *filename) {
-    printf("Start testReadBinaryFile: [%s]\n", filename);
+    trace("Start testReadBinaryFile: [%s]\n", filename);
 
-    int rc = readBinaryFile(filename, printCharBin);
+    int rc = readBinaryFile(filename, traceCharBin);
 
-    printf("\nRead completed, return code: %d\n", rc);
-    printf("press a key to continue\n");
+    trace("\nRead completed, return code: %d\n", rc);
+    trace("press a key to continue\n");
     getchar();
 
     return rc;
-}
-
-/*
- * print char in binary format
- */
-void printCharBin(char ch) {
-    for (unsigned short bitPos = 7; bitPos >= 0; --bitPos) {
-        char val = (ch & (1 << bitPos));
-        putchar(val ? '1' : '0');
-    }
 }

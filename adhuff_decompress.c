@@ -17,7 +17,7 @@ void decompressCallback(char ch) {
  * decompress file
  */
 int decompressFile(const char *input_file, const char *output_file) {
-    printf("START decompressing: %s ...\n", input_file);
+    trace("decompressFile: %s ...\n", input_file);
     int rc = initializeTree();
     if (rc == 0) {
         rc = readBinaryFile(input_file, decompressCallback);
