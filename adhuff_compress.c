@@ -2,6 +2,9 @@
 #include "bin_io.h"
 #include "node.h"
 
+/*
+ * modules variables
+ */
 static const int CHAR_SIZE = 8;
 static unsigned char output_buffer[BLOCK_SIZE];
 static unsigned short buffer_idx = 0;
@@ -46,17 +49,21 @@ void compressCallback(char ch) {
     if(node == NULL) {
         // Node not present in tree
         writeOutput(ch, CHAR_SIZE);
-        addNewNode(ch);
+        createNodeAndAppend(ch);
     } else {
-        // TODO
-        node->weight++;
-        encode(ch);
-        // updateTree
+        encode(node, ch);
     }
+    updateTree(ch);
 }
 
-void encode(char ch) {
+/*
+ * Node present in tree, increase its weight and encode
+ */
+void encode(Node * node, char ch) {
     traceCharBinMsg("encode: ", ch);
+
+    node->weight++;
+    //TODO ALEX
 }
 
 void writeOutput(char ch, int numBit) {
