@@ -42,11 +42,11 @@ int readBinaryFile(const char *filename, void (*processChar)(char)) {
 }
 
 /*
- * Diagnostics function: print char in binary format
+ * Diagnostic functions
  */
 void traceCharBin(char ch) {
     for (int bitPos = 7; bitPos >= 0; --bitPos) {
-        char val = (ch & (1 << bitPos));
+        char val = bit_check(ch, bitPos);
         putchar(val ? '1' : '0');
     }
     printf("\n");
@@ -63,4 +63,21 @@ void trace(const char *msg, ...) {
     va_start(args, msg);
     vprintf(msg, args);
     va_end(args);
+}
+
+
+/*
+ * Bit manipulation functions
+ */
+char bit_check(char ch, int bit_pos) {
+    char val = (ch & (1 << bit_pos));
+    return val;
+}
+
+void bit_set_one(unsigned char * ch, int bit_pos) {
+    *ch |= (1 << bit_pos);
+}
+
+void bit_set_zero(unsigned char * ch, int bit_pos) {
+    *ch  &= ~(1 << bit_pos);
 }

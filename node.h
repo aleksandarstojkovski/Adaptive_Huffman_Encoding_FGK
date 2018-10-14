@@ -21,12 +21,15 @@ int initializeTree();
 
 void destroyTree();
 
-void updateTree(short ch);
+void updateTree(Node * node);
 
 Node * searchCharInTree(short ch);
 
 Node * searchCharFromNode(Node * node, short ch);
 
 Node * createNodeAndAppend(short ch);
+
+int getNYTCode(char bit_array[]);
+int getSymbolCode(short ch, char bit_array[]);
 
 #endif //ALGO_NODE_H

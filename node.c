@@ -155,11 +155,42 @@ Node * searchCharInTree(short ch) {
 /*
  * Update Tree
  */
-void updateTree(short ch) {
+void updateTree(Node * node) {
     trace("updateTree\n");
 
     // TODO ALEX
-
     // FIX sibling property with swapping
     // the nodes (internal and leaf) are arranged in order of increasing weights
+
+    // http://www.stringology.org/DataCompression/fgk/index_en.html
+}
+
+/*
+ * return the encoded version of passed symbol
+ * fill bit_array from left to right
+ * the number of bit to read is returned
+ * 0 = left node, 1 = right node
+ */
+int getSymbolCode(short ch, char bit_array[]) {
+    int bit_size = 0;
+    Node * node = searchCharInTree(ch);
+
+    if(node != NULL) {
+        Node * parent = node->parent;
+        while(parent != NULL) {
+            // 0 = left node, 1 = right node
+            bit_array[bit_size] = parent->right == node ? 1 : 0;
+            bit_size++;
+            node = parent;
+            parent = parent->parent;
+        }
+    }
+    return bit_size;
+}
+
+/*
+ * getSymbolCode for NYT
+ */
+int getNYTCode(char bit_array[]) {
+    return getSymbolCode(ADH_NYT_CODE, bit_array);
 }

@@ -5,12 +5,14 @@
 /*
  * modules variables
  */
+static const int MAX_CODE_SIZE = 255;
 static const int CHAR_SIZE = 8;
 static unsigned char output_buffer[BLOCK_SIZE];
 static unsigned short buffer_idx = 0;
-static unsigned short bit_idx = 0;
+static unsigned short buffer_bit_idx = 0;
 
 static FILE * outputFilePtr;
+static FILE * inputFilePtr;
 
 /*
  * Compress file
@@ -18,14 +20,29 @@ static FILE * outputFilePtr;
 int compressFile(const char * input_file, const char * output_file) {
     trace("compressFile: %s ...\n", input_file);
 
+    inputFilePtr = openReadBinary(input_file);
+    if (inputFilePtr == NULL) {
+        return 1;
+    }
+
     outputFilePtr = openWriteBinary(output_file);
     if (outputFilePtr == NULL) {
         return 1;
     }
 
+    unsigned char buffer[BLOCK_SIZE];
     int rc = initializeTree();
     if (rc == 0) {
-        rc = readBinaryFile(input_file, compressCallback);
+
+        size_t bytesRead = 0;
+        // read up to sizeof(buffer) bytes
+        while ((bytesRead = fread(buffer, 1, sizeof(buffer), inputFilePtr)) > 0)
+        {
+            for(int i=0;i<bytesRead;i++)
+                processChar(buffer[i]);
+        }
+
+
         destroyTree();
 
         if(buffer_idx < BLOCK_SIZE) {
@@ -35,61 +52,91 @@ int compressFile(const char * input_file, const char * output_file) {
     }
 
     fclose(outputFilePtr);
+    fclose(inputFilePtr);
 
     return rc;
 }
 
 /*
- * Compress Callback
+ * Process char
  */
-void compressCallback(char ch) {
-    traceCharBinMsg("compressCallback: ", ch);
+void processChar(char ch) {
+    traceCharBinMsg("processChar: ", ch);
+    char bit_array[MAX_CODE_SIZE];
 
     Node* node = searchCharInTree(ch);
+
     if(node == NULL) {
-        // Node not present in tree
-        writeOutput(ch, CHAR_SIZE);
-        createNodeAndAppend(ch);
+        // symbol not present in tree
+
+        // write NYT code
+        int num_bit = getNYTCode(bit_array);
+        outputBitArray(bit_array, num_bit);
+
+        // write symbol code
+        outputChar(ch);
+        node = createNodeAndAppend(ch);
     } else {
-        encode(node, ch);
+        // char already present in tree
+
+        // increase weight
+        node->weight++;
+
+        // write symbol code
+        int num_bit = getSymbolCode(ch, bit_array);
+        outputBitArray(bit_array, num_bit);
     }
-    updateTree(ch);
+    updateTree(node);
 }
 
 /*
- * Node present in tree, increase its weight and encode
+ * copy data to output buffer as char
  */
-void encode(Node * node, char ch) {
-    traceCharBinMsg("encode: ", ch);
+void outputChar(char ch) {
+    traceCharBinMsg("outputChar: ", ch);
 
-    node->weight++;
-    //TODO ALEX
+    char bit_array[CHAR_SIZE];
+    for (int bitPos = CHAR_SIZE-1; bitPos >= 0; --bitPos) {
+        char val = (ch & (1 << bitPos));
+        bit_array[bitPos] = val;
+    }
+    outputBitArray(bit_array, CHAR_SIZE);
 }
 
-void writeOutput(char ch, int numBit) {
-    traceCharBinMsg("writeOutput: ", ch);
 
-    if(numBit == CHAR_SIZE) {
-        output_buffer[buffer_idx] = ch;
-        buffer_idx++;
-        bit_idx = CHAR_SIZE-1;
-    } else {
-        // TODO MAX
-        // handle bit output
-        bit_idx--;
-        char val = (ch & (1 << bit_idx));
-        output_buffer[buffer_idx] = val;
-    }
+/*
+ * copy data to output buffer as bit array
+ */
+void outputBitArray(char bit_array[], int num_bit) {
+    trace("outputBitArray: %d", num_bit);
 
-    if(buffer_idx == BLOCK_SIZE) {
+    for(int i = 0; i<num_bit; i++) {
+
+        buffer_idx = buffer_bit_idx / CHAR_SIZE;
+
+        int bit_pos = buffer_bit_idx % CHAR_SIZE;
+        if(bit_array[i] == 1)
+            bit_set_one(&output_buffer[buffer_idx], bit_pos);
+        else
+            bit_set_zero(&output_buffer[buffer_idx], bit_pos);
+
+        buffer_bit_idx++;
+
         // buffer full, flush data to file
-        flushData();
+        if(buffer_idx == BLOCK_SIZE) {
+            flushData();
+        }
     }
 }
 
+
+/*
+ * flush data to file
+ */
 void flushData() {
     trace("flushData: %d byte", buffer_idx);
 
+    //TODO check error code
     size_t bytesWritten = fwrite(output_buffer, buffer_idx, 1, outputFilePtr);
     buffer_idx = 0;
 }
