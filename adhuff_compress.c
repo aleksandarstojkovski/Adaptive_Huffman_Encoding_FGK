@@ -60,9 +60,9 @@ int compressFile(const char * input_file, const char * output_file) {
 /*
  * Process char
  */
-void processChar(char ch) {
+void processChar(unsigned char ch) {
     traceCharBinMsg("processChar: ", ch);
-    char bit_array[MAX_CODE_SIZE];
+    unsigned char bit_array[MAX_CODE_SIZE];
 
     Node* node = searchCharInTree(ch);
 
@@ -92,12 +92,12 @@ void processChar(char ch) {
 /*
  * copy data to output buffer as char
  */
-void outputChar(char ch) {
+void outputChar(unsigned char ch) {
     traceCharBinMsg("outputChar: ", ch);
 
-    char bit_array[CHAR_SIZE];
+    unsigned char bit_array[CHAR_SIZE];
     for (int bitPos = CHAR_SIZE-1; bitPos >= 0; --bitPos) {
-        char val = (ch & (1 << bitPos));
+        char val = bit_check(ch, bitPos);
         bit_array[bitPos] = val;
     }
     outputBitArray(bit_array, CHAR_SIZE);
@@ -107,8 +107,8 @@ void outputChar(char ch) {
 /*
  * copy data to output buffer as bit array
  */
-void outputBitArray(char bit_array[], int num_bit) {
-    trace("outputBitArray: %d", num_bit);
+void outputBitArray(unsigned char bit_array[], int num_bit) {
+    trace("outputBitArray: %d\n", num_bit);
 
     for(int i = 0; i<num_bit; i++) {
 
@@ -134,7 +134,7 @@ void outputBitArray(char bit_array[], int num_bit) {
  * flush data to file
  */
 void flushData() {
-    trace("flushData: %d byte", buffer_idx);
+    trace("flushData: %d byte\n", buffer_idx);
 
     //TODO check error code
     size_t bytesWritten = fwrite(output_buffer, buffer_idx, 1, outputFilePtr);

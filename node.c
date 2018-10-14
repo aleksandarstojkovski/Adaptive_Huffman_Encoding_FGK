@@ -171,7 +171,7 @@ void updateTree(Node * node) {
  * the number of bit to read is returned
  * 0 = left node, 1 = right node
  */
-int getSymbolCode(short ch, char bit_array[]) {
+int getSymbolCode(short ch, unsigned char bit_array[]) {
     int bit_size = 0;
     Node * node = searchCharInTree(ch);
 
@@ -191,6 +191,6 @@ int getSymbolCode(short ch, char bit_array[]) {
 /*
  * getSymbolCode for NYT
  */
-int getNYTCode(char bit_array[]) {
+int getNYTCode(unsigned char bit_array[]) {
     return getSymbolCode(ADH_NYT_CODE, bit_array);
 }
