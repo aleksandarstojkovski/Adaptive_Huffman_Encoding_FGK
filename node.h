@@ -21,7 +21,7 @@ int initializeTree();
 
 void destroyTree();
 
-void updateTree(Node * node);
+void updateTree(Node * node, int isNewNode);
 
 Node * searchCharInTree(short ch);
 

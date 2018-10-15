@@ -30,6 +30,7 @@ int compressFile(const char * input_file, const char * output_file) {
     }
 
     unsigned char buffer[BLOCK_SIZE];
+
     int rc = initializeTree();
     if (rc == 0) {
 
@@ -75,6 +76,7 @@ void processChar(unsigned char ch) {
         // write symbol code
         outputChar(ch);
         node = createNodeAndAppend(ch);
+        updateTree(node, TRUE);
     } else {
         // char already present in tree
 
@@ -84,8 +86,9 @@ void processChar(unsigned char ch) {
         // write symbol code
         int num_bit = getSymbolCode(ch, bit_array);
         outputBitArray(bit_array, num_bit);
+        updateTree(node, FALSE);
     }
-    updateTree(node);
+
 }
 
 /*

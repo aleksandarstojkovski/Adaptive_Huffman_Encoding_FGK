@@ -154,7 +154,7 @@ Node * searchCharInTree(short ch) {
 /*
  * Update Tree
  */
-void updateTree(Node * node) {
+void updateTree(Node * node, int isNewNode) {
     trace("updateTree\n");
 
     // TODO ALEX
@@ -162,6 +162,19 @@ void updateTree(Node * node) {
     // the nodes (internal and leaf) are arranged in order of increasing weights
 
     // http://www.stringology.org/DataCompression/fgk/index_en.html
+
+    Node * nodeToCheck;
+
+    if(isNewNode == TRUE) {
+        nodeToCheck = node->parent->parent;
+    } else {
+        nodeToCheck = node->parent;
+    }
+
+    while(nodeToCheck != NULL && nodeToCheck != adh_root_node) {
+        // ...
+    }
+
 }
 
 /*

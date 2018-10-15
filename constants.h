@@ -22,4 +22,8 @@ static const int CHAR_SIZE = 8;
 static const char BIT_1 = '1';
 static const char BIT_0 = '0';
 
+static const int TRUE = 1;
+static const int FALSE = 0;
+
+
 #endif //ALGO_CONSTANTS_H
