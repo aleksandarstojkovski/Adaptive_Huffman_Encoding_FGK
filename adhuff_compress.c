@@ -140,7 +140,10 @@ void flushData() {
 
     trace("flushData: %d byte\n", buffer_byte_idx);
 
-    //TODO check error code
+    // TODO check error code
     size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
+
+    // reset buffer indexes
     buffer_byte_idx = 0;
+    buffer_bit_idx = 0;
 }
