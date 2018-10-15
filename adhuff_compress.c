@@ -8,7 +8,7 @@
 static const int MAX_CODE_SIZE = 255;
 static const int CHAR_SIZE = 8;
 static unsigned char output_buffer[BLOCK_SIZE];
-static unsigned short buffer_idx = 0;
+static unsigned short buffer_byte_idx = 0;
 static unsigned short buffer_bit_idx = 0;
 
 static FILE * outputFilePtr;
@@ -45,7 +45,7 @@ int compressFile(const char * input_file, const char * output_file) {
 
         destroyTree();
 
-        if(buffer_idx < BLOCK_SIZE) {
+        if(buffer_byte_idx < BLOCK_SIZE) {
             // flush remaining data to file
             flushData();
         }
@@ -112,18 +112,18 @@ void outputBitArray(unsigned char bit_array[], int num_bit) {
 
     for(int i = 0; i<num_bit; i++) {
 
-        buffer_idx = buffer_bit_idx / CHAR_SIZE;
+        buffer_byte_idx = buffer_bit_idx / CHAR_SIZE;
 
         int bit_pos = buffer_bit_idx % CHAR_SIZE;
-        if(bit_array[i] == 1)
-            bit_set_one(&output_buffer[buffer_idx], bit_pos);
+        if(bit_array[i] == BIT_1)
+            bit_set_one(&output_buffer[buffer_byte_idx], bit_pos);
         else
-            bit_set_zero(&output_buffer[buffer_idx], bit_pos);
+            bit_set_zero(&output_buffer[buffer_byte_idx], bit_pos);
 
         buffer_bit_idx++;
 
         // buffer full, flush data to file
-        if(buffer_idx == BLOCK_SIZE) {
+        if(buffer_byte_idx == BLOCK_SIZE) {
             flushData();
         }
     }
@@ -134,9 +134,13 @@ void outputBitArray(unsigned char bit_array[], int num_bit) {
  * flush data to file
  */
 void flushData() {
-    trace("flushData: %d byte\n", buffer_idx);
+    int bit_pos = buffer_bit_idx % CHAR_SIZE;
+    if(bit_pos > 1)
+        buffer_byte_idx++;
+
+    trace("flushData: %d byte\n", buffer_byte_idx);
 
     //TODO check error code
-    size_t bytesWritten = fwrite(output_buffer, buffer_idx, 1, outputFilePtr);
-    buffer_idx = 0;
+    size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
+    buffer_byte_idx = 0;
 }

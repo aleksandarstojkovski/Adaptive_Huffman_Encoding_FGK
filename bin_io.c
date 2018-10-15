@@ -5,6 +5,12 @@
 
 #include "bin_io.h"
 
+/*
+ * Global variables
+ */
+const char BIT_1 = '1';
+const char BIT_0 = '0';
+
 FILE* openReadBinary(const char * filename) {
     FILE * filePtr = fopen(filename, "rb");
     if(filePtr == NULL) {
@@ -20,7 +26,6 @@ FILE* openWriteBinary(const char * filename) {
     }
     return filePtr;
 }
-
 
 /*
  *  Read a binary file in chunk
@@ -47,7 +52,7 @@ int readBinaryFile(const char *filename, void (*processChar)(char)) {
 void traceCharBin(char ch) {
     for (int bitPos = 7; bitPos >= 0; --bitPos) {
         char val = bit_check(ch, bitPos);
-        putchar(val ? '1' : '0');
+        putchar(val);
     }
     printf("\n");
 }
@@ -67,11 +72,11 @@ void trace(const char *msg, ...) {
 
 
 /*
- * Bit manipulation functions
+ * return '1' if the bit at bit_pos is 1, otherwise '0'
  */
 char bit_check(char ch, int bit_pos) {
     char val = (ch & (1 << bit_pos));
-    return val;
+    return val ? BIT_1 : BIT_0;
 }
 
 void bit_set_one(unsigned char * ch, int bit_pos) {
