@@ -3,13 +3,6 @@
 
 #include <stdio.h>
 
-
-enum { BLOCK_SIZE = 1024 };
-
-const char BIT_1;
-const char BIT_0;
-
-
 FILE* openReadBinary(const char * filename);
 FILE* openWriteBinary(const char * filename);
 

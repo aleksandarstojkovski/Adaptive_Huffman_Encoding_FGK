@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "constants.h"
 #include "node.h"
 #include "bin_io.h"
 
@@ -8,8 +9,6 @@
 /*
  * module variables
  */
-static const unsigned short MAX_ORDER = 512;
-static const short ADH_NYT_CODE = 256;
 
 static unsigned short _nextOrder = MAX_ORDER;
 static Node * adh_root_node = NULL;
@@ -23,11 +22,11 @@ int initializeTree() {
 
     if(adh_root_node != NULL) {
         perror("root already initialized");
-        return 1;
+        return RC_FAIL;
     }
 
     adh_nyt_node = adh_root_node = createNYT();
-    return 0;
+    return RC_OK;
 }
 
 /*
@@ -179,7 +178,7 @@ int getSymbolCode(short ch, unsigned char bit_array[]) {
         Node * parent = node->parent;
         while(parent != NULL) {
             // 0 = left node, 1 = right node
-            bit_array[bit_size] = parent->right == node ? 1 : 0;
+            bit_array[bit_size] = parent->right == node ? BIT_1 : BIT_0;
             bit_size++;
             node = parent;
             parent = parent->parent;

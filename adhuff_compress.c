@@ -1,12 +1,11 @@
 #include "adhuff_compress.h"
+#include "constants.h"
 #include "bin_io.h"
 #include "node.h"
 
 /*
  * modules variables
  */
-static const int MAX_CODE_SIZE = 255;
-static const int CHAR_SIZE = 8;
 static unsigned char output_buffer[BLOCK_SIZE];
 static unsigned short buffer_byte_idx = 0;
 static unsigned short buffer_bit_idx = 0;

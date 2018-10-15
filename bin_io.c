@@ -3,13 +3,12 @@
 #include <string.h>
 #include <zconf.h>
 
+#include "constants.h"
 #include "bin_io.h"
 
 /*
  * Global variables
  */
-const char BIT_1 = '1';
-const char BIT_0 = '0';
 
 FILE* openReadBinary(const char * filename) {
     FILE * filePtr = fopen(filename, "rb");
