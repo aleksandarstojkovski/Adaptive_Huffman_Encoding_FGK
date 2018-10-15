@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+
 FILE* openReadBinary(const char * filename);
 FILE* openWriteBinary(const char * filename);
 

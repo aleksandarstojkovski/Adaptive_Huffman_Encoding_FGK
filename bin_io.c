@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zconf.h>
+#include <stdarg.h>
 
 #include "constants.h"
 #include "bin_io.h"
