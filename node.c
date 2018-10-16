@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "constants.h"
 #include "node.h"
 #include "bin_io.h"
 
@@ -66,7 +65,7 @@ void destroyNode(Node * node) {
  * Append a new node to the NYT
  * Must be used only for new for symbols (not present in the tree)
  */
-Node * createNodeAndAppend(short value) {
+Node * createNodeAndAppend(unsigned short value) {
     trace("createNodeAndAppend\n");
 
     // old NYT should be increased to weight 1
@@ -104,7 +103,7 @@ Node * createNYT() {
 /*
  * Create a new Node in the heap.
  */
-Node * createNode(short value) {
+Node * createNode(unsigned short value) {
     trace("createNode: %d\n", _nextOrder);
 
     Node* node = malloc (sizeof(Node));
@@ -121,7 +120,7 @@ Node * createNode(short value) {
 /*
  * Search Char in Tree
  */
-Node * searchCharFromNode(Node * node, short ch) {
+Node * searchCharFromNode(Node * node, unsigned short ch) {
     trace("searchCharFromNode\n");
 
     if (node->value == ch){
@@ -145,7 +144,7 @@ Node * searchCharFromNode(Node * node, short ch) {
 /*
  * Search Char in Tree
  */
-Node * searchCharInTree(short ch) {
+Node * searchCharInTree(unsigned short ch) {
     trace("searchCharInTree\n");
 
     return searchCharFromNode(adh_root_node, ch);
@@ -154,7 +153,7 @@ Node * searchCharInTree(short ch) {
 /*
  * Update Tree
  */
-void updateTree(Node * node, int isNewNode) {
+void updateTree(Node * node, bool isNewNode) {
     trace("updateTree\n");
 
     // TODO ALEX
@@ -165,7 +164,7 @@ void updateTree(Node * node, int isNewNode) {
 
     Node * nodeToCheck;
 
-    if(isNewNode == TRUE) {
+    if(isNewNode == true) {
         nodeToCheck = node->parent->parent;
     } else {
         nodeToCheck = node->parent;
@@ -183,7 +182,7 @@ void updateTree(Node * node, int isNewNode) {
  * the number of bit to read is returned
  * 0 = left node, 1 = right node
  */
-int getSymbolCode(short ch, unsigned char bit_array[]) {
+int getSymbolCode(unsigned short ch, unsigned char bit_array[]) {
     int bit_size = 0;
     Node * node = searchCharInTree(ch);
 

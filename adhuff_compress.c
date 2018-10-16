@@ -7,17 +7,19 @@
  * modules variables
  */
 static unsigned char output_buffer[BLOCK_SIZE];
-static unsigned short buffer_byte_idx = 0;
-static unsigned short buffer_bit_idx = 0;
+static unsigned short buffer_bit_idx;
 
 static FILE * outputFilePtr;
 static FILE * inputFilePtr;
+
+void flushHeader();
 
 /*
  * Compress file
  */
 int compressFile(const char * input_file, const char * output_file) {
     trace("compressFile: %s ...\n", input_file);
+    buffer_bit_idx = HEADER_BITS;
 
     inputFilePtr = openReadBinary(input_file);
     if (inputFilePtr == NULL) {
@@ -45,16 +47,29 @@ int compressFile(const char * input_file, const char * output_file) {
 
         destroyTree();
 
-        if(buffer_byte_idx < BLOCK_SIZE) {
+        if(buffer_bit_idx > 0) {
             // flush remaining data to file
             flushData();
         }
+
+        flushHeader();
     }
 
     fclose(outputFilePtr);
     fclose(inputFilePtr);
 
     return rc;
+}
+
+
+void flushHeader() {
+    rewind(outputFilePtr);
+
+    first_byte_union first_byte;
+    first_byte.raw = fgetc(outputFilePtr);
+    first_byte.split.header = buffer_bit_idx % CHAR_BIT;
+
+    fwrite(&first_byte.raw, 1, 1, outputFilePtr);
 }
 
 /*
@@ -76,7 +91,7 @@ void processChar(unsigned char ch) {
         // write symbol code
         outputChar(ch);
         node = createNodeAndAppend(ch);
-        updateTree(node, TRUE);
+        updateTree(node, true);
     } else {
         // char already present in tree
 
@@ -86,7 +101,7 @@ void processChar(unsigned char ch) {
         // write symbol code
         int num_bit = getSymbolCode(ch, bit_array);
         outputBitArray(bit_array, num_bit);
-        updateTree(node, FALSE);
+        updateTree(node, false);
     }
 
 }
@@ -97,12 +112,12 @@ void processChar(unsigned char ch) {
 void outputChar(unsigned char ch) {
     traceCharBinMsg("outputChar: ", ch);
 
-    unsigned char bit_array[CHAR_SIZE];
-    for (int bitPos = CHAR_SIZE-1; bitPos >= 0; --bitPos) {
+    unsigned char bit_array[CHAR_BIT];
+    for (int bitPos = CHAR_BIT-1; bitPos >= 0; --bitPos) {
         char val = bit_check(ch, bitPos);
         bit_array[bitPos] = val;
     }
-    outputBitArray(bit_array, CHAR_SIZE);
+    outputBitArray(bit_array, CHAR_BIT);
 }
 
 
@@ -114,19 +129,25 @@ void outputBitArray(unsigned char bit_array[], int num_bit) {
 
     for(int i = 0; i<num_bit; i++) {
 
-        buffer_byte_idx = buffer_bit_idx / CHAR_SIZE;
+        // calculate the current position (in byte) of the output_buffer
+        unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
 
-        int bit_pos = buffer_bit_idx % CHAR_SIZE;
+        // calculate which bit to change in the byte
+        int bit_to_change = buffer_bit_idx % CHAR_BIT;
+
         if(bit_array[i] == BIT_1)
-            bit_set_one(&output_buffer[buffer_byte_idx], bit_pos);
+            bit_set_one(&output_buffer[buffer_byte_idx], bit_to_change);
         else
-            bit_set_zero(&output_buffer[buffer_byte_idx], bit_pos);
+            bit_set_zero(&output_buffer[buffer_byte_idx], bit_to_change);
 
         buffer_bit_idx++;
 
         // buffer full, flush data to file
-        if(buffer_byte_idx == BLOCK_SIZE) {
+        if(buffer_bit_idx == BLOCK_SIZE * CHAR_BIT) {
             flushData();
+
+            // reset buffer index
+            buffer_bit_idx = bit_to_change;
         }
     }
 }
@@ -136,16 +157,13 @@ void outputBitArray(unsigned char bit_array[], int num_bit) {
  * flush data to file
  */
 void flushData() {
-    int bit_pos = buffer_bit_idx % CHAR_SIZE;
-    if(bit_pos > 1)
-        buffer_byte_idx++;
+    trace("flushData: %d bits\n", buffer_bit_idx);
 
-    trace("flushData: %d byte\n", buffer_byte_idx);
+    unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
+    unsigned short spare_bits = buffer_bit_idx % CHAR_BIT;
+    if(spare_bits > 1)
+        buffer_byte_idx++;
 
     // TODO check error code
     size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
-
-    // reset buffer indexes
-    buffer_byte_idx = 0;
-    buffer_bit_idx = 0;
 }

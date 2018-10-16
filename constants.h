@@ -5,6 +5,9 @@
 #ifndef ALGO_CONSTANTS_H
 #define ALGO_CONSTANTS_H
 
+#include <limits.h>
+#include <stdbool.h>
+
 enum {
     BLOCK_SIZE = 1024
 };
@@ -17,13 +20,8 @@ enum {
 static const unsigned short MAX_ORDER = 512;
 static const short ADH_NYT_CODE = 256;
 static const int MAX_CODE_SIZE = 255;
-static const int CHAR_SIZE = 8;
 
 static const char BIT_1 = '1';
 static const char BIT_0 = '0';
-
-static const int TRUE = 1;
-static const int FALSE = 0;
-
 
 #endif //ALGO_CONSTANTS_H
