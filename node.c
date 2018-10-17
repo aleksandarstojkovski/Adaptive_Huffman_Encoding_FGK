@@ -66,7 +66,7 @@ void destroyNode(Node * node) {
  * Must be used only for new for symbols (not present in the tree)
  */
 Node * createNodeAndAppend(unsigned short value) {
-    trace("createNodeAndAppend\n");
+    trace("createNodeAndAppend: value=%c,\n", value);
 
     // old NYT should be increased to weight 1
     adh_nyt_node->weight = 1;
@@ -104,7 +104,7 @@ Node * createNYT() {
  * Create a new Node in the heap.
  */
 Node * createNode(unsigned short value) {
-    trace("createNode: %d\n", _nextOrder);
+    trace("createNode: order=%d, value=%c\n", _nextOrder, value);
 
     Node* node = malloc (sizeof(Node));
     node->left = NULL;
@@ -141,30 +141,28 @@ Node * searchCharFromNode(Node * node, unsigned short ch) {
     return NULL;
 }
 
-Node * searchNodeWithSameWeightAndHigherOrder(Node * inputNode) {
-    trace("searchWeightInTree\n");
-
-    // start node is root node
-    Node* node = adh_root_node;
+Node * searchNodeWithSameWeightAndHigherOrder(Node * node, unsigned int weight, unsigned int order) {
+    trace("searchNodeWithSameWeightAndHigherOrder: weight=%u, order=%u\n",weight,order);
 
     // if current node has same weight and higher order of input node, return it
-    if (node->weight == inputNode->weight && node->order>inputNode->order){
+    if ((node->weight == weight) && (node->order>order) && node != adh_root_node){
         return node;
     }
 
     if(node->left != NULL){
-        Node * leftRes = searchNodeWithSameWeightAndHigherOrder(node->left);
+        Node * leftRes = searchNodeWithSameWeightAndHigherOrder(node->left, weight, order);
         if(leftRes != NULL)
             return leftRes;
     }
 
     if(node->right != NULL){
-        Node * rightRes = searchNodeWithSameWeightAndHigherOrder(node->right);
+        Node * rightRes = searchNodeWithSameWeightAndHigherOrder(node->right, weight, order);
         if(rightRes != NULL)
             return rightRes;
     }
     return NULL;
 }
+
 /*
  * Search Char in Tree
  */
@@ -212,7 +210,7 @@ void swapNodes(Node * node1, Node * node2){
  * Update Tree, fix sibling property
  */
 void updateTree(Node * node, bool isNewNode) {
-    trace("updateTree\n");
+    trace("updateTre: isNewNode=%d\n",isNewNode);
 
     Node * nodeToCheck;
 
@@ -226,7 +224,7 @@ void updateTree(Node * node, bool isNewNode) {
 
     while(nodeToCheck != NULL && nodeToCheck != adh_root_node) {
         // search in tree node with same weight and higher order
-        Node * nodeToBeSwappedWith = searchNodeWithSameWeightAndHigherOrder(nodeToCheck);
+        Node * nodeToBeSwappedWith = searchNodeWithSameWeightAndHigherOrder(adh_root_node,nodeToCheck->weight,nodeToCheck->order);
         // if nodeToBeSwappedWith == NULL, then no swap is needed
         if (nodeToBeSwappedWith != NULL) {
             swapNodes(nodeToCheck, nodeToBeSwappedWith);
