@@ -27,8 +27,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Not enough parameters.\n");
         printUsage();
         rc = 1;
-
-        rc = testReadAllBinaryFiles();
     }
     else if (strcmp(argv[1], "-c") == 0) {
         rc = compressFile(argv[2], argv[3]);

@@ -1,6 +1,8 @@
 #include "adhuff_compress.h"
+#include "adhuff_common.h"
 #include "constants.h"
 #include "bin_io.h"
+#include "node.h"
 #include "node.h"
 
 /*
@@ -10,8 +12,14 @@ static unsigned char output_buffer[BLOCK_SIZE];
 static unsigned short buffer_bit_idx;
 
 static FILE * outputFilePtr;
-static FILE * inputFilePtr;
 
+/*
+ * Private methods
+ */
+void processChar(unsigned char ch);
+void outputBitArray(const unsigned char bit_array[], int num_bit);
+void outputChar(unsigned char ch);
+void flushData();
 void flushHeader();
 
 /*
@@ -21,7 +29,7 @@ int compressFile(const char * input_file, const char * output_file) {
     trace("compressFile: %s ...\n", input_file);
     buffer_bit_idx = HEADER_BITS;
 
-    inputFilePtr = openReadBinary(input_file);
+    FILE * inputFilePtr = openReadBinary(input_file);
     if (inputFilePtr == NULL) {
         return 1;
     }
@@ -65,9 +73,14 @@ int compressFile(const char * input_file, const char * output_file) {
 void flushHeader() {
     rewind(outputFilePtr);
 
+    unsigned char buffer[1];
+    fread(buffer, 1, 1, outputFilePtr);
+
     first_byte_union first_byte;
-    first_byte.raw = fgetc(outputFilePtr);
+    first_byte.raw = buffer[0];
     first_byte.split.header = buffer_bit_idx % CHAR_BIT;
+
+    traceCharBinMsg("flushHeader: ", first_byte.raw);
 
     fwrite(&first_byte.raw, 1, 1, outputFilePtr);
 }
@@ -124,10 +137,10 @@ void outputChar(unsigned char ch) {
 /*
  * copy data to output buffer as bit array
  */
-void outputBitArray(unsigned char bit_array[], int num_bit) {
+void outputBitArray(const unsigned char bit_array[], int num_bit) {
     trace("outputBitArray: %d\n", num_bit);
 
-    for(int i = 0; i<num_bit; i++) {
+    for(int i = num_bit; i>0; i--) {
 
         // calculate the current position (in byte) of the output_buffer
         unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
@@ -163,6 +176,10 @@ void flushData() {
     unsigned short spare_bits = buffer_bit_idx % CHAR_BIT;
     if(spare_bits > 1)
         buffer_byte_idx++;
+
+
+    for(int i=0; i<buffer_byte_idx; i++)
+        traceCharBinMsg("flushData: ", output_buffer[i]);
 
     // TODO check error code
     size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
