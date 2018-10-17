@@ -17,7 +17,7 @@ enum {
     RC_FAIL = 1
 };
 
-static const unsigned short MAX_ORDER = 512;
+#define MAX_ORDER 512;
 static const short ADH_NYT_CODE = 256;
 static const int MAX_CODE_SIZE = 255;
 

@@ -141,6 +141,30 @@ Node * searchCharFromNode(Node * node, unsigned short ch) {
     return NULL;
 }
 
+Node * searchNodeWithSameWeightAndHigherOrder(Node * inputNode) {
+    trace("searchWeightInTree\n");
+
+    // start node is root node
+    Node* node = adh_root_node;
+
+    // if current node has same weight and higher order of input node, return it
+    if (node->weight == inputNode->weight && node->order>inputNode->order){
+        return node;
+    }
+
+    if(node->left != NULL){
+        Node * leftRes = searchNodeWithSameWeightAndHigherOrder(node->left);
+        if(leftRes != NULL)
+            return leftRes;
+    }
+
+    if(node->right != NULL){
+        Node * rightRes = searchNodeWithSameWeightAndHigherOrder(node->right);
+        if(rightRes != NULL)
+            return rightRes;
+    }
+    return NULL;
+}
 /*
  * Search Char in Tree
  */
@@ -151,19 +175,49 @@ Node * searchCharInTree(unsigned short ch) {
 }
 
 /*
- * Update Tree
+ * Swap Nodes
+ */
+void swapNodes(Node * node1, Node * node2){
+
+    // check if node1 is left or right child
+    if (node1->parent->left == node1){
+        //node1 is left child
+        node1->parent->left=node2;
+    } else {
+        //node1 is right child
+        node1->parent->right=node2;
+    }
+
+    // check if node2 is left or right child
+    if (node2->parent->left == node2){
+        //node2 is left child
+        node2->parent->left=node1;
+    } else {
+        //node2 is right child
+        node2->parent->right=node1;
+    }
+
+    // fix their fathers
+    Node *tempNode = node1->parent;
+    node1->parent = node2->parent;
+    node2->parent = tempNode;
+
+    // revert original order, since doesn't need to be swapped
+    int tempOrder = node1->order;
+    node1->order=node2->order;
+    node2->order=tempOrder;
+}
+
+/*
+ * Update Tree, fix sibling property
  */
 void updateTree(Node * node, bool isNewNode) {
     trace("updateTree\n");
 
-    // TODO ALEX
-    // FIX sibling property with swapping
-    // the nodes (internal and leaf) are arranged in order of increasing weights
-
-    // http://www.stringology.org/DataCompression/fgk/index_en.html
-
     Node * nodeToCheck;
 
+    // if node is new it's father is NYT, therefore we don't need to check it
+    // if node is not new, his father needs also to be checked
     if(isNewNode == true) {
         nodeToCheck = node->parent->parent;
     } else {
@@ -171,9 +225,15 @@ void updateTree(Node * node, bool isNewNode) {
     }
 
     while(nodeToCheck != NULL && nodeToCheck != adh_root_node) {
-        // ...
+        // search in tree node with same weight and higher order
+        Node * nodeToBeSwappedWith = searchNodeWithSameWeightAndHigherOrder(nodeToCheck);
+        // if nodeToBeSwappedWith == NULL, then no swap is needed
+        if (nodeToBeSwappedWith != NULL) {
+            swapNodes(nodeToCheck, nodeToBeSwappedWith);
+        }
+        // continue ascending the tree
+        nodeToCheck=nodeToCheck->parent;
     }
-
 }
 
 /*
