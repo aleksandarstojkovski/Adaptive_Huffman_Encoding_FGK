@@ -20,3 +20,8 @@ xxd -b ../test-res/ff_ff_ff
 
 ### ASCII table
 https://en.wikipedia.org/wiki/ASCII
+
+```
+'A' = 01000001
+idx = 01234567
+```

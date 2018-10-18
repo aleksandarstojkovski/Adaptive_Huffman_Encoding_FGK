@@ -32,8 +32,10 @@ FILE* openWriteBinary(const char * filename) {
  */
 int readBinaryFile(const char *filename, void (*processChar)(unsigned char)) {
     FILE * filePtr = openReadBinary(filename);
+    if(filePtr == NULL)
+        return RC_FAIL;
 
-    unsigned char buffer[BLOCK_SIZE];
+    unsigned char buffer[BUFFER_SIZE];
     size_t bytesRead = 0;
     // read up to sizeof(buffer) bytes
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), filePtr)) > 0)
@@ -42,14 +44,14 @@ int readBinaryFile(const char *filename, void (*processChar)(unsigned char)) {
             processChar(buffer[i]);
     }
     fclose(filePtr);
-    return 0;
+    return RC_OK;
 }
 
 /*
  * Diagnostic functions
  */
 void traceCharBin(unsigned char ch) {
-    for (int bitPos = 7; bitPos >= 0; --bitPos) {
+    for (int bitPos = CHAR_BIT-1; bitPos >= 0; --bitPos) {
         char val = bit_check(ch, bitPos);
         putchar(val);
     }
@@ -73,20 +75,20 @@ void trace(const char *msg, ...) {
 /*
  * return '1' if the bit at bit_pos is 1, otherwise '0'
  */
-char bit_check(unsigned char ch, unsigned int bit_pos) {
+char bit_check(unsigned char ch, int bit_pos) {
     unsigned int val = (ch & (1u << bit_pos));
     return val ? BIT_1 : BIT_0;
 }
 
-void bit_set_one(unsigned char * ch, unsigned int bit_pos) {
+void bit_set_one(unsigned char * ch, int bit_pos) {
     *ch |= (1u << bit_pos);
 }
 
-void bit_set_zero(unsigned char * ch, unsigned int bit_pos) {
+void bit_set_zero(unsigned char * ch, int bit_pos) {
     *ch  &= ~(1u << bit_pos);
 }
 
-void bit_copy(unsigned char * byte_to, unsigned char byte_from, unsigned int read_pos, unsigned int write_pos, unsigned int size) {
+void bit_copy(unsigned char * byte_to, unsigned char byte_from, int read_pos, int write_pos, int size) {
     for(unsigned int offset=0; offset < size; offset++) {
 
         unsigned int from = read_pos + offset;

@@ -3,4 +3,4 @@ project(algo C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(algo main.c node.c node.h test.c test.h bin_io.c bin_io.h adhuff_compress.c adhuff_compress.h adhuff_decompress.c adhuff_decompress.h constants.h adhuff_common.h)
+add_executable(algo main.c test.c test.h bin_io.c bin_io.h adhuff_compress.c adhuff_compress.h adhuff_decompress.c adhuff_decompress.h constants.h adhuff_common.h adhuff_common.c)

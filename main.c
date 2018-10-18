@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "node.h"
 #include "test.h"
 
 #include "adhuff_compress.h"

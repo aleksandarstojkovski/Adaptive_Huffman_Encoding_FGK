@@ -1,17 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "node.h"
+#include "adhuff_common.h"
 #include "bin_io.h"
 
-
-/*
- * module variables
- */
+//
+// module variables
+//
 
 static unsigned short _nextOrder = MAX_ORDER;
 static Node * adh_root_node = NULL;
 static Node * adh_nyt_node = NULL;
+
+//
+// private methods
+//
+Node * createNYT();
+Node * createNode(unsigned short value);
+void destroyNode(Node * node);
+Node * searchCharFromNode(Node * node, unsigned short ch);
+
 
 /*
  * Initialize the tree with a single NYT node

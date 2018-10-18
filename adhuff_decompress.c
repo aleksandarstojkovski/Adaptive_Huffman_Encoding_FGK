@@ -4,14 +4,12 @@
 #include "adhuff_common.h"
 #include "constants.h"
 #include "bin_io.h"
-#include "node.h"
-#include "node.h"
 
 /*
  * modules variables
  */
 static FILE * outputFilePtr;
-static unsigned char output_buffer[BLOCK_SIZE];
+static unsigned char output_buffer[BUFFER_SIZE];
 static unsigned short buffer_bit_idx;
 static unsigned int oddBits;
 
@@ -30,12 +28,12 @@ int decompressFile(const char *input_file, const char *output_file) {
 
     FILE * inputFilePtr = openReadBinary(input_file);
     if (inputFilePtr == NULL) {
-        return 1;
+        return RC_FAIL;
     }
 
     outputFilePtr = openWriteBinary(output_file);
     if (outputFilePtr == NULL) {
-        return 1;
+        return RC_FAIL;
     }
 
     int rc = initializeTree();
@@ -47,7 +45,7 @@ int decompressFile(const char *input_file, const char *output_file) {
         bool firstChar = true;
         int byteToRead = 1;
 
-        unsigned char buffer[BLOCK_SIZE];
+        unsigned char buffer[BUFFER_SIZE];
 
         // read up to sizeof(buffer) bytes
         while ((bytesRead = fread(buffer, byteToRead, 1, inputFilePtr)) > 0)

@@ -1,9 +1,11 @@
 #ifndef ALGO_ADHUFF_COMMON_H
 #define ALGO_ADHUFF_COMMON_H
 
-#define HEADER_BITS 3
-#define HEADER_DATA_BITS 5
+#include "constants.h"
 
+/*
+ * Header of compressed file
+ */
 #pragma pack(1)
 typedef struct
 {
@@ -17,6 +19,34 @@ typedef union
     unsigned char raw;
 } first_byte_union;
 #pragma pack()
+
+/*
+ * Node struct
+ */
+struct Node {
+    unsigned short value;
+    unsigned int weight;
+    unsigned short order;
+    struct Node *left;
+    struct Node *right;
+    struct Node *parent;
+};
+typedef struct Node Node;
+
+//
+// public methods
+//
+int     initializeTree();
+void    destroyTree();
+
+void    updateTree(Node * node, bool isNewNode);
+
+Node *  searchCharInTree(unsigned short ch);
+
+Node *  createNodeAndAppend(unsigned short ch);
+
+int     getNYTCode(unsigned char bit_array[]);
+int     getSymbolCode(unsigned short ch, unsigned char bit_array[]);
 
 
 #endif //ALGO_ADHUFF_COMMON_H

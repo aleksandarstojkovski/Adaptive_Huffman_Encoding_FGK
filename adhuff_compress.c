@@ -2,21 +2,19 @@
 #include "adhuff_common.h"
 #include "constants.h"
 #include "bin_io.h"
-#include "node.h"
-#include "node.h"
 
-/*
- * modules variables
- */
-static unsigned char output_buffer[BLOCK_SIZE];
+//
+// modules variables
+//
+static unsigned char output_buffer[BUFFER_SIZE];
 static unsigned short buffer_bit_idx;
 
 static FILE * outputFilePtr;
 
-/*
- * Private methods
- */
-void processChar(unsigned char ch);
+//
+// private methods
+//
+void encodeChar(unsigned char ch);
 void outputBitArray(const unsigned char bit_array[], int num_bit);
 void outputChar(unsigned char ch);
 void flushData();
@@ -31,15 +29,15 @@ int compressFile(const char * input_file, const char * output_file) {
 
     FILE * inputFilePtr = openReadBinary(input_file);
     if (inputFilePtr == NULL) {
-        return 1;
+        return RC_FAIL;
     }
 
     outputFilePtr = openWriteBinary(output_file);
     if (outputFilePtr == NULL) {
-        return 1;
+        return RC_FAIL;
     }
 
-    unsigned char buffer[BLOCK_SIZE];
+    unsigned char buffer[BUFFER_SIZE];
 
     int rc = initializeTree();
     if (rc == 0) {
@@ -49,7 +47,7 @@ int compressFile(const char * input_file, const char * output_file) {
         while ((bytesRead = fread(buffer, 1, sizeof(buffer), inputFilePtr)) > 0)
         {
             for(int i=0;i<bytesRead;i++)
-                processChar(buffer[i]);
+                encodeChar(buffer[i]);
         }
 
 
@@ -69,26 +67,10 @@ int compressFile(const char * input_file, const char * output_file) {
     return rc;
 }
 
-
-void flushHeader() {
-    rewind(outputFilePtr);
-
-    unsigned char buffer[1];
-    fread(buffer, 1, 1, outputFilePtr);
-
-    first_byte_union first_byte;
-    first_byte.raw = buffer[0];
-    first_byte.split.header = buffer_bit_idx % CHAR_BIT;
-
-    traceCharBinMsg("flushHeader: ", first_byte.raw);
-
-    fwrite(&first_byte.raw, 1, 1, outputFilePtr);
-}
-
 /*
- * Process char
+ * encode char
  */
-void processChar(unsigned char ch) {
+void encodeChar(unsigned char ch) {
     traceCharBinMsg("processChar: ", ch);
     unsigned char bit_array[MAX_CODE_SIZE];
 
@@ -125,7 +107,7 @@ void processChar(unsigned char ch) {
 void outputChar(unsigned char ch) {
     traceCharBinMsg("outputChar: ", ch);
 
-    unsigned char bit_array[CHAR_BIT];
+    unsigned char bit_array[CHAR_BIT+1];
     for (int bitPos = CHAR_BIT-1; bitPos >= 0; --bitPos) {
         char val = bit_check(ch, bitPos);
         bit_array[bitPos] = val;
@@ -140,13 +122,13 @@ void outputChar(unsigned char ch) {
 void outputBitArray(const unsigned char bit_array[], int num_bit) {
     trace("outputBitArray: %d\n", num_bit);
 
-    for(int i = num_bit; i>0; i--) {
+    for(int i = num_bit-1; i>=0; i--) {
 
         // calculate the current position (in byte) of the output_buffer
         unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
 
         // calculate which bit to change in the byte
-        int bit_to_change = buffer_bit_idx % CHAR_BIT;
+        unsigned int bit_to_change = CHAR_BIT - 1 - (buffer_bit_idx % CHAR_BIT);
 
         if(bit_array[i] == BIT_1)
             bit_set_one(&output_buffer[buffer_byte_idx], bit_to_change);
@@ -156,7 +138,7 @@ void outputBitArray(const unsigned char bit_array[], int num_bit) {
         buffer_bit_idx++;
 
         // buffer full, flush data to file
-        if(buffer_bit_idx == BLOCK_SIZE * CHAR_BIT) {
+        if(buffer_bit_idx == BUFFER_SIZE * CHAR_BIT) {
             flushData();
 
             // reset buffer index
@@ -183,4 +165,22 @@ void flushData() {
 
     // TODO check error code
     size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
+}
+
+/*
+ * flush header to file
+ */
+void flushHeader() {
+    rewind(outputFilePtr);
+
+    unsigned char buffer[1];
+    fread(buffer, 1, 1, outputFilePtr);
+
+    first_byte_union first_byte;
+    first_byte.raw = buffer[0];
+    first_byte.split.header = buffer_bit_idx % CHAR_BIT;
+
+    traceCharBinMsg("flushHeader: ", first_byte.raw);
+
+    fwrite(&first_byte.raw, 1, 1, outputFilePtr);
 }
