@@ -31,7 +31,7 @@ int decompressFile(const char *input_file, const char *output_file) {
         return RC_FAIL;
     }
 
-    outputFilePtr = openWriteBinary(output_file);
+    outputFilePtr = openCreateBinary(output_file);
     if (outputFilePtr == NULL) {
         return RC_FAIL;
     }

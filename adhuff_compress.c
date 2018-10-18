@@ -10,6 +10,7 @@ static unsigned char output_buffer[BUFFER_SIZE];
 static unsigned short buffer_bit_idx;
 
 static FILE * outputFilePtr;
+static char firstByteWritten;
 
 //
 // private methods
@@ -17,8 +18,8 @@ static FILE * outputFilePtr;
 void encodeChar(unsigned char ch);
 void outputBitArray(const unsigned char bit_array[], int num_bit);
 void outputChar(unsigned char ch);
-void flushData();
-void flushHeader();
+int flushData();
+int flushHeader();
 
 /*
  * Compress file
@@ -32,7 +33,7 @@ int compressFile(const char * input_file, const char * output_file) {
         return RC_FAIL;
     }
 
-    outputFilePtr = openWriteBinary(output_file);
+    outputFilePtr = openCreateBinary(output_file);
     if (outputFilePtr == NULL) {
         return RC_FAIL;
     }
@@ -55,10 +56,20 @@ int compressFile(const char * input_file, const char * output_file) {
 
         if(buffer_bit_idx > 0) {
             // flush remaining data to file
-            flushData();
+            rc = flushData();
+            if (rc == RC_FAIL) {
+                return rc;
+            }
         }
 
-        flushHeader();
+        // close and reopen in update mode
+        fclose(outputFilePtr);
+
+        outputFilePtr = openUpdateBinary(output_file);
+        if (outputFilePtr == NULL) {
+            return RC_FAIL;
+        }
+        rc = flushHeader();
     }
 
     fclose(outputFilePtr);
@@ -151,7 +162,8 @@ void outputBitArray(const unsigned char bit_array[], int num_bit) {
 /*
  * flush data to file
  */
-void flushData() {
+int flushData() {
+    static bool isFirstByte = true;
     trace("flushData: %d bits\n", buffer_bit_idx);
 
     unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
@@ -159,42 +171,44 @@ void flushData() {
     if(spare_bits > 1)
         buffer_byte_idx++;
 
-
     for(int i=0; i<buffer_byte_idx; i++)
         traceCharBinMsg("flushData: ", output_buffer[i]);
 
-    // TODO check error code
-    fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
-    fflush(outputFilePtr);
+    size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
+    if(bytesWritten == 0) {
+        perror("failed to overwrite first byte");
+        return RC_FAIL;
+    }
+
+    if(isFirstByte) {
+        firstByteWritten = output_buffer[0];
+        isFirstByte = false;
+    }
 }
 
 /*
  * flush header to file
  */
-void flushHeader() {
-    if ( fseek(outputFilePtr, 0L, SEEK_SET) != 0 ) {
-        perror("error moving to beginning");
-    }
-
-    //rewind(outputFilePtr);
-
-    unsigned char buffer[2];
-    size_t bytesRead = fread(buffer, 1, 1, outputFilePtr);
-    if(bytesRead == 0)
-        perror("failed to read first byte");
-
-    traceCharBinMsg("flushHeader ori: ", buffer[0]);
+int flushHeader() {
+    traceCharBinMsg("flushHeader ori: ", firstByteWritten);
 
     first_byte_union first_byte;
-    first_byte.raw = buffer[0];
+    first_byte.raw = firstByteWritten;
     first_byte.split.header = buffer_bit_idx % CHAR_BIT;
 
     traceCharBinMsg("flushHeader hdr: ", first_byte.raw);
-    //fwrite(&first_byte.raw, 1, 1, outputFilePtr);
+    fputc(first_byte.raw, outputFilePtr);
 
-    buffer[0] = first_byte.raw;
-    traceCharBinMsg("flushHeader hdr: ", buffer[0]);
+    if ( fseek(outputFilePtr, 0L, SEEK_SET) != 0 ) {
+        perror("error moving to beginning");
+        return RC_FAIL;
+    }
 
-    fwrite(buffer, 1, 1, outputFilePtr);
-    fflush(outputFilePtr);
+    size_t bytesWritten = fwrite(&first_byte.raw, 1, 1, outputFilePtr);
+    if(bytesWritten == 0) {
+        perror("failed to overwrite first byte");
+        return RC_FAIL;
+    }
+
+    return RC_OK;
 }

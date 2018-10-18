@@ -7,7 +7,8 @@
 // public methods
 //
 FILE* openReadBinary(const char * filename);
-FILE* openWriteBinary(const char * filename);
+FILE* openCreateBinary(const char *filename);
+FILE* openUpdateBinary(const char * filename);
 
 int readBinaryFile(const char *filename, void (*processChar)(unsigned char));
 

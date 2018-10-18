@@ -18,13 +18,22 @@ FILE* openReadBinary(const char * filename) {
     return filePtr;
 }
 
-FILE* openWriteBinary(const char * filename) {
-    FILE * filePtr = fopen(filename, "wb+");
+FILE* openCreateBinary(const char *filename) {
+    FILE * filePtr = fopen(filename, "wb");
     if(filePtr == NULL) {
-        perror("cannot open file in [wb+] mode");
+        perror("cannot open file in [wb] mode");
     }
     return filePtr;
 }
+
+FILE* openUpdateBinary(const char * filename) {
+    FILE * filePtr = fopen(filename, "rb+");
+    if(filePtr == NULL) {
+        perror("cannot open file in [rb+] mode");
+    }
+    return filePtr;
+}
+
 
 /*
  *  Read a binary file in chunk
