@@ -19,9 +19,9 @@ FILE* openReadBinary(const char * filename) {
 }
 
 FILE* openWriteBinary(const char * filename) {
-    FILE * filePtr = fopen(filename, "wb");
+    FILE * filePtr = fopen(filename, "wb+");
     if(filePtr == NULL) {
-        perror("cannot open file in [wb] mode");
+        perror("cannot open file in [wb+] mode");
     }
     return filePtr;
 }

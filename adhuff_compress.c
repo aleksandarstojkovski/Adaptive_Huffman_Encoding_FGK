@@ -164,23 +164,37 @@ void flushData() {
         traceCharBinMsg("flushData: ", output_buffer[i]);
 
     // TODO check error code
-    size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
+    fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
+    fflush(outputFilePtr);
 }
 
 /*
  * flush header to file
  */
 void flushHeader() {
-    rewind(outputFilePtr);
+    if ( fseek(outputFilePtr, 0L, SEEK_SET) != 0 ) {
+        perror("error moving to beginning");
+    }
 
-    unsigned char buffer[1];
-    fread(buffer, 1, 1, outputFilePtr);
+    //rewind(outputFilePtr);
+
+    unsigned char buffer[2];
+    size_t bytesRead = fread(buffer, 1, 1, outputFilePtr);
+    if(bytesRead == 0)
+        perror("failed to read first byte");
+
+    traceCharBinMsg("flushHeader ori: ", buffer[0]);
 
     first_byte_union first_byte;
     first_byte.raw = buffer[0];
     first_byte.split.header = buffer_bit_idx % CHAR_BIT;
 
-    traceCharBinMsg("flushHeader: ", first_byte.raw);
+    traceCharBinMsg("flushHeader hdr: ", first_byte.raw);
+    //fwrite(&first_byte.raw, 1, 1, outputFilePtr);
 
-    fwrite(&first_byte.raw, 1, 1, outputFilePtr);
+    buffer[0] = first_byte.raw;
+    traceCharBinMsg("flushHeader hdr: ", buffer[0]);
+
+    fwrite(buffer, 1, 1, outputFilePtr);
+    fflush(outputFilePtr);
 }

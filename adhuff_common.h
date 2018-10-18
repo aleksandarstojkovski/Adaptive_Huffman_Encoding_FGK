@@ -9,8 +9,8 @@
 #pragma pack(1)
 typedef struct
 {
-    unsigned int header: HEADER_BITS;       // bits for header
     unsigned int data: HEADER_DATA_BITS;    // rest of the bits for data
+    unsigned int header: HEADER_BITS;       // bits for header
 } first_byte_struct;
 
 typedef union
