@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "test.h"
-
 #include "adhuff_compress.h"
 #include "adhuff_decompress.h"
 
@@ -32,9 +30,6 @@ int main(int argc, char* argv[])
     }
     else if (strcmp(argv[1], "-d") == 0) {
         rc = decompressFile(argv[2], argv[3]);
-    }
-    else if (strcmp(argv[1], "-t") == 0) {
-        rc = testReadBinaryFile(argv[2]);
     }
     else {
         fprintf(stderr, "Unexpected argument\n");

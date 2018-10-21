@@ -184,6 +184,7 @@ int flushData() {
         firstByteWritten = output_buffer[0];
         isFirstByte = false;
     }
+    return RC_OK;
 }
 
 /*

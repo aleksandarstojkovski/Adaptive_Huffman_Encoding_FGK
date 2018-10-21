@@ -2,19 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "constants.h"
-#include "test.h"
-#include "bin_io.h"
+#include "../constants.h"
+#include "../bin_io.h"
 
 #define NUM_TEST_FILES  7
 
+int testReadAllBinaryFiles();
+int testReadBinaryFile(const char *filename);
+
 static const char * TEST_FILES[NUM_TEST_FILES] = {
-        "../test-res/ff_ff_ff",
-        "../test-res/alice.txt",
-        "../test-res/empty",
-        "../test-res/32k_random",
-        "../test-res/32k_ff",
-        "../test-res/immagine.tiff",
+        "../../test-res/ff_ff_ff",
+        "../../test-res/alice.txt",
+        "../../test-res/empty",
+        "../../test-res/32k_random",
+        "../../test-res/32k_ff",
+        "../../test-res/immagine.tiff",
         "a-bad-filename" };
 
 /*
@@ -44,4 +46,11 @@ int testReadBinaryFile(const char *filename) {
     getchar();
 
     return rc;
+}
+
+/*
+ * Main function
+ */
+int main(int argc, char* argv[]) {
+    testReadAllBinaryFiles();
 }
