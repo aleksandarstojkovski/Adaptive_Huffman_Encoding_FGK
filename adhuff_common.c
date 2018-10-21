@@ -19,7 +19,7 @@ Node * createNYT();
 Node * createNode(unsigned short value);
 void destroyNode(Node * node);
 Node * searchCharFromNode(Node * node, unsigned short ch);
-
+int getNodeCode(Node *node, unsigned char *bit_array);
 
 /*
  * Initialize the tree with a single NYT node
@@ -96,7 +96,7 @@ Node * createNodeAndAppend(unsigned short value) {
     // the new left node is the new NYT node
     adh_nyt_node = newNYT;
     // reset old NYT value, since is not a NYT anymore
-    newNYT->parent->value=0;
+    newNYT->parent->value = ADH_OLD_NYT_CODE;
 
     return newNode;
 }
@@ -251,9 +251,13 @@ void updateTree(Node * node, bool isNewNode) {
  * 0 = left node, 1 = right node
  */
 int getSymbolCode(unsigned short ch, unsigned char bit_array[]) {
-    int bit_size = 0;
     Node * node = searchCharInTree(ch);
 
+    return getNodeCode(node, bit_array);
+}
+
+int getNodeCode(Node *node, unsigned char *bit_array) {
+    int bit_size = 0;
     if(node != NULL) {
         Node * parent = node->parent;
         while(parent != NULL) {
@@ -271,5 +275,5 @@ int getSymbolCode(unsigned short ch, unsigned char bit_array[]) {
  * getSymbolCode for NYT
  */
 int getNYTCode(unsigned char bit_array[]) {
-    return getSymbolCode(ADH_NYT_CODE, bit_array);
+    return getNodeCode(adh_nyt_node, bit_array);
 }
