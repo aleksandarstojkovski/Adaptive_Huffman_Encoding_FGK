@@ -95,6 +95,8 @@ Node * createNodeAndAppend(unsigned short value) {
 
     // the new left node is the new NYT node
     adh_nyt_node = newNYT;
+    // reset old NYT value, since is not a NYT anymore
+    newNYT->parent->value=0;
 
     return newNode;
 }
