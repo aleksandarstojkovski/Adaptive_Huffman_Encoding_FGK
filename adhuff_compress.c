@@ -6,7 +6,7 @@
 //
 // modules variables
 //
-static unsigned char output_buffer[BUFFER_SIZE];
+static unsigned char output_buffer[BUFFER_SIZE] = {0};
 static unsigned short buffer_bit_idx;
 
 static FILE * outputFilePtr;
@@ -38,7 +38,7 @@ int compressFile(const char * input_file, const char * output_file) {
         return RC_FAIL;
     }
 
-    unsigned char buffer[BUFFER_SIZE];
+    unsigned char buffer[BUFFER_SIZE] = {0};
 
     int rc = initializeTree();
     if (rc == 0) {

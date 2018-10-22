@@ -9,7 +9,7 @@
  * modules variables
  */
 static FILE * outputFilePtr;
-static unsigned char output_buffer[BUFFER_SIZE];
+static unsigned char output_buffer[BUFFER_SIZE] = {0};
 static unsigned short buffer_bit_idx;
 static unsigned int oddBits;
 
@@ -43,7 +43,7 @@ int decompressFile(const char *input_file, const char *output_file) {
         bool firstChar = true;
         int byteToRead = 1;
 
-        unsigned char input_buffer[BUFFER_SIZE];
+        unsigned char input_buffer[BUFFER_SIZE] = { 0 };
 
         // read up to sizeof(buffer) bytes
         size_t bytesRead = 0;
@@ -83,5 +83,6 @@ void readHeader(FILE *inputFilePtr) {
     first_byte.raw = buffer[0];
 
     oddBits = first_byte.split.header;
-    output_buffer[0] = first_byte.split.data;
+
+    bit_copy(&output_buffer[0], first_byte.split.data, 0, HEADER_BITS, HEADER_DATA_BITS);
 }
