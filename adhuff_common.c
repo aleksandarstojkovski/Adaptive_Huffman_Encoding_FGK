@@ -20,6 +20,7 @@ Node * createNode(unsigned short value);
 void destroyNode(Node * node);
 Node * searchCharFromNode(Node * node, unsigned short ch);
 int getNodeCode(Node *node, unsigned char *bit_array);
+int getNodeLevel(Node *node);
 
 /*
  * Initialize the tree with a single NYT node
@@ -256,19 +257,32 @@ int getSymbolCode(unsigned short ch, unsigned char bit_array[]) {
     return getNodeCode(node, bit_array);
 }
 
-int getNodeCode(Node *node, unsigned char *bit_array) {
+int getNodeCode(Node *node, unsigned char bit_array[]) {
     int bit_size = 0;
     if(node != NULL) {
-        Node * parent = node->parent;
+        bit_size = getNodeLevel(node);
+
+        int bit_idx = bit_size - 1;
+        Node * parent= node->parent;
         while(parent != NULL) {
             // 0 = left node, 1 = right node
-            bit_array[bit_size] = parent->right == node ? BIT_1 : BIT_0;
-            bit_size++;
+            bit_array[bit_idx] = (parent->right == node) ? BIT_1 : BIT_0;
+            bit_idx--;
             node = parent;
             parent = parent->parent;
         }
     }
     return bit_size;
+}
+
+int getNodeLevel(Node *node) {
+    int level = 0;
+    Node * parent = node->parent;
+    while(parent != NULL) {
+        level++;
+        parent = parent->parent;
+    }
+    return level;
 }
 
 /*
