@@ -168,17 +168,18 @@ int flushData() {
     static bool isFirstByte = true;
     trace("flushData: %d bits\n", buffer_bit_idx);
 
-    unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
-    unsigned short bitsToIgnore = getBitsToIgnore();
-    if(bitsToIgnore > 1)
-        buffer_byte_idx++;
+    unsigned int bytesToWrite = buffer_bit_idx / CHAR_BIT;
 
-    for(int i=0; i<=buffer_byte_idx; i++)
+    unsigned short bitsToIgnore = getBitsToIgnore();
+    if(bitsToIgnore > 0)
+        bytesToWrite++;
+
+    for(int i=0; i<bytesToWrite; i++)
         traceCharBinMsg("", output_buffer[i]);
 
-    size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
-    if(bytesWritten == 0) {
-        perror("failed to overwrite first byte");
+    size_t bytesWritten = fwrite(output_buffer, sizeof(unsigned char), bytesToWrite, outputFilePtr);
+    if(bytesWritten != bytesToWrite) {
+        perror("failed to write compressed file");
         return RC_FAIL;
     }
 
