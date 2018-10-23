@@ -49,6 +49,9 @@ int decompressFile(const char *input_file, const char *output_file) {
         size_t bytesRead = 0;
         while ((bytesRead = fread(input_buffer, byteToRead, 1, inputFilePtr)) > 0)
         {
+            if(bytesRead != byteToRead)
+                perror("bytesRead != byteToRead");
+
             if(firstChar == true) {
                 // not coded byte
                 bit_copy(&output_buffer[0], input_buffer[0], HEADER_DATA_BITS, 0, HEADER_BITS);
@@ -61,6 +64,8 @@ int decompressFile(const char *input_file, const char *output_file) {
 
         unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
         size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
+        if(bytesWritten != buffer_byte_idx)
+            perror("bytesWritten != buffer_byte_idx");
 
 
         destroyTree();
@@ -76,11 +81,11 @@ int decompressFile(const char *input_file, const char *output_file) {
  * read header
  */
 void readHeader(FILE *inputFilePtr) {
-    unsigned char buffer[1];
-    fread(buffer, 1, 1, inputFilePtr);
+    unsigned char header;
+    fread(&header, 1, 1, inputFilePtr);
 
     first_byte_union first_byte;
-    first_byte.raw = buffer[0];
+    first_byte.raw = header;
 
     oddBits = first_byte.split.header;
 

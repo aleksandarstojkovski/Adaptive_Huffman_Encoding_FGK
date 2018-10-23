@@ -44,7 +44,7 @@ int readBinaryFile(const char *filename, void (*processChar)(unsigned char)) {
     if(filePtr == NULL)
         return RC_FAIL;
 
-    unsigned char buffer[BUFFER_SIZE];
+    unsigned char buffer[BUFFER_SIZE] = { 0 };
     size_t bytesRead = 0;
     // read up to sizeof(buffer) bytes
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), filePtr)) > 0)

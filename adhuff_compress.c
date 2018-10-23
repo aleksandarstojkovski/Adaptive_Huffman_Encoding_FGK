@@ -21,6 +21,8 @@ void outputChar(unsigned char ch);
 int flushData();
 int flushHeader();
 
+int getBitsToIgnore();
+
 /*
  * Compress file
  */
@@ -83,7 +85,7 @@ int compressFile(const char * input_file, const char * output_file) {
  */
 void encodeChar(unsigned char ch) {
     traceCharBinMsg("processChar: ", ch);
-    unsigned char bit_array[MAX_CODE_SIZE];
+    unsigned char bit_array[MAX_CODE_SIZE] = { 0 };
 
     Node* node = searchCharInTree(ch);
 
@@ -118,7 +120,7 @@ void encodeChar(unsigned char ch) {
 void outputChar(unsigned char ch) {
     traceCharBinMsg("outputChar: ", ch);
 
-    unsigned char bit_array[CHAR_BIT+1];
+    unsigned char bit_array[CHAR_BIT] = { 0 };
     for (int bitPos = CHAR_BIT-1; bitPos >= 0; --bitPos) {
         char val = bit_check(ch, bitPos);
         bit_array[bitPos] = val;
@@ -167,12 +169,12 @@ int flushData() {
     trace("flushData: %d bits\n", buffer_bit_idx);
 
     unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
-    unsigned short spare_bits = buffer_bit_idx % CHAR_BIT;
-    if(spare_bits > 1)
+    unsigned short bitsToIgnore = getBitsToIgnore();
+    if(bitsToIgnore > 1)
         buffer_byte_idx++;
 
-    for(int i=0; i<buffer_byte_idx; i++)
-        traceCharBinMsg("flushData: ", output_buffer[i]);
+    for(int i=0; i<=buffer_byte_idx; i++)
+        traceCharBinMsg("", output_buffer[i]);
 
     size_t bytesWritten = fwrite(output_buffer, buffer_byte_idx, 1, outputFilePtr);
     if(bytesWritten == 0) {
@@ -187,6 +189,8 @@ int flushData() {
     return RC_OK;
 }
 
+int getBitsToIgnore() { return CHAR_BIT - (buffer_bit_idx % CHAR_BIT); }
+
 /*
  * flush header to file
  */
@@ -195,7 +199,7 @@ int flushHeader() {
 
     first_byte_union first_byte;
     first_byte.raw = firstByteWritten;
-    first_byte.split.header = buffer_bit_idx % CHAR_BIT;
+    first_byte.split.header = getBitsToIgnore();
 
     traceCharBinMsg("flushHeader hdr: ", first_byte.raw);
     fputc(first_byte.raw, outputFilePtr);
