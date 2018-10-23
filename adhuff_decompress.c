@@ -11,7 +11,7 @@
 static FILE * outputFilePtr;
 static unsigned char output_buffer[BUFFER_SIZE] = {0};
 static unsigned short buffer_bit_idx;
-static unsigned int oddBits;
+static unsigned int bitsToIgnore;
 
 /*
  * Private methods
@@ -24,7 +24,6 @@ void readHeader(FILE *inputFilePtr);
 int decompressFile(const char *input_file, const char *output_file) {
     trace("decompressFile: %s ...\n", input_file);
     buffer_bit_idx = HEADER_BITS;
-    oddBits = 0;
 
     FILE * inputFilePtr = openReadBinary(input_file);
     if (inputFilePtr == NULL) {
@@ -44,6 +43,7 @@ int decompressFile(const char *input_file, const char *output_file) {
         int byteToRead = 1;
 
         unsigned char input_buffer[BUFFER_SIZE] = { 0 };
+        unsigned char bit_array[MAX_CODE_SIZE] = { 0 };
 
         // read up to sizeof(buffer) bytes
         size_t bytesRead = 0;
@@ -57,8 +57,21 @@ int decompressFile(const char *input_file, const char *output_file) {
                 bit_copy(&output_buffer[0], input_buffer[0], HEADER_DATA_BITS, 0, HEADER_BITS);
                 buffer_bit_idx = CHAR_BIT;
                 firstChar = false;
+
+                Node * node = createNodeAndAppend(output_buffer[0]);
+                updateTree(node, true);
             } else {
                 // TODO handle next bytes
+
+                int num_bit = getNYTCode(bit_array);
+                // get the nyt code:  nytCode = getNYTCode();
+                // get the length of nytCode: nytCodeLength =  nytCode.length();
+                // read as many bits as nytCodeLength from compressed file
+                // if (nytCode == bitsReadFromCompressedFile), then
+                // next round we need ro read 1 byte
+                // else,
+
+
             }
         }
 
@@ -87,7 +100,9 @@ void readHeader(FILE *inputFilePtr) {
     first_byte_union first_byte;
     first_byte.raw = header;
 
-    oddBits = first_byte.split.header;
+    bitsToIgnore = first_byte.split.header;
 
-    bit_copy(&output_buffer[0], first_byte.split.data, 0, HEADER_BITS, HEADER_DATA_BITS);
+    output_buffer[0] = first_byte.split.data << HEADER_BITS;
+
+    //bit_copy(&output_buffer[0], first_byte.split.data, 0, HEADER_BITS, HEADER_DATA_BITS);
 }
