@@ -20,7 +20,6 @@ void outputBitArray(const unsigned char bit_array[], int num_bit);
 void outputChar(unsigned char ch);
 int flushData();
 int flushHeader();
-
 int getBitsToIgnore();
 
 /*
