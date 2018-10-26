@@ -14,7 +14,7 @@ enum return_code {
 };
 
 #define BUFFER_SIZE         1024
-#define MAX_ORDER           512
+#define MAX_ORDER           513
 
 #define HEADER_BITS         3
 #define HEADER_DATA_BITS    5

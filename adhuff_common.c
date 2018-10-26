@@ -8,7 +8,7 @@
 // module variables
 //
 
-static unsigned short _nextOrder = MAX_ORDER;
+static unsigned short _nextOrder;
 static Node * adh_root_node = NULL;
 static Node * adh_nyt_node = NULL;
 
@@ -26,6 +26,7 @@ int getNodeLevel(Node *node);
  * Initialize the tree with a single NYT node
  */
 int initializeTree() {
+    _nextOrder = MAX_ORDER;
     trace("initializeTree\n");
 
     if(adh_root_node != NULL) {
@@ -112,7 +113,10 @@ Node * createNYT() {
  * Create a new Node in the heap.
  */
 Node * createNode(unsigned short value) {
-    trace("createNode: order=%d, value=%c\n", _nextOrder, value);
+    if(_nextOrder == 0)
+        fprintf(stderr, "!!!! unexpected new node creation, _nextOrder = 0, value = %d \n", value);
+
+    trace("createNode: order=%d, value=%d\n", _nextOrder, value);
 
     Node* node = malloc (sizeof(Node));
     node->left = NULL;
@@ -121,6 +125,7 @@ Node * createNode(unsigned short value) {
     node->order = _nextOrder;
     node->weight = 0;
     node->value = value;
+
     _nextOrder--;
     return node;
 }
