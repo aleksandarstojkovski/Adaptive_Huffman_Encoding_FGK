@@ -12,6 +12,7 @@ FILE* openUpdateBinary(const char * filename);
 
 int readBinaryFile(const char *filename, void (*processChar)(unsigned char));
 
+void info(const char *msg, ...);
 void trace(const char * msg, ...);
 void traceCharBin(unsigned char ch);
 void traceCharBinMsg(const char *msg, unsigned char ch);

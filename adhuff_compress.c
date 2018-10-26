@@ -26,7 +26,7 @@ int getBitsToIgnore();
  * Compress file
  */
 int compressFile(const char * input_file, const char * output_file) {
-    trace("compressFile: %s ...\n", input_file);
+    info("compressFile: %s ...\n", input_file);
     buffer_bit_idx = HEADER_BITS;
 
     FILE * inputFilePtr = openReadBinary(input_file);

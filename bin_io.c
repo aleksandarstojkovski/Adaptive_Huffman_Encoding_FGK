@@ -2,13 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "constants.h"
 #include "bin_io.h"
-
-/*
- * Global variables
- */
 
 FILE* openReadBinary(const char * filename) {
     FILE * filePtr = fopen(filename, "rb");
@@ -60,6 +57,9 @@ int readBinaryFile(const char *filename, void (*processChar)(unsigned char)) {
  * Diagnostic functions
  */
 void traceCharBin(unsigned char ch) {
+    if(TRACE_OFF)
+        return;
+
     for (int bitPos = CHAR_BIT-1; bitPos >= 0; --bitPos) {
         char val = bit_check(ch, bitPos);
         putchar(val);
@@ -68,11 +68,37 @@ void traceCharBin(unsigned char ch) {
 }
 
 void traceCharBinMsg(const char *msg, unsigned char ch) {
+    if(TRACE_OFF)
+        return;
+
     trace(msg);
     traceCharBin(ch);
 }
 
+void printTime() {
+    time_t rawtime;
+    time (&rawtime);
+    struct tm * timeinfo = localtime (&rawtime);
+
+    char time_string[10];
+    strftime(time_string, 10, "%T",timeinfo);
+
+    printf("%s ", time_string);
+}
+
+void info(const char *msg, ...) {
+    printTime();
+
+    va_list args;
+    va_start(args, msg);
+    vprintf(msg, args);
+    va_end(args);
+}
+
 void trace(const char *msg, ...) {
+    if(TRACE_OFF)
+        return;
+
     va_list args;
 
     va_start(args, msg);

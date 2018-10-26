@@ -156,7 +156,7 @@ Node * searchNodeWithSameWeightAndHigherOrder(Node * node, unsigned int weight, 
     trace("searchNodeWithSameWeightAndHigherOrder: weight=%u, order=%u\n",weight,order);
 
     // if current node has same weight and higher order of input node, return it
-    if ((node->weight == weight) && (node->order>order) && node != adh_root_node){
+    if ((node->weight == weight) && (node->order > order) && node != adh_root_node){
         return node;
     }
 

@@ -20,12 +20,13 @@ enum return_code {
 #define HEADER_DATA_BITS    5
 #define MAX_CODE_SIZE       255
 
-
 static const short ADH_OLD_NYT_CODE = 257;
 static const short ADH_NYT_CODE = 256;
 //static const int MAX_CODE_SIZE = 255;
 
 static const char BIT_1 = '1';
 static const char BIT_0 = '0';
+
+static const bool TRACE_OFF = true;
 
 #endif //ALGO_CONSTANTS_H

@@ -27,7 +27,7 @@ int getNumBytesFromBits(int num_bits);
  * decompress file
  */
 int decompressFile(const char *input_file, const char *output_file) {
-    trace("decompressFile: %s ...\n", input_file);
+    info("decompressFile: %s ...\n", input_file);
     input_buffer_bit_idx = HEADER_BITS;
 
     FILE * inputFilePtr = openReadBinary(input_file);
