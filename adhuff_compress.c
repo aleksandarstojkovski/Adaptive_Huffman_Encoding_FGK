@@ -84,7 +84,7 @@ int compressFile(const char * input_file, const char * output_file) {
  */
 void encodeChar(unsigned char ch) {
     traceCharBinMsg("processChar: ", ch);
-    unsigned char bit_array[MAX_CODE_SIZE] = { 0 };
+    unsigned char bit_array[MAX_CODE_SIZE] = {0};
 
     Node* node = searchCharInTree(ch);
 
