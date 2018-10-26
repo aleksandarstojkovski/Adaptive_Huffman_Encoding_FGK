@@ -7,8 +7,6 @@
 #include "../adhuff_compress.h"
 
 
-#define NUM_TEST_FILES  11
-
 int testReadAllBinaryFiles();
 int testReadBinaryFile(const char *filename);
 void testCompressAll();
@@ -19,18 +17,20 @@ void test_bit_set_zero(unsigned char toTest, int bit_pos, char expected);
 void test_bit_set_one(unsigned char toTest, int bit_pos, char expected);
 void test_bit_copy(unsigned char byte_from, unsigned char byte_to, int read_pos, int write_pos, int size, char expected);
 
+#define NUM_TEST_FILES  12
 static const char * TEST_FILES[NUM_TEST_FILES] = {
-        "../../test-res/A.txt",
-        "../../test-res/AB.txt",
-        "../../test-res/ABA.txt",
-        "../../test-res/ABAB.txt",
-        "../../test-res/ff_ff_ff",
-        "../../test-res/empty",
-        "../../test-res/32k_ff",
-        "../../test-res/alice.txt",
-        "../../test-res/32k_random",
-        "../../test-res/immagine.tiff",
-        "../../test-res/a-bad-filename" };
+        "../../test/res/A.txt",
+        "../../test/res/AB.txt",
+        "../../test/res/ABA.txt",
+        "../../test/res/ABAB.txt",
+        "../../test/res/ff_ff_ff",
+        "../../test/res/empty",
+        "../../test/res/32k_ff",
+        "../../test/res/alice_small.txt",
+        "../../test/res/alice.txt",
+        "../../test/res/32k_random",
+        "../../test/res/immagine.tiff",
+        "../../test/res/a-bad-filename" };
 
 /*
  * Main function

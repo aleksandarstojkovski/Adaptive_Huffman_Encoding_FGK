@@ -77,11 +77,8 @@ void destroyNode(Node * node) {
 Node * createNodeAndAppend(unsigned short value) {
     trace("createNodeAndAppend: value=%c,\n", value);
 
-    // old NYT should be increased to weight 1
-    adh_nyt_node->weight = 1;
-
-    // IMPORTANT: right node must be created before left node
-    // because createNode() decrease _nextOrder each time it's called
+    // IMPORTANT: right node must be created before left node because
+    //            createNode() decrease _nextOrder each time it's called
 
     // create right leaf node with passed symbol (and weight 1)
     Node * newNode = createNode(value);
@@ -222,6 +219,13 @@ void swapNodes(Node * node1, Node * node2){
  */
 void updateTree(Node * node, bool isNewNode) {
     trace("updateTre: isNewNode=%d\n",isNewNode);
+
+    // update parents' weight
+    Node * parent = node->parent;
+    while(parent != NULL) {
+        parent->weight++;
+        parent = parent->parent;
+    }
 
     Node * nodeToCheck;
 
