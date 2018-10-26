@@ -20,9 +20,8 @@ static unsigned int bitsToIgnore;
  */
 void readHeader(FILE *inputFilePtr);
 bool compareBitArray(unsigned char *input_buffer, unsigned char *node_bit_array, int num_bits);
-
-int getByteIdxFromBitIdx(int bit_idx) { return bit_idx / CHAR_BIT; }
-int getNumBytesFromBits(int num_bits) { return ceil(1.0 * num_bits / CHAR_BIT); }
+int getByteIdxFromBitIdx(int bit_idx);
+int getNumBytesFromBits(int num_bits);
 
 /*
  * decompress file
@@ -142,3 +141,7 @@ void readHeader(FILE *inputFilePtr) {
 
     output_buffer[0] = first_byte.split.data << HEADER_BITS;
 }
+
+int getNumBytesFromBits(int num_bits) { return ceil(1.0 * num_bits / CHAR_BIT); }
+
+int getByteIdxFromBitIdx(int bit_idx) { return bit_idx / CHAR_BIT; }
