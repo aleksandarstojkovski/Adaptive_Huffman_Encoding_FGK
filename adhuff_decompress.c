@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <math.h>
 
 #include "adhuff_decompress.h"
 #include "adhuff_common.h"
@@ -9,7 +8,7 @@
 /*
  * modules variables
  */
-static FILE *           outputFilePtr;
+static FILE *           output_file_ptr;
 static uint8_t          output_buffer[BUFFER_SIZE] = {0};
 static unsigned short   output_buffer_bit_idx;
 static unsigned short   input_buffer_bit_idx;
@@ -20,29 +19,27 @@ static unsigned int     bits_to_ignore;
  */
 void    read_header(FILE *inputFilePtr);
 bool    compare_bit_array(uint8_t input_buffer[], uint8_t node_bit_array[], int num_bits);
-int     get_byte_idx_from_bit_idx(int bit_idx);
-int     get_num_bytes_from_bits(int num_bits);
 
 /*
  * decompress file
  */
-int adh_decompress_file(const char *input_file, const char *output_file) {
-    log_info("adh_decompress_file: %s ...\n", input_file);
+int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
+    log_info("adh_decompress_file: %s ...\n", input_file_name);
     input_buffer_bit_idx = HEADER_BITS;
 
-    FILE * inputFilePtr = bin_open_read(input_file);
-    if (inputFilePtr == NULL) {
+    FILE * input_file_ptr = bin_open_read(input_file_name);
+    if (input_file_ptr == NULL) {
         return RC_FAIL;
     }
 
-    outputFilePtr = bin_open_create(output_file);
-    if (outputFilePtr == NULL) {
+    output_file_ptr = bin_open_create(output_file_name);
+    if (output_file_ptr == NULL) {
         return RC_FAIL;
     }
 
     int rc = adh_init_tree();
     if (rc == 0) {
-        read_header(inputFilePtr);
+        read_header(input_file_ptr);
 
         bool firstChar = true;
         int byteToRead = 1;
@@ -52,18 +49,18 @@ int adh_decompress_file(const char *input_file, const char *output_file) {
 
         // read up to sizeof(buffer) bytes
         size_t bytesRead = 0;
-        while ((bytesRead = fread(input_buffer, byteToRead, 1, inputFilePtr)) > 0)
+        while ((bytesRead = fread(input_buffer, byteToRead, 1, input_file_ptr)) > 0)
         {
             if(bytesRead != byteToRead)
                 perror("bytesRead != byteToRead");
 
-            int inputByteIdx = get_byte_idx_from_bit_idx(input_buffer_bit_idx);
-            int outputByteIdx = get_byte_idx_from_bit_idx(output_buffer_bit_idx);
+            uint16_t input_byte_idx = bit_idx_to_byte_idx(input_buffer_bit_idx);
+            uint16_t output_byte_idx = bit_idx_to_byte_idx(output_buffer_bit_idx);
 
             if(firstChar == true) {
                 // not coded byte
 
-                bit_copy(&output_buffer[outputByteIdx], input_buffer[inputByteIdx], HEADER_DATA_BITS, 0, HEADER_BITS);
+                bit_copy(&output_buffer[output_byte_idx], input_buffer[input_byte_idx], HEADER_DATA_BITS, 0, HEADER_BITS);
                 input_buffer_bit_idx += SYMBOL_BITS;
                 output_buffer_bit_idx += SYMBOL_BITS;
 
@@ -73,7 +70,7 @@ int adh_decompress_file(const char *input_file, const char *output_file) {
                 adh_update_tree(node, true);
             } else {
                 int num_bits = adh_get_NYT_encoding(node_bit_array);
-                int num_bytes = get_num_bytes_from_bits(num_bits);
+                int num_bytes = bits_to_bytes(num_bits);
                 if(num_bytes > bytesRead) {
                     //TODO read missing bytes
                 }
@@ -89,16 +86,16 @@ int adh_decompress_file(const char *input_file, const char *output_file) {
             }
         }
 
-        unsigned int out_byte_idx = get_byte_idx_from_bit_idx(output_buffer_bit_idx);
-        size_t bytesWritten = fwrite(output_buffer, out_byte_idx, 1, outputFilePtr);
+        unsigned int out_byte_idx = bit_idx_to_byte_idx(output_buffer_bit_idx);
+        size_t bytesWritten = fwrite(output_buffer, out_byte_idx, 1, output_file_ptr);
         if(bytesWritten != out_byte_idx)
             perror("bytesWritten != out_byte_idx");
 
         adh_destroy_tree();
     }
 
-    fclose(outputFilePtr);
-    fclose(inputFilePtr);
+    fclose(output_file_ptr);
+    fclose(input_file_ptr);
 
     return rc;
 }
@@ -106,7 +103,7 @@ int adh_decompress_file(const char *input_file, const char *output_file) {
 bool compare_bit_array(uint8_t input_buffer[], uint8_t node_bit_array[], int num_bits) {
     bool haveSameBits = true;
     for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {
-        int byte_idx = get_byte_idx_from_bit_idx(bit_idx);
+        int byte_idx = bit_idx_to_byte_idx(bit_idx);
         uint8_t input_byte = input_buffer[byte_idx];
 
         uint8_t value = bit_check(input_byte, bit_idx);
@@ -131,7 +128,3 @@ void read_header(FILE *inputFilePtr) {
 
     output_buffer[0] = first_byte.split.data << HEADER_BITS;
 }
-
-int get_num_bytes_from_bits(int num_bits) { return ceil(1.0 * num_bits / SYMBOL_BITS); }
-
-int get_byte_idx_from_bit_idx(int bit_idx) { return bit_idx / SYMBOL_BITS; }

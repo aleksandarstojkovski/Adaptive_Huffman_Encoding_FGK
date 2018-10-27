@@ -7,7 +7,7 @@
 // module variables
 //
 
-static unsigned short       adh_next_order;
+static adh_order_t          adh_next_order;
 static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
 
@@ -213,9 +213,9 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     node2->parent = tempNode;
 
     // revert original order, since doesn't need to be swapped
-    int tempOrder = node1->order;
-    node1->order=node2->order;
-    node2->order=tempOrder;
+    adh_order_t temp_order = node1->order;
+    node1->order = node2->order;
+    node2->order = temp_order;
 }
 
 /*

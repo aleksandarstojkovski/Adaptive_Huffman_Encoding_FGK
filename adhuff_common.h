@@ -26,24 +26,24 @@ typedef union
  * - NYT      = 256        // Not Yet Transmitted
  * - OLD_NYT  = 257
  */
-typedef unsigned short  adh_symbol_t;
-
+typedef uint16_t adh_symbol_t;
+typedef uint16_t adh_order_t;
+typedef uint32_t adh_weight_t;
 
 /*
  * adh_node_t struct
  */
 typedef struct adh_node {
     adh_symbol_t        symbol;
-    unsigned int        weight;
-    unsigned short      order;
+    adh_weight_t        weight;
+    adh_order_t         order;
     struct adh_node *   left;
     struct adh_node *   right;
     struct adh_node *   parent;
 } adh_node_t;
 
-//
-// public methods
-//
+static const adh_symbol_t   ADH_NYT_CODE = MAX_CODE_SIZE + 1;
+static const adh_symbol_t   ADH_OLD_NYT_CODE = ADH_NYT_CODE + 1;
 
 int             adh_init_tree();
 void            adh_destroy_tree();

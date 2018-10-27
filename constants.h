@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
+
 enum return_code {
     RC_OK = 0,
     RC_FAIL = 1
@@ -22,8 +23,6 @@ enum return_code {
 #define MAX_CODE_SIZE       UINT8_MAX
 
 //static const int MAX_CODE_SIZE = 255;
-static const short ADH_NYT_CODE = MAX_CODE_SIZE + 1;
-static const short ADH_OLD_NYT_CODE = ADH_NYT_CODE + 1;
 
 static const char BIT_1 = '1';
 static const char BIT_0 = '0';

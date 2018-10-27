@@ -2,37 +2,51 @@
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+#include <math.h>
 
 #include "bin_io.h"
 
+//
+// private methods
+//
+FILE* bin_open_file(const char *filename, const char *mode);
+
+/*
+ *  open file in read binary mode.
+ */
 FILE* bin_open_read(const char *filename) {
-    FILE * filePtr = fopen(filename, "rb");
-    if(filePtr == NULL) {
-        perror("cannot open file in [rb] mode");
-    }
-    return filePtr;
+    return bin_open_file(filename, "rb");
 }
 
+/*
+ *  create a file in write binary mode. overwrite if existing
+ */
 FILE* bin_open_create(const char *filename) {
-    FILE * filePtr = fopen(filename, "wb");
-    if(filePtr == NULL) {
-        perror("cannot open file in [wb] mode");
-    }
-    return filePtr;
+    return bin_open_file(filename, "wb");
 }
 
+/*
+ *  open a file in read and update mode.
+ */
 FILE* bin_open_update(const char *filename) {
-    FILE * filePtr = fopen(filename, "rb+");
-    if(filePtr == NULL) {
-        perror("cannot open file in [rb+] mode");
-    }
-    return filePtr;
+    return bin_open_file(filename, "rb+");
 }
 
+/*
+ *  wrapper function to open a file.
+ *  in case of error return NULL
+ */
+FILE* bin_open_file(const char *filename, const char *mode) {
+    FILE* file_ptr = fopen(filename, mode);
+    if(file_ptr == NULL) {
+        fprintf(stderr, "cannot open file [%s] in [%s] mode\n", filename, mode);
+    }
+    return file_ptr;
+}
 
 /*
  *  Read a binary file in chunk
- *  for each char read call a callback function
+ *  for each byte read it calls fn_process_char callback
  */
 int bin_read_file(const char *filename, void (*fn_process_char)(uint8_t)) {
     FILE * filePtr = bin_open_read(filename);
@@ -51,9 +65,11 @@ int bin_read_file(const char *filename, void (*fn_process_char)(uint8_t)) {
     return RC_OK;
 }
 
-/*
- * Diagnostic functions
- */
+
+//
+// Diagnostic functions
+//
+
 void log_trace_char_bin(uint8_t symbol) {
     if(TRACE_OFF)
         return;
@@ -109,16 +125,16 @@ void log_trace(const char *msg, ...) {
  * return '1' if the bit at bit_pos is 1, otherwise '0'
  */
 char bit_check(uint8_t symbol, int bit_pos) {
-    uint8_t val = (symbol & (1u << bit_pos));
+    uint8_t val = (symbol & (0x01 << bit_pos));
     return val ? BIT_1 : BIT_0;
 }
 
 void bit_set_one(uint8_t * symbol, int bit_pos) {
-    *symbol |= (1u << bit_pos);
+    *symbol |= (0x01 << bit_pos);
 }
 
 void bit_set_zero(uint8_t * symbol, int bit_pos) {
-    *symbol  &= ~(1u << bit_pos);
+    *symbol  &= ~(0x01 << bit_pos);
 }
 
 void bit_copy(uint8_t * byte_to, uint8_t byte_from, int read_pos, int write_pos, int size) {
@@ -128,8 +144,18 @@ void bit_copy(uint8_t * byte_to, uint8_t byte_from, int read_pos, int write_pos,
         unsigned int to = write_pos + offset;
 
         unsigned int bit;
-        bit = (byte_from >> from) & 1u;            /* Get the source bit as 0/1 symbol */
-        *byte_to &= ~(1u << to);                  /* clear destination bit */
+        bit = (byte_from >> from) & 0x01;            /* Get the source bit as 0/1 symbol */
+        *byte_to &= ~(0x01 << to);                  /* clear destination bit */
         *byte_to |= (bit << to);  /* set destination bit */
     }
+}
+
+uint16_t bits_to_bytes(uint16_t num_bits) {
+    // round up
+    return ceil(1.0 * num_bits / SYMBOL_BITS);
+}
+
+uint16_t bit_idx_to_byte_idx(uint16_t bit_idx) {
+    // truncate
+    return bit_idx / SYMBOL_BITS;
 }

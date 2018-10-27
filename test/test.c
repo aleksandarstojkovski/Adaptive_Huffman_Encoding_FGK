@@ -19,6 +19,7 @@ void    test_bit_copy(uint8_t byte_from, uint8_t byte_to, int read_pos, int writ
 
 #define NUM_TEST_FILES  12
 static const char * TEST_FILES[NUM_TEST_FILES] = {
+        "../../test/res/a-bad-filename",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
         "../../test/res/ABA.txt",
@@ -29,8 +30,7 @@ static const char * TEST_FILES[NUM_TEST_FILES] = {
         "../../test/res/alice_small.txt",
         "../../test/res/alice.txt",
         "../../test/res/32k_random",
-        "../../test/res/immagine.tiff",
-        "../../test/res/a-bad-filename" };
+        "../../test/res/immagine.tiff" };
 
 /*
  * Main function
