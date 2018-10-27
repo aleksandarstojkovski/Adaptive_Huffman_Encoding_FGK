@@ -9,20 +9,21 @@
 #include <limits.h>
 #include <stdbool.h>
 
+typedef uint8_t     byte_t;
 
 enum return_code {
     RC_OK = 0,
     RC_FAIL = 1
 };
 
-#define BUFFER_SIZE         1024
-#define MAX_ORDER           513
-#define SYMBOL_BITS         8
-#define HEADER_BITS         3
-#define HEADER_DATA_BITS    SYMBOL_BITS - HEADER_BITS
-#define MAX_CODE_SIZE       UINT8_MAX
-
-//static const int MAX_CODE_SIZE = 255;
+enum adh_constants {
+    HEADER_BITS         = 3,
+    HEADER_DATA_BITS    = 5,
+    SYMBOL_BITS         = 8,
+    MAX_CODE_SIZE       = UINT8_MAX,
+    MAX_ORDER           = 513,
+    BUFFER_SIZE         = 1024
+};
 
 static const char BIT_1 = '1';
 static const char BIT_0 = '0';

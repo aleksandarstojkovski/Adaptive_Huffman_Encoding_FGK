@@ -18,7 +18,7 @@ adh_node_t*     create_nyt();
 adh_node_t*     create_node(adh_symbol_t symbol);
 void            destroy_node(adh_node_t *node);
 adh_node_t*     find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol);
-int             get_node_encoding(adh_node_t *node, uint8_t bit_array[]);
+int             get_node_encoding(adh_node_t *node, byte_t bit_array[]);
 int             get_node_level(adh_node_t *node);
 
 /*
@@ -153,7 +153,7 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
     return NULL;
 }
 
-adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, unsigned int weight, unsigned int order) {
+adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
     //log_trace("search_node_same_weight_higher_order: weight=%u, order=%u\n", weight, order);
 
     // if current node has same weight and higher order of input node, return it
@@ -262,13 +262,13 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
  * the number of bit to read is returned
  * 0 = left node, 1 = right node
  */
-int adh_get_symbol_encoding(adh_symbol_t symbol, uint8_t bit_array[]) {
+int adh_get_symbol_encoding(adh_symbol_t symbol, byte_t bit_array[]) {
     adh_node_t * node = adh_search_symbol_in_tree(symbol);
 
     return get_node_encoding(node, bit_array);
 }
 
-int get_node_encoding(adh_node_t *node, uint8_t bit_array[]) {
+int get_node_encoding(adh_node_t *node, byte_t bit_array[]) {
     int bit_size = 0;
     if(node != NULL) {
         bit_size = get_node_level(node);
@@ -299,6 +299,6 @@ int get_node_level(adh_node_t *node) {
 /*
  * adh_get_symbol_encoding for NYT
  */
-int adh_get_NYT_encoding(uint8_t bit_array[]) {
+int adh_get_NYT_encoding(byte_t bit_array[]) {
     return get_node_encoding(adh_nyt_node, bit_array);
 }

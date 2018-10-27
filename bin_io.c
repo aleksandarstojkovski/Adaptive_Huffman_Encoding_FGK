@@ -6,6 +6,8 @@
 
 #include "bin_io.h"
 
+static const byte_t    SINGLE_BIT_1 = 0x01u;
+
 //
 // private methods
 //
@@ -45,15 +47,15 @@ FILE* bin_open_file(const char *filename, const char *mode) {
 }
 
 /*
- *  Read a binary file in chunk
+ *  Read a binary file in chunk of BUFFER_SIZE.
  *  for each byte read it calls fn_process_char callback
  */
-int bin_read_file(const char *filename, void (*fn_process_char)(uint8_t)) {
+int bin_read_file(const char *filename, void (*fn_process_char)(byte_t)) {
     FILE * filePtr = bin_open_read(filename);
     if(filePtr == NULL)
         return RC_FAIL;
 
-    uint8_t buffer[BUFFER_SIZE] = { 0 };
+    byte_t buffer[BUFFER_SIZE] = { 0 };
     size_t bytesRead = 0;
     // read up to sizeof(buffer) bytes
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), filePtr)) > 0)
@@ -70,18 +72,18 @@ int bin_read_file(const char *filename, void (*fn_process_char)(uint8_t)) {
 // Diagnostic functions
 //
 
-void log_trace_char_bin(uint8_t symbol) {
+void log_trace_char_bin(byte_t symbol) {
     if(TRACE_OFF)
         return;
 
     for (int bitPos = SYMBOL_BITS-1; bitPos >= 0; --bitPos) {
-        char val = bit_check(symbol, bitPos);
+        char val = bit_check(symbol, (unsigned int)bitPos);
         putchar(val);
     }
     printf("\n");
 }
 
-void log_trace_char_bin_msg(const char *msg, uint8_t symbol) {
+void log_trace_char_bin_msg(const char *msg, byte_t symbol) {
     if(TRACE_OFF)
         return;
 
@@ -124,38 +126,51 @@ void log_trace(const char *msg, ...) {
 /*
  * return '1' if the bit at bit_pos is 1, otherwise '0'
  */
-char bit_check(uint8_t symbol, int bit_pos) {
-    uint8_t val = (symbol & (0x01 << bit_pos));
+byte_t bit_check(byte_t symbol, unsigned int bit_pos) {
+    byte_t val = (symbol & (byte_t)(SINGLE_BIT_1 << bit_pos));
     return val ? BIT_1 : BIT_0;
 }
 
-void bit_set_one(uint8_t * symbol, int bit_pos) {
-    *symbol |= (0x01 << bit_pos);
+void bit_set_one(byte_t * symbol, unsigned int bit_pos) {
+    *symbol |= (byte_t) (SINGLE_BIT_1 << bit_pos);
 }
 
-void bit_set_zero(uint8_t * symbol, int bit_pos) {
-    *symbol  &= ~(0x01 << bit_pos);
+void bit_set_zero(byte_t * symbol, unsigned int bit_pos) {
+    *symbol  &= ~((byte_t)(SINGLE_BIT_1 << bit_pos));
 }
 
-void bit_copy(uint8_t * byte_to, uint8_t byte_from, int read_pos, int write_pos, int size) {
-    for(unsigned int offset=0; offset < size; offset++) {
+void bit_copy(byte_t * byte_to, byte_t byte_from, unsigned int read_pos, unsigned int write_pos, int size) {
+    for(int offset=0; offset < size; offset++) {
 
         unsigned int from = read_pos + offset;
         unsigned int to = write_pos + offset;
 
-        unsigned int bit;
-        bit = (byte_from >> from) & 0x01;            /* Get the source bit as 0/1 symbol */
-        *byte_to &= ~(0x01 << to);                  /* clear destination bit */
-        *byte_to |= (bit << to);  /* set destination bit */
+        byte_t bit = (byte_t) (byte_from >> from) & SINGLE_BIT_1;            /* Get the source bit as 0/1 symbol */
+        *byte_to &= ~((byte_t)(SINGLE_BIT_1 << to));                  /* clear destination bit */
+        *byte_to |= (byte_t) (bit << to);  /* set destination bit */
     }
 }
 
-uint16_t bits_to_bytes(uint16_t num_bits) {
+int bits_to_bytes(int num_bits) {
     // round up
-    return ceil(1.0 * num_bits / SYMBOL_BITS);
+    return (int)ceil(1.0 * num_bits / SYMBOL_BITS);
 }
 
-uint16_t bit_idx_to_byte_idx(uint16_t bit_idx) {
+int bit_idx_to_byte_idx(int bit_idx) {
     // truncate
     return bit_idx / SYMBOL_BITS;
+}
+
+bool compare_bit_array(const byte_t input_buffer[], const byte_t node_bit_array[], int num_bits) {
+    bool have_same_bits = true;
+    for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {
+        int byte_idx = bit_idx_to_byte_idx(bit_idx);
+        byte_t input_byte = input_buffer[byte_idx];
+
+        byte_t value = bit_check(input_byte, (unsigned int)bit_idx);
+        if(value != node_bit_array[bit_idx]) {
+            have_same_bits = false;
+        }
+    }
+    return have_same_bits;
 }

@@ -6,20 +6,20 @@
 //
 // modules variables
 //
-static uint8_t  output_buffer[BUFFER_SIZE] = {0};
-static uint16_t buffer_bit_idx;
+static byte_t   output_buffer[BUFFER_SIZE] = {0};
+static int      buffer_bit_idx;
 static FILE *   output_file_ptr;
-static uint8_t  first_byte_written;
+static byte_t   first_byte_written;
 
 //
 // private methods
 //
-void    process_symbol(uint8_t symbol);
-void    output_bit_array(const uint8_t bit_array[], int num_bit);
-void    output_symbol(uint8_t symbol);
+void    process_symbol(byte_t symbol);
+void    output_bit_array(const byte_t bit_array[], int num_bit);
+void    output_symbol(byte_t symbol);
 int     flush_data();
 int     flush_header();
-uint8_t get_bits_to_ignore();
+byte_t  get_num_bits_to_ignore();
 
 /*
  * Compress file
@@ -38,7 +38,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
         return RC_FAIL;
     }
 
-    uint8_t buffer[BUFFER_SIZE] = {0};
+    byte_t buffer[BUFFER_SIZE] = {0};
 
     int rc = adh_init_tree();
     if (rc == 0) {
@@ -81,9 +81,9 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
 /*
  * encode char
  */
-void process_symbol(uint8_t symbol) {
+void process_symbol(byte_t symbol) {
     log_trace_char_bin_msg("process_symbol: ", symbol);
-    uint8_t bit_array[MAX_CODE_SIZE] = {0};
+    byte_t bit_array[MAX_CODE_SIZE] = {0};
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
@@ -115,13 +115,13 @@ void process_symbol(uint8_t symbol) {
 /*
  * copy data to output buffer as char
  */
-void output_symbol(uint8_t symbol) {
+void output_symbol(byte_t symbol) {
     log_trace_char_bin_msg("output_symbol: ", symbol);
 
-    uint8_t bit_array[SYMBOL_BITS] = { 0 };
-    for (int bitPos = SYMBOL_BITS-1; bitPos >= 0; --bitPos) {
-        char val = bit_check(symbol, bitPos);
-        bit_array[bitPos] = val;
+    byte_t bit_array[SYMBOL_BITS] = { 0 };
+    for (int bit_pos = SYMBOL_BITS-1; bit_pos >= 0; --bit_pos) {
+        byte_t val = bit_check(symbol, (unsigned int)bit_pos);
+        bit_array[bit_pos] = val;
     }
     output_bit_array(bit_array, SYMBOL_BITS);
 }
@@ -130,16 +130,16 @@ void output_symbol(uint8_t symbol) {
 /*
  * copy data to output buffer as bit array
  */
-void output_bit_array(const uint8_t bit_array[], int num_bit) {
+void output_bit_array(const byte_t bit_array[], int num_bit) {
     log_trace("output_bit_array: %d\n", num_bit);
 
     for(int i = num_bit-1; i>=0; i--) {
 
         // calculate the current position (in byte) of the output_buffer
-        uint16_t buffer_byte_idx = bit_idx_to_byte_idx(buffer_bit_idx);
+        int buffer_byte_idx = bit_idx_to_byte_idx(buffer_bit_idx);
 
         // calculate which bit to change in the byte
-        uint16_t bit_to_change = SYMBOL_BITS - 1 - (buffer_bit_idx % SYMBOL_BITS);
+        unsigned int bit_to_change = SYMBOL_BITS - 1 - (buffer_bit_idx % SYMBOL_BITS);
 
         if(bit_array[i] == BIT_1)
             bit_set_one(&output_buffer[buffer_byte_idx], bit_to_change);
@@ -166,17 +166,16 @@ int flush_data() {
     static bool isFirstByte = true;
     log_trace("flush_data: %d bits\n", buffer_bit_idx);
 
-    uint16_t bytesToWrite = bit_idx_to_byte_idx(buffer_bit_idx);
+    int num_bytes_to_write = bit_idx_to_byte_idx(buffer_bit_idx);
 
-    uint8_t  bitsToIgnore = get_bits_to_ignore();
-    if(bitsToIgnore > 0)
-        bytesToWrite++;
+    if(get_num_bits_to_ignore() > 0)
+        num_bytes_to_write++;
 
-    for(int i=0; i<bytesToWrite; i++)
+    for(int i=0; i<num_bytes_to_write; i++)
         log_trace_char_bin_msg("", output_buffer[i]);
 
-    size_t bytesWritten = fwrite(output_buffer, sizeof(uint8_t), bytesToWrite, output_file_ptr);
-    if(bytesWritten != bytesToWrite) {
+    size_t bytesWritten = fwrite(output_buffer, sizeof(byte_t), num_bytes_to_write, output_file_ptr);
+    if(bytesWritten != num_bytes_to_write) {
         perror("failed to write compressed file");
         return RC_FAIL;
     }
@@ -188,7 +187,7 @@ int flush_data() {
     return RC_OK;
 }
 
-uint8_t get_bits_to_ignore() {
+byte_t get_num_bits_to_ignore() {
     return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
 }
 
@@ -200,7 +199,7 @@ int flush_header() {
 
     first_byte_union first_byte;
     first_byte.raw = first_byte_written;
-    first_byte.split.header = get_bits_to_ignore();
+    first_byte.split.header = get_num_bits_to_ignore();
 
     log_trace_char_bin_msg("flush_header hdr: ", first_byte.raw);
     fputc(first_byte.raw, output_file_ptr);

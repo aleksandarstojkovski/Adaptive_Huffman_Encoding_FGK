@@ -10,7 +10,7 @@
  */
 typedef struct bit_array {
     unsigned int    lenght;
-    uint8_t         bits[MAX_CODE_SIZE];
+    byte_t         bits[MAX_CODE_SIZE];
 } bit_array_t;
 
 //
@@ -19,20 +19,21 @@ typedef struct bit_array {
 FILE*       bin_open_read(const char *filename);
 FILE*       bin_open_create(const char *filename);
 FILE*       bin_open_update(const char *filename);
-int         bin_read_file(const char *filename, void (*fn_process_char)(uint8_t));
+int         bin_read_file(const char *filename, void (*fn_process_char)(byte_t));
 
 void        log_info(const char *msg, ...);
 void        log_trace(const char *msg, ...);
-void        log_trace_char_bin(uint8_t symbol);
-void        log_trace_char_bin_msg(const char *msg, uint8_t symbol);
+void        log_trace_char_bin(byte_t symbol);
+void        log_trace_char_bin_msg(const char *msg, byte_t symbol);
 
-char        bit_check(uint8_t symbol, int bit_pos);
-void        bit_set_one(uint8_t * symbol, int bit_pos);
-void        bit_set_zero(uint8_t * symbol, int bit_pos);
-void        bit_copy(uint8_t *byte_to, uint8_t byte_from, int read_pos, int write_pos, int size);
+byte_t      bit_check(byte_t symbol, unsigned int bit_pos);
+void        bit_set_one(byte_t * symbol, unsigned int bit_pos);
+void        bit_set_zero(byte_t * symbol, unsigned int bit_pos);
+void        bit_copy(byte_t *byte_to, byte_t byte_from, unsigned int read_pos, unsigned int write_pos, int size);
 
-uint16_t    bit_idx_to_byte_idx(uint16_t bit_idx);
-uint16_t    bits_to_bytes(uint16_t num_bits);
+int         bit_idx_to_byte_idx(int bit_idx);
+int         bits_to_bytes(int num_bits);
+bool        compare_bit_array(const byte_t input_buffer[], const byte_t node_bit_array[], int num_bits);
 
 
 #endif //ALGO_BIN_IO_H

@@ -9,14 +9,14 @@
 #pragma pack(1)
 typedef struct
 {
-    unsigned int        data: HEADER_DATA_BITS;    // rest of the bits for data
-    unsigned int        header: HEADER_BITS;       // bits for header
+    byte_t     data: HEADER_DATA_BITS;    // rest of the bits for data
+    byte_t     header: HEADER_BITS;       // bits for header
 } first_byte_struct;
 
 typedef union
 {
     first_byte_struct   split;
-    uint8_t             raw;
+    byte_t              raw;
 } first_byte_union;
 #pragma pack()
 
@@ -26,9 +26,9 @@ typedef union
  * - NYT      = 256        // Not Yet Transmitted
  * - OLD_NYT  = 257
  */
-typedef uint16_t adh_symbol_t;
-typedef uint16_t adh_order_t;
-typedef uint32_t adh_weight_t;
+typedef uint16_t    adh_symbol_t;
+typedef uint16_t    adh_order_t;
+typedef uint32_t    adh_weight_t;
 
 /*
  * adh_node_t struct
@@ -50,7 +50,7 @@ void            adh_destroy_tree();
 void            adh_update_tree(adh_node_t *node, bool is_new_node);
 adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t symbol);
 adh_node_t *    adh_create_node_and_append(adh_symbol_t symbol);
-int             adh_get_NYT_encoding(uint8_t bit_array[]);
-int             adh_get_symbol_encoding(adh_symbol_t symbol, uint8_t bit_array[]);
+int             adh_get_NYT_encoding(byte_t bit_array[]);
+int             adh_get_symbol_encoding(adh_symbol_t symbol, byte_t bit_array[]);
 
 #endif //ALGO_ADHUFF_COMMON_H
