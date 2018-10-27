@@ -51,19 +51,19 @@ FILE* bin_open_file(const char *filename, const char *mode) {
  *  for each byte read it calls fn_process_char callback
  */
 int bin_read_file(const char *filename, void (*fn_process_char)(byte_t)) {
-    FILE * filePtr = bin_open_read(filename);
-    if(filePtr == NULL)
+    FILE * file_ptr = bin_open_read(filename);
+    if(file_ptr == NULL)
         return RC_FAIL;
 
     byte_t buffer[BUFFER_SIZE] = { 0 };
-    size_t bytesRead = 0;
+    size_t bytes_read = 0;
     // read up to sizeof(buffer) bytes
-    while ((bytesRead = fread(buffer, 1, sizeof(buffer), filePtr)) > 0)
+    while ((bytes_read = fread(buffer, 1, sizeof(buffer), file_ptr)) > 0)
     {
-        for(int i=0;i<bytesRead;i++)
+        for(int i=0;i<bytes_read;i++)
             fn_process_char(buffer[i]);
     }
-    fclose(filePtr);
+    fclose(file_ptr);
     return RC_OK;
 }
 
@@ -76,18 +76,16 @@ void log_trace_char_bin(byte_t symbol) {
     if(TRACE_OFF)
         return;
 
-    for (int bitPos = SYMBOL_BITS-1; bitPos >= 0; --bitPos) {
-        char val = bit_check(symbol, (unsigned int)bitPos);
-        putchar(val);
-    }
-    printf("\n");
+    byte_t bit_array[SYMBOL_BITS+1] = { 0 };
+    symbol_to_bits(symbol, bit_array);
+    printf("%s\n", bit_array);
 }
 
 void log_trace_char_bin_msg(const char *msg, byte_t symbol) {
     if(TRACE_OFF)
         return;
 
-    log_trace(msg);
+    log_trace(msg, symbol);
     log_trace_char_bin(symbol);
 }
 
@@ -122,6 +120,9 @@ void log_trace(const char *msg, ...) {
     va_end(args);
 }
 
+//
+// bit manipulation functions
+//
 
 /*
  * return '1' if the bit at bit_pos is 1, otherwise '0'
@@ -139,7 +140,7 @@ void bit_set_zero(byte_t * symbol, unsigned int bit_pos) {
     *symbol  &= ~((byte_t)(SINGLE_BIT_1 << bit_pos));
 }
 
-void bit_copy(byte_t * byte_to, byte_t byte_from, unsigned int read_pos, unsigned int write_pos, int size) {
+void bit_copy(byte_t byte_from, byte_t * byte_to, unsigned int read_pos, unsigned int write_pos, int size) {
     for(int offset=0; offset < size; offset++) {
 
         unsigned int from = read_pos + offset;
@@ -173,4 +174,11 @@ bool compare_bit_array(const byte_t input_buffer[], const byte_t node_bit_array[
         }
     }
     return have_same_bits;
+}
+
+void symbol_to_bits(byte_t symbol, byte_t bit_array[]) {
+    for (int bit_pos = SYMBOL_BITS - 1; bit_pos >= 0; --bit_pos) {
+        byte_t val = bit_check(symbol, (unsigned int)bit_pos);
+        bit_array[bit_pos] = val;
+    }
 }

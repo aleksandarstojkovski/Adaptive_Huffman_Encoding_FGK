@@ -25,7 +25,7 @@ byte_t  get_num_bits_to_ignore();
  * Compress file
  */
 int adh_compress_file(const char input_file_name[], const char output_file_name[]) {
-    log_info("adh_compress_file: %s ...\n", input_file_name);
+    log_info("%-40s %s\n", "adh_compress_file:", input_file_name);
     buffer_bit_idx = HEADER_BITS;
 
     FILE * input_file_ptr = bin_open_read(input_file_name);
@@ -82,7 +82,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  * encode char
  */
 void process_symbol(byte_t symbol) {
-    log_trace_char_bin_msg("process_symbol: ", symbol);
+    log_trace_char_bin_msg("process_symbol: symbol=%d bits=", symbol);
     byte_t bit_array[MAX_CODE_SIZE] = {0};
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
@@ -116,13 +116,11 @@ void process_symbol(byte_t symbol) {
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol) {
-    log_trace_char_bin_msg("output_symbol: ", symbol);
+    log_trace("%-40s symbol=%d bits=\n", "output_symbol:", symbol);
+    log_trace_char_bin(symbol);
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
-    for (int bit_pos = SYMBOL_BITS-1; bit_pos >= 0; --bit_pos) {
-        byte_t val = bit_check(symbol, (unsigned int)bit_pos);
-        bit_array[bit_pos] = val;
-    }
+    symbol_to_bits(symbol, bit_array);
     output_bit_array(bit_array, SYMBOL_BITS);
 }
 
@@ -131,7 +129,7 @@ void output_symbol(byte_t symbol) {
  * copy data to output buffer as bit array
  */
 void output_bit_array(const byte_t bit_array[], int num_bit) {
-    log_trace("output_bit_array: %d\n", num_bit);
+    log_trace("%-40s %d\n", "output_bit_array:", num_bit);
 
     for(int i = num_bit-1; i>=0; i--) {
 
@@ -164,7 +162,7 @@ void output_bit_array(const byte_t bit_array[], int num_bit) {
  */
 int flush_data() {
     static bool isFirstByte = true;
-    log_trace("flush_data: %d bits\n", buffer_bit_idx);
+    log_trace("%-40s: %d bits\n", "flush_data", buffer_bit_idx);
 
     int num_bytes_to_write = bit_idx_to_byte_idx(buffer_bit_idx);
 
@@ -172,7 +170,7 @@ int flush_data() {
         num_bytes_to_write++;
 
     for(int i=0; i<num_bytes_to_write; i++)
-        log_trace_char_bin_msg("", output_buffer[i]);
+        log_trace_char_bin(output_buffer[i]);
 
     size_t bytesWritten = fwrite(output_buffer, sizeof(byte_t), num_bytes_to_write, output_file_ptr);
     if(bytesWritten != num_bytes_to_write) {
@@ -195,17 +193,19 @@ byte_t get_num_bits_to_ignore() {
  * flush header to file
  */
 int flush_header() {
-    log_trace_char_bin_msg("flush_header ori: ", first_byte_written);
+    log_trace("%-40s old_bits=\n", "flush_header:");
+    log_trace_char_bin(first_byte_written);
 
     first_byte_union first_byte;
     first_byte.raw = first_byte_written;
     first_byte.split.header = get_num_bits_to_ignore();
 
-    log_trace_char_bin_msg("flush_header hdr: ", first_byte.raw);
+    log_trace("%-40s new_bits=\n", "flush_header:");
+    log_trace_char_bin(first_byte.raw);
     fputc(first_byte.raw, output_file_ptr);
 
     if ( fseek(output_file_ptr, 0L, SEEK_SET) != 0 ) {
-        perror("error moving to beginning");
+        perror("error moving file ptr to beginning");
         return RC_FAIL;
     }
 

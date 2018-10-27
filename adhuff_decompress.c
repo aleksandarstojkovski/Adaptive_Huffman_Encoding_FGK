@@ -58,7 +58,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
 
             if(firstChar == true) {
                 // not coded byte
-                bit_copy(&output_buffer[output_byte_idx], input_buffer[input_byte_idx], HEADER_DATA_BITS, 0, HEADER_BITS);
+                bit_copy(input_buffer[input_byte_idx], &output_buffer[output_byte_idx], HEADER_DATA_BITS, 0, HEADER_BITS);
                 input_buffer_bit_idx += SYMBOL_BITS;
                 output_buffer_bit_idx += SYMBOL_BITS;
 

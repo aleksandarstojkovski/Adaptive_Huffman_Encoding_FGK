@@ -55,7 +55,7 @@ void destroy_node(adh_node_t *node) {
     if(node == NULL)
         return;
 
-    log_trace("destroy_node: symbol=%d, order=%d\n", node->symbol, node->order);
+    log_trace("%-40s: symbol=%d, order=%d\n", "destroy_node:", node->symbol, node->order);
 
     if(node->left != NULL) {
         destroy_node(node->left);
@@ -74,14 +74,14 @@ void destroy_node(adh_node_t *node) {
  * Append a new node to the NYT
  * Must be used only for new for symbols (not present in the tree)
  */
-adh_node_t * adh_create_node_and_append(adh_symbol_t value) {
-    log_trace("adh_create_node_and_append: symbol=%c,\n", value);
+adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
+    log_trace("%-40s: symbol=%d\n", "adh_create_node_and_append:", symbol);
 
     // IMPORTANT: right node must be created before left node because
     //            create_node() decrease adh_next_order each time it's called
 
     // create right leaf node with passed symbol (and weight 1)
-    adh_node_t * newNode = create_node(value);
+    adh_node_t * newNode = create_node(symbol);
     newNode->weight = 1;
     newNode->parent = adh_nyt_node;
     adh_nyt_node->right = newNode;
@@ -115,7 +115,7 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     if(adh_next_order == 0)
         fprintf(stderr, "!!!! unexpected new node creation, adh_next_order = 0, symbol = %d \n", symbol);
 
-    log_trace("create_node: order=%d, symbol=%d\n", adh_next_order, symbol);
+    log_trace("%-40s: order=%d, symbol=%d\n", "create_node:", adh_next_order, symbol);
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
     node->left = NULL;
@@ -133,7 +133,7 @@ adh_node_t * create_node(adh_symbol_t symbol) {
  * Search Char in Tree
  */
 adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
-    log_trace("find_node_by_symbol: symbol=%d \n", symbol);
+    log_trace("%-40s symbol=%d\n", "find_node_by_symbol:", symbol);
 
     if (node->symbol == symbol){
         return node;
@@ -154,7 +154,7 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
 }
 
 adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
-    //log_trace("search_node_same_weight_higher_order: weight=%u, order=%u\n", weight, order);
+    log_trace("%-40s weight=%u, order=%u\n", "search_node_same_weight_higher_order:", weight, order);
 
     // if current node has same weight and higher order of input node, return it
     if ((node->weight == weight) && (node->order > order) && node != adh_root_node){
@@ -179,7 +179,7 @@ adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, adh_weight_t
  * Search symbol in tree
  */
 adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
-    log_trace("adh_search_symbol_in_tree: symbol=%d\n", symbol);
+    log_trace("%-40s symbol=%d\n", "adh_search_symbol_in_tree:", symbol);
 
     return find_node_by_symbol(adh_root_node, symbol);
 }
@@ -222,7 +222,7 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
  * Update Tree, fix sibling property
  */
 void adh_update_tree(adh_node_t *node, bool is_new_node) {
-    log_trace("adh_update_tree: is_new_node=%d\n", is_new_node);
+    log_trace("%-40s is_new_node=%b\n", "adh_update_tree:", is_new_node);
 
     // update parents' weight
     adh_node_t * parent = node->parent;
