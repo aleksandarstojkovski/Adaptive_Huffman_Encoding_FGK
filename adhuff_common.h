@@ -28,6 +28,7 @@ typedef union
  */
 typedef unsigned short  adh_symbol_t;
 
+
 /*
  * adh_node_t struct
  */
@@ -47,9 +48,9 @@ typedef struct adh_node {
 int             adh_init_tree();
 void            adh_destroy_tree();
 void            adh_update_tree(adh_node_t *node, bool is_new_node);
-adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t ch);
-adh_node_t *    adh_create_node_and_append(adh_symbol_t ch);
+adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t symbol);
+adh_node_t *    adh_create_node_and_append(adh_symbol_t symbol);
 int             adh_get_NYT_encoding(uint8_t bit_array[]);
-int             adh_get_symbol_encoding(unsigned short ch, uint8_t bit_array[]);
+int             adh_get_symbol_encoding(adh_symbol_t symbol, uint8_t bit_array[]);
 
 #endif //ALGO_ADHUFF_COMMON_H

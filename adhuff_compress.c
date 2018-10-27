@@ -15,9 +15,9 @@ static char firstByteWritten;
 //
 // private methods
 //
-void    encode_symbol(uint8_t ch);
+void    encode_symbol(uint8_t symbol);
 void    output_bit_array(const uint8_t bit_array[], int num_bit);
-void    output_symbol(uint8_t ch);
+void    output_symbol(uint8_t symbol);
 int     flush_data();
 int     flush_header();
 int     get_bits_to_ignore();
@@ -82,11 +82,11 @@ int adh_compress_file(const char *input_file, const char *output_file) {
 /*
  * encode char
  */
-void encode_symbol(uint8_t ch) {
-    log_trace_char_bin_msg("encode_symbol: ", ch);
+void encode_symbol(uint8_t symbol) {
+    log_trace_char_bin_msg("encode_symbol: ", symbol);
     uint8_t bit_array[MAX_CODE_SIZE] = {0};
 
-    adh_node_t* node = adh_search_symbol_in_tree(ch);
+    adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
     if(node == NULL) {
         // symbol not present in tree
@@ -96,8 +96,8 @@ void encode_symbol(uint8_t ch) {
         output_bit_array(bit_array, num_bit);
 
         // write symbol code
-        output_symbol(ch);
-        node = adh_create_node_and_append(ch);
+        output_symbol(symbol);
+        node = adh_create_node_and_append(symbol);
         adh_update_tree(node, true);
     } else {
         // char already present in tree
@@ -106,7 +106,7 @@ void encode_symbol(uint8_t ch) {
         node->weight++;
 
         // write symbol code
-        int num_bit = adh_get_symbol_encoding(ch, bit_array);
+        int num_bit = adh_get_symbol_encoding(symbol, bit_array);
         output_bit_array(bit_array, num_bit);
         adh_update_tree(node, false);
     }
@@ -116,15 +116,15 @@ void encode_symbol(uint8_t ch) {
 /*
  * copy data to output buffer as char
  */
-void output_symbol(uint8_t ch) {
-    log_trace_char_bin_msg("output_symbol: ", ch);
+void output_symbol(uint8_t symbol) {
+    log_trace_char_bin_msg("output_symbol: ", symbol);
 
-    uint8_t bit_array[CHAR_BIT] = { 0 };
-    for (int bitPos = CHAR_BIT-1; bitPos >= 0; --bitPos) {
-        char val = bit_check(ch, bitPos);
+    uint8_t bit_array[SYMBOL_BITS] = { 0 };
+    for (int bitPos = SYMBOL_BITS-1; bitPos >= 0; --bitPos) {
+        char val = bit_check(symbol, bitPos);
         bit_array[bitPos] = val;
     }
-    output_bit_array(bit_array, CHAR_BIT);
+    output_bit_array(bit_array, SYMBOL_BITS);
 }
 
 
@@ -137,10 +137,10 @@ void output_bit_array(const uint8_t *bit_array, int num_bit) {
     for(int i = num_bit-1; i>=0; i--) {
 
         // calculate the current position (in byte) of the output_buffer
-        unsigned int buffer_byte_idx = buffer_bit_idx / CHAR_BIT;
+        unsigned int buffer_byte_idx = buffer_bit_idx / SYMBOL_BITS;
 
         // calculate which bit to change in the byte
-        unsigned int bit_to_change = CHAR_BIT - 1 - (buffer_bit_idx % CHAR_BIT);
+        unsigned int bit_to_change = SYMBOL_BITS - 1 - (buffer_bit_idx % SYMBOL_BITS);
 
         if(bit_array[i] == BIT_1)
             bit_set_one(&output_buffer[buffer_byte_idx], bit_to_change);
@@ -150,7 +150,7 @@ void output_bit_array(const uint8_t *bit_array, int num_bit) {
         buffer_bit_idx++;
 
         // buffer full, flush data to file
-        if(buffer_bit_idx == BUFFER_SIZE * CHAR_BIT) {
+        if(buffer_bit_idx == BUFFER_SIZE * SYMBOL_BITS) {
             flush_data();
 
             // reset buffer index
@@ -167,7 +167,7 @@ int flush_data() {
     static bool isFirstByte = true;
     log_trace("flush_data: %d bits\n", buffer_bit_idx);
 
-    unsigned int bytesToWrite = buffer_bit_idx / CHAR_BIT;
+    unsigned int bytesToWrite = buffer_bit_idx / SYMBOL_BITS;
 
     unsigned short bitsToIgnore = get_bits_to_ignore();
     if(bitsToIgnore > 0)
@@ -189,7 +189,7 @@ int flush_data() {
     return RC_OK;
 }
 
-int get_bits_to_ignore() { return CHAR_BIT - (buffer_bit_idx % CHAR_BIT); }
+int get_bits_to_ignore() { return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS); }
 
 /*
  * flush header to file

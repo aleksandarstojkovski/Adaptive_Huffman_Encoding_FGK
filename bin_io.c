@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -55,26 +54,26 @@ int bin_read_file(const char *filename, void (*fn_process_char)(uint8_t)) {
 /*
  * Diagnostic functions
  */
-void log_trace_char_bin(uint8_t ch) {
+void log_trace_char_bin(uint8_t symbol) {
     if(TRACE_OFF)
         return;
 
-    for (int bitPos = CHAR_BIT-1; bitPos >= 0; --bitPos) {
-        char val = bit_check(ch, bitPos);
+    for (int bitPos = SYMBOL_BITS-1; bitPos >= 0; --bitPos) {
+        char val = bit_check(symbol, bitPos);
         putchar(val);
     }
     printf("\n");
 }
 
-void log_trace_char_bin_msg(const char *msg, uint8_t ch) {
+void log_trace_char_bin_msg(const char *msg, uint8_t symbol) {
     if(TRACE_OFF)
         return;
 
     log_trace(msg);
-    log_trace_char_bin(ch);
+    log_trace_char_bin(symbol);
 }
 
-void printTime() {
+void print_time() {
     time_t rawtime;
     time (&rawtime);
     struct tm * timeinfo = localtime (&rawtime);
@@ -86,7 +85,7 @@ void printTime() {
 }
 
 void log_info(const char *msg, ...) {
-    printTime();
+    print_time();
 
     va_list args;
     va_start(args, msg);
@@ -109,17 +108,17 @@ void log_trace(const char *msg, ...) {
 /*
  * return '1' if the bit at bit_pos is 1, otherwise '0'
  */
-char bit_check(uint8_t ch, int bit_pos) {
-    uint8_t val = (ch & (1u << bit_pos));
+char bit_check(uint8_t symbol, int bit_pos) {
+    uint8_t val = (symbol & (1u << bit_pos));
     return val ? BIT_1 : BIT_0;
 }
 
-void bit_set_one(uint8_t * ch, int bit_pos) {
-    *ch |= (1u << bit_pos);
+void bit_set_one(uint8_t * symbol, int bit_pos) {
+    *symbol |= (1u << bit_pos);
 }
 
-void bit_set_zero(uint8_t * ch, int bit_pos) {
-    *ch  &= ~(1u << bit_pos);
+void bit_set_zero(uint8_t * symbol, int bit_pos) {
+    *symbol  &= ~(1u << bit_pos);
 }
 
 void bit_copy(uint8_t * byte_to, uint8_t byte_from, int read_pos, int write_pos, int size) {

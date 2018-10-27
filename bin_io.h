@@ -6,7 +6,7 @@
 
 
 /*
- * adh_node_t struct
+ * bit_array struct
  */
 typedef struct bit_array {
     unsigned int    lenght;
@@ -23,12 +23,12 @@ int     bin_read_file(const char *filename, void (*fn_process_char)(uint8_t));
 
 void    log_info(const char *msg, ...);
 void    log_trace(const char *msg, ...);
-void    log_trace_char_bin(uint8_t ch);
-void    log_trace_char_bin_msg(const char *msg, uint8_t ch);
+void    log_trace_char_bin(uint8_t symbol);
+void    log_trace_char_bin_msg(const char *msg, uint8_t symbol);
 
-char    bit_check(uint8_t ch, int bit_pos);
-void    bit_set_one(uint8_t * ch, int bit_pos);
-void    bit_set_zero(uint8_t * ch, int bit_pos);
+char    bit_check(uint8_t symbol, int bit_pos);
+void    bit_set_one(uint8_t * symbol, int bit_pos);
+void    bit_set_zero(uint8_t * symbol, int bit_pos);
 void    bit_copy(uint8_t *byte_to, uint8_t byte_from, int read_pos, int write_pos, int size);
 
 

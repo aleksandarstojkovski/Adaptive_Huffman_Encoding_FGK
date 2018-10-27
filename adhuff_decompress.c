@@ -64,8 +64,8 @@ int adh_decompress_file(const char *input_file, const char *output_file) {
                 // not coded byte
 
                 bit_copy(&output_buffer[outputByteIdx], input_buffer[inputByteIdx], HEADER_DATA_BITS, 0, HEADER_BITS);
-                input_buffer_bit_idx += CHAR_BIT;
-                output_buffer_bit_idx += CHAR_BIT;
+                input_buffer_bit_idx += SYMBOL_BITS;
+                output_buffer_bit_idx += SYMBOL_BITS;
 
                 firstChar = false;
 
@@ -132,6 +132,6 @@ void read_header(FILE *inputFilePtr) {
     output_buffer[0] = first_byte.split.data << HEADER_BITS;
 }
 
-int get_num_bytes_from_bits(int num_bits) { return ceil(1.0 * num_bits / CHAR_BIT); }
+int get_num_bytes_from_bits(int num_bits) { return ceil(1.0 * num_bits / SYMBOL_BITS); }
 
-int get_byte_idx_from_bit_idx(int bit_idx) { return bit_idx / CHAR_BIT; }
+int get_byte_idx_from_bit_idx(int bit_idx) { return bit_idx / SYMBOL_BITS; }

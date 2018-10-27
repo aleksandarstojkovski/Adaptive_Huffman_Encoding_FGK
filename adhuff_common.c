@@ -15,9 +15,9 @@ static adh_node_t *         adh_nyt_node = NULL;
 // private methods
 //
 adh_node_t*     create_nyt();
-adh_node_t*     create_node(unsigned short value);
+adh_node_t*     create_node(adh_symbol_t symbol);
 void            destroy_node(adh_node_t *node);
-adh_node_t*     find_node_by_char(adh_node_t *node, unsigned short ch);
+adh_node_t*     find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol);
 int             get_node_encoding(adh_node_t *node, uint8_t bit_array[]);
 int             get_node_level(adh_node_t *node);
 
@@ -29,7 +29,7 @@ int adh_init_tree() {
     log_trace("adh_init_tree\n");
 
     if(adh_root_node != NULL) {
-        perror("root already initialized");
+        perror("adh_init_tree: root already initialized");
         return RC_FAIL;
     }
 
@@ -52,10 +52,10 @@ void adh_destroy_tree() {
  * Recursively destroy nodes
  */
 void destroy_node(adh_node_t *node) {
-    log_trace("destroy_node\n");
-
     if(node == NULL)
         return;
+
+    log_trace("destroy_node: symbol=%d, order=%d\n", node->symbol, node->order);
 
     if(node->left != NULL) {
         destroy_node(node->left);
@@ -111,11 +111,11 @@ adh_node_t * create_nyt() {
 /*
  * Create a new adh_node_t in the heap.
  */
-adh_node_t * create_node(adh_symbol_t value) {
+adh_node_t * create_node(adh_symbol_t symbol) {
     if(adh_next_order == 0)
-        fprintf(stderr, "!!!! unexpected new node creation, adh_next_order = 0, symbol = %d \n", value);
+        fprintf(stderr, "!!!! unexpected new node creation, adh_next_order = 0, symbol = %d \n", symbol);
 
-    log_trace("create_node: order=%d, symbol=%d\n", adh_next_order, value);
+    log_trace("create_node: order=%d, symbol=%d\n", adh_next_order, symbol);
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
     node->left = NULL;
@@ -123,7 +123,7 @@ adh_node_t * create_node(adh_symbol_t value) {
     node->parent = NULL;
     node->order = adh_next_order;
     node->weight = 0;
-    node->symbol = value;
+    node->symbol = symbol;
 
     adh_next_order--;
     return node;
@@ -132,21 +132,21 @@ adh_node_t * create_node(adh_symbol_t value) {
 /*
  * Search Char in Tree
  */
-adh_node_t * find_node_by_char(adh_node_t *node, adh_symbol_t ch) {
-    log_trace("find_node_by_char: ch=%d \n", ch);
+adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
+    log_trace("find_node_by_symbol: symbol=%d \n", symbol);
 
-    if (node->symbol == ch){
+    if (node->symbol == symbol){
         return node;
     }
 
     if(node->left != NULL){
-        adh_node_t * leftRes = find_node_by_char(node->left, ch);
+        adh_node_t * leftRes = find_node_by_symbol(node->left, symbol);
         if(leftRes != NULL)
             return leftRes;
     }
 
     if(node->right != NULL){
-        adh_node_t * rightRes = find_node_by_char(node->right, ch);
+        adh_node_t * rightRes = find_node_by_symbol(node->right, symbol);
         if(rightRes != NULL)
             return rightRes;
     }
@@ -176,12 +176,12 @@ adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, unsigned int
 }
 
 /*
- * Search Char in Tree
+ * Search symbol in tree
  */
-adh_node_t * adh_search_symbol_in_tree(adh_symbol_t ch) {
-    log_trace("adh_search_symbol_in_tree: ch=%d\n", ch);
+adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
+    log_trace("adh_search_symbol_in_tree: symbol=%d\n", symbol);
 
-    return find_node_by_char(adh_root_node, ch);
+    return find_node_by_symbol(adh_root_node, symbol);
 }
 
 /*
@@ -262,8 +262,8 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
  * the number of bit to read is returned
  * 0 = left node, 1 = right node
  */
-int adh_get_symbol_encoding(adh_symbol_t ch, uint8_t bit_array[]) {
-    adh_node_t * node = adh_search_symbol_in_tree(ch);
+int adh_get_symbol_encoding(adh_symbol_t symbol, uint8_t bit_array[]) {
+    adh_node_t * node = adh_search_symbol_in_tree(symbol);
 
     return get_node_encoding(node, bit_array);
 }
