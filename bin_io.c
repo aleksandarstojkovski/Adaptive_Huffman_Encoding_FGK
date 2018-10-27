@@ -140,11 +140,14 @@ void bit_set_zero(byte_t * symbol, unsigned int bit_pos) {
     *symbol  &= ~((byte_t)(SINGLE_BIT_1 << bit_pos));
 }
 
+/*
+ * copy bits from left 7.. to right ..0
+ */
 void bit_copy(byte_t byte_from, byte_t * byte_to, unsigned int read_pos, unsigned int write_pos, int size) {
     for(int offset=0; offset < size; offset++) {
 
-        unsigned int from = read_pos + offset;
-        unsigned int to = write_pos + offset;
+        unsigned int from = read_pos - offset;
+        unsigned int to = write_pos - offset;
 
         byte_t bit = (byte_t) (byte_from >> from) & SINGLE_BIT_1;            /* Get the source bit as 0/1 symbol */
         *byte_to &= ~((byte_t)(SINGLE_BIT_1 << to));                  /* clear destination bit */
@@ -162,10 +165,19 @@ int bit_idx_to_byte_idx(int bit_idx) {
     return bit_idx / SYMBOL_BITS;
 }
 
-bool compare_bit_array(const byte_t input_buffer[], const byte_t node_bit_array[], int num_bits) {
+int bit_to_change(int buffer_idx) {
+    return get_available_bits(buffer_idx) - 1;
+}
+
+int get_available_bits(int buffer_bit_idx) {
+    return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
+}
+
+
+bool compare_bit_array(const byte_t input_buffer[], int input_buffer_bit_idx, const byte_t node_bit_array[], int num_bits) {
     bool have_same_bits = true;
     for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {
-        int byte_idx = bit_idx_to_byte_idx(bit_idx);
+        int byte_idx = bit_idx_to_byte_idx(input_buffer_bit_idx + bit_idx);
         byte_t input_byte = input_buffer[byte_idx];
 
         byte_t value = bit_check(input_byte, (unsigned int)bit_idx);

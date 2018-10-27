@@ -19,7 +19,6 @@ void    output_bit_array(const byte_t bit_array[], int num_bit);
 void    output_symbol(byte_t symbol);
 int     flush_data();
 int     flush_header();
-byte_t  get_num_bits_to_ignore();
 
 /*
  * Compress file
@@ -139,12 +138,12 @@ void output_bit_array(const byte_t bit_array[], int num_bit) {
         int buffer_byte_idx = bit_idx_to_byte_idx(buffer_bit_idx);
 
         // calculate which bit to change in the byte
-        unsigned int bit_to_change = SYMBOL_BITS - 1 - (buffer_bit_idx % SYMBOL_BITS);
+        unsigned int input_bit_to_change = bit_to_change(buffer_bit_idx);
 
         if(bit_array[i] == BIT_1)
-            bit_set_one(&output_buffer[buffer_byte_idx], bit_to_change);
+            bit_set_one(&output_buffer[buffer_byte_idx], input_bit_to_change);
         else
-            bit_set_zero(&output_buffer[buffer_byte_idx], bit_to_change);
+            bit_set_zero(&output_buffer[buffer_byte_idx], input_bit_to_change);
 
         buffer_bit_idx++;
 
@@ -153,7 +152,7 @@ void output_bit_array(const byte_t bit_array[], int num_bit) {
             flush_data();
 
             // reset buffer index
-            buffer_bit_idx = bit_to_change;
+            buffer_bit_idx = input_bit_to_change;
         }
     }
 }
@@ -168,7 +167,7 @@ int flush_data() {
 
     int num_bytes_to_write = bit_idx_to_byte_idx(buffer_bit_idx);
 
-    if(get_num_bits_to_ignore() > 0)
+    if(get_available_bits(buffer_bit_idx) > 0)
         num_bytes_to_write++;
 
     for(int i=0; i<num_bytes_to_write; i++)
@@ -187,10 +186,6 @@ int flush_data() {
     return RC_OK;
 }
 
-byte_t get_num_bits_to_ignore() {
-    return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
-}
-
 /*
  * flush header to file
  */
@@ -200,7 +195,7 @@ int flush_header() {
 
     first_byte_union first_byte;
     first_byte.raw = first_byte_written;
-    first_byte.split.header = get_num_bits_to_ignore();
+    first_byte.split.header = get_available_bits(buffer_bit_idx);
 
     log_trace("%-40s new_bits=\n", "flush_header:");
     log_trace_char_bin(first_byte.raw);

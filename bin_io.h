@@ -29,9 +29,11 @@ void        bit_set_one(byte_t * symbol, unsigned int bit_pos);
 void        bit_set_zero(byte_t * symbol, unsigned int bit_pos);
 void        bit_copy(byte_t byte_from, byte_t *byte_to, unsigned int read_pos, unsigned int write_pos, int size);
 
+int         get_available_bits(int buffer_bit_idx);
+int         bit_to_change(int buffer_idx);
 int         bit_idx_to_byte_idx(int bit_idx);
 int         bits_to_bytes(int num_bits);
-bool        compare_bit_array(const byte_t input_buffer[], const byte_t node_bit_array[], int num_bits);
+bool        compare_bit_array(const byte_t input_buffer[], int input_buffer_bit_idx, const byte_t node_bit_array[], int num_bits);
 void        symbol_to_bits(byte_t symbol, byte_t bit_array[]);
 
 /*

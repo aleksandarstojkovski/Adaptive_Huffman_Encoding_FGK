@@ -36,7 +36,7 @@ static const char * TEST_FILES[] = {
  */
 int main(int argc, char* argv[]) {
     test_bit_helpers();
-    test_compress_all_files();
+    //test_compress_all_files();
     test_uncompress_all_files();
 }
 
@@ -93,10 +93,15 @@ void test_bit_helpers() {
     test_bit_set_zero(9, 0, BIT_0);
     test_bit_set_zero(9, 1, BIT_0);
 
-    // source 2 = 00000010
-    // dest   1 = 00000001
-    // res    9 = 00001001
-    test_bit_copy(2, 1, 0, 2, 2, 9);
+    // source 2 = 0000 0010
+    // dest   1 = 0000 0001
+    // res    9 = 0000 1001
+    test_bit_copy(0x02, 0x01, 1, 3, 2, 0x09);    // copy from left to right
+
+    // source 2 = 0000 1000
+    // dest   1 = 0000 0001
+    // res    9 = 0100 0001
+    test_bit_copy(0x08, 0x01, 4, 7, 4, 0x41);
 }
 
 void test_bit_set_one(byte_t source, unsigned int bit_pos, byte_t expected) {
@@ -118,5 +123,5 @@ void test_bit_check(byte_t source, unsigned int bit_pos, byte_t expected) {
 void test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected) {
     bit_copy(source, &destination, read_pos, write_pos, size);
     if(destination != expected)
-        perror("error copying bits");
+        fprintf(stderr, "error copying bits: expected=0x%02X received=0x%02X\n", expected, destination);
 }
