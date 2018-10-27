@@ -10,7 +10,7 @@
  * modules variables
  */
 static FILE *           outputFilePtr;
-static unsigned char    output_buffer[BUFFER_SIZE] = {0};
+static uint8_t          output_buffer[BUFFER_SIZE] = {0};
 static unsigned short   output_buffer_bit_idx;
 static unsigned short   input_buffer_bit_idx;
 static unsigned int     bits_to_ignore;
@@ -19,7 +19,7 @@ static unsigned int     bits_to_ignore;
  * Private methods
  */
 void    read_header(FILE *inputFilePtr);
-bool    compare_bit_array(unsigned char *input_buffer, unsigned char *node_bit_array, int num_bits);
+bool    compare_bit_array(uint8_t input_buffer[], uint8_t node_bit_array[], int num_bits);
 int     get_byte_idx_from_bit_idx(int bit_idx);
 int     get_num_bytes_from_bits(int num_bits);
 
@@ -47,8 +47,8 @@ int adh_decompress_file(const char *input_file, const char *output_file) {
         bool firstChar = true;
         int byteToRead = 1;
 
-        unsigned char input_buffer[BUFFER_SIZE] = { 0 };
-        unsigned char node_bit_array[MAX_CODE_SIZE] = { 0 };
+        uint8_t input_buffer[BUFFER_SIZE] = { 0 };
+        uint8_t node_bit_array[MAX_CODE_SIZE] = { 0 };
 
         // read up to sizeof(buffer) bytes
         size_t bytesRead = 0;
@@ -103,13 +103,13 @@ int adh_decompress_file(const char *input_file, const char *output_file) {
     return rc;
 }
 
-bool compare_bit_array(unsigned char *input_buffer, unsigned char *node_bit_array, int num_bits) {
+bool compare_bit_array(uint8_t input_buffer[], uint8_t node_bit_array[], int num_bits) {
     bool haveSameBits = true;
     for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {
         int byte_idx = get_byte_idx_from_bit_idx(bit_idx);
-        unsigned char input_byte = input_buffer[byte_idx];
+        uint8_t input_byte = input_buffer[byte_idx];
 
-        unsigned char value = bit_check(input_byte, bit_idx);
+        uint8_t value = bit_check(input_byte, bit_idx);
         if(value != node_bit_array[bit_idx]) {
             haveSameBits = false;
         }
@@ -121,8 +121,8 @@ bool compare_bit_array(unsigned char *input_buffer, unsigned char *node_bit_arra
  * read header
  */
 void read_header(FILE *inputFilePtr) {
-    unsigned char header;
-    fread(&header, 1, 1, inputFilePtr);
+    uint8_t header;
+    fread(&header, sizeof(uint8_t), 1, inputFilePtr);
 
     first_byte_union first_byte;
     first_byte.raw = header;

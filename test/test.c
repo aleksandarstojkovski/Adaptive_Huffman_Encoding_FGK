@@ -12,10 +12,10 @@ int     test_read_bin_file(const char *filename);
 void    test_compress_all_test_files();
 
 void    test_bit();
-void    test_bit_check(unsigned char toTest, int bit_pos, char expected);
-void    test_bit_set_zero(unsigned char toTest, int bit_pos, char expected);
-void    test_bit_set_one(unsigned char toTest, int bit_pos, char expected);
-void    test_bit_copy(unsigned char byte_from, unsigned char byte_to, int read_pos, int write_pos, int size, char expected);
+void    test_bit_check(uint8_t toTest, int bit_pos, char expected);
+void    test_bit_set_zero(uint8_t toTest, int bit_pos, char expected);
+void    test_bit_set_one(uint8_t toTest, int bit_pos, char expected);
+void    test_bit_copy(uint8_t byte_from, uint8_t byte_to, int read_pos, int write_pos, int size, char expected);
 
 #define NUM_TEST_FILES  12
 static const char * TEST_FILES[NUM_TEST_FILES] = {
@@ -104,23 +104,23 @@ void test_bit() {
     test_bit_copy(2, 1, 0, 2, 2, 9);
 }
 
-void test_bit_set_one(unsigned char toTest, int bit_pos, char expected) {
+void test_bit_set_one(uint8_t toTest, int bit_pos, char expected) {
     bit_set_one(&toTest, bit_pos);
     test_bit_check(toTest, bit_pos, expected);
 }
 
-void test_bit_set_zero(unsigned char toTest, int bit_pos, char expected) {
+void test_bit_set_zero(uint8_t toTest, int bit_pos, char expected) {
     bit_set_zero(&toTest, bit_pos);
     test_bit_check(toTest, bit_pos, expected);
 }
 
-void test_bit_check(unsigned char toTest, int bit_pos, char expected) {
+void test_bit_check(uint8_t toTest, int bit_pos, char expected) {
     char val = bit_check(toTest, bit_pos);
     if(val != expected)
         perror("error checking bit");
 }
 
-void test_bit_copy(unsigned char byte_from, unsigned char byte_to, int read_pos, int write_pos, int size, char expected) {
+void test_bit_copy(uint8_t byte_from, uint8_t byte_to, int read_pos, int write_pos, int size, char expected) {
     bit_copy(&byte_to, byte_from, read_pos, write_pos, size);
     if(byte_to != expected)
         perror("error copying bits");

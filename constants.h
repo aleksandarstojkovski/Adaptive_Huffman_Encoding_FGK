@@ -5,6 +5,7 @@
 #ifndef ALGO_CONSTANTS_H
 #define ALGO_CONSTANTS_H
 
+#include <stdlib.h>
 #include <limits.h>
 #include <stdbool.h>
 

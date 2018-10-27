@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "adhuff_common.h"
 #include "bin_io.h"
@@ -15,11 +14,11 @@ static adh_node_t *         adh_nyt_node = NULL;
 //
 // private methods
 //
-adh_node_t*     create_NYT();
+adh_node_t*     create_nyt();
 adh_node_t*     create_node(unsigned short value);
 void            destroy_node(adh_node_t *node);
-adh_node_t*     search_char_from_node(adh_node_t *node, unsigned short ch);
-int             get_node_encoding(adh_node_t *node, unsigned char *bit_array);
+adh_node_t*     find_node_by_char(adh_node_t *node, unsigned short ch);
+int             get_node_encoding(adh_node_t *node, uint8_t bit_array[]);
 int             get_node_level(adh_node_t *node);
 
 /*
@@ -34,7 +33,7 @@ int adh_init_tree() {
         return RC_FAIL;
     }
 
-    adh_nyt_node = adh_root_node = create_NYT();
+    adh_nyt_node = adh_root_node = create_nyt();
     return RC_OK;
 }
 
@@ -88,7 +87,7 @@ adh_node_t * adh_create_node_and_append(adh_symbol_t value) {
     adh_nyt_node->right = newNode;
 
     // create left leaf node with no symbol
-    adh_node_t * newNYT = create_NYT();
+    adh_node_t * newNYT = create_nyt();
     newNYT->parent = adh_nyt_node;
     adh_nyt_node->left = newNYT;
 
@@ -103,8 +102,8 @@ adh_node_t * adh_create_node_and_append(adh_symbol_t value) {
 /*
  * Create a new adh_node_t in the heap.
  */
-adh_node_t * create_NYT() {
-    log_trace("create_NYT\n");
+adh_node_t * create_nyt() {
+    log_trace("create_nyt\n");
 
     return create_node(ADH_NYT_CODE);
 }
@@ -133,29 +132,29 @@ adh_node_t * create_node(adh_symbol_t value) {
 /*
  * Search Char in Tree
  */
-adh_node_t * search_char_from_node(adh_node_t *node, adh_symbol_t ch) {
-    log_trace("search_char_from_node\n");
+adh_node_t * find_node_by_char(adh_node_t *node, adh_symbol_t ch) {
+    log_trace("find_node_by_char: ch=%d \n", ch);
 
     if (node->symbol == ch){
         return node;
     }
 
     if(node->left != NULL){
-        adh_node_t * leftRes = search_char_from_node(node->left, ch);
+        adh_node_t * leftRes = find_node_by_char(node->left, ch);
         if(leftRes != NULL)
             return leftRes;
     }
 
     if(node->right != NULL){
-        adh_node_t * rightRes = search_char_from_node(node->right, ch);
+        adh_node_t * rightRes = find_node_by_char(node->right, ch);
         if(rightRes != NULL)
             return rightRes;
     }
     return NULL;
 }
 
-adh_node_t * searchNodeWithSameWeightAndHigherOrder(adh_node_t * node, unsigned int weight, unsigned int order) {
-    log_trace("searchNodeWithSameWeightAndHigherOrder: weight=%u, order=%u\n", weight, order);
+adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, unsigned int weight, unsigned int order) {
+    //log_trace("search_node_same_weight_higher_order: weight=%u, order=%u\n", weight, order);
 
     // if current node has same weight and higher order of input node, return it
     if ((node->weight == weight) && (node->order > order) && node != adh_root_node){
@@ -163,13 +162,13 @@ adh_node_t * searchNodeWithSameWeightAndHigherOrder(adh_node_t * node, unsigned 
     }
 
     if(node->left != NULL){
-        adh_node_t * leftRes = searchNodeWithSameWeightAndHigherOrder(node->left, weight, order);
+        adh_node_t * leftRes = search_node_same_weight_higher_order(node->left, weight, order);
         if(leftRes != NULL)
             return leftRes;
     }
 
     if(node->right != NULL){
-        adh_node_t * rightRes = searchNodeWithSameWeightAndHigherOrder(node->right, weight, order);
+        adh_node_t * rightRes = search_node_same_weight_higher_order(node->right, weight, order);
         if(rightRes != NULL)
             return rightRes;
     }
@@ -180,15 +179,15 @@ adh_node_t * searchNodeWithSameWeightAndHigherOrder(adh_node_t * node, unsigned 
  * Search Char in Tree
  */
 adh_node_t * adh_search_symbol_in_tree(adh_symbol_t ch) {
-    log_trace("adh_search_symbol_in_tree\n");
+    log_trace("adh_search_symbol_in_tree: ch=%d\n", ch);
 
-    return search_char_from_node(adh_root_node, ch);
+    return find_node_by_char(adh_root_node, ch);
 }
 
 /*
  * Swap Nodes
  */
-void swapNodes(adh_node_t * node1, adh_node_t * node2){
+void swap_nodes(adh_node_t *node1, adh_node_t *node2){
 
     // check if node1 is left or right child
     if (node1->parent->left == node1){
@@ -222,8 +221,8 @@ void swapNodes(adh_node_t * node1, adh_node_t * node2){
 /*
  * Update Tree, fix sibling property
  */
-void adh_update_tree(adh_node_t *node, bool isNewNode) {
-    log_trace("updateTre: isNewNode=%d\n", isNewNode);
+void adh_update_tree(adh_node_t *node, bool is_new_node) {
+    log_trace("adh_update_tree: is_new_node=%d\n", is_new_node);
 
     // update parents' weight
     adh_node_t * parent = node->parent;
@@ -236,7 +235,7 @@ void adh_update_tree(adh_node_t *node, bool isNewNode) {
 
     // if node is new it's father is NYT, therefore we don't need to check it
     // if node is not new, his father needs also to be checked
-    if(isNewNode == true) {
+    if(is_new_node == true) {
         nodeToCheck = node->parent->parent;
     } else {
         nodeToCheck = node->parent;
@@ -244,13 +243,16 @@ void adh_update_tree(adh_node_t *node, bool isNewNode) {
 
     while(nodeToCheck != NULL && nodeToCheck != adh_root_node) {
         // search in tree node with same weight and higher order
-        adh_node_t * nodeToBeSwappedWith = searchNodeWithSameWeightAndHigherOrder(adh_root_node,nodeToCheck->weight,nodeToCheck->order);
+        adh_node_t * nodeToBeSwappedWith = search_node_same_weight_higher_order(adh_root_node,
+                                                                                nodeToCheck->weight,
+                                                                                nodeToCheck->order);
+
         // if nodeToBeSwappedWith == NULL, then no swap is needed
         if (nodeToBeSwappedWith != NULL) {
-            swapNodes(nodeToCheck, nodeToBeSwappedWith);
+            swap_nodes(nodeToCheck, nodeToBeSwappedWith);
         }
         // continue ascending the tree
-        nodeToCheck=nodeToCheck->parent;
+        nodeToCheck = nodeToCheck->parent;
     }
 }
 
@@ -260,13 +262,13 @@ void adh_update_tree(adh_node_t *node, bool isNewNode) {
  * the number of bit to read is returned
  * 0 = left node, 1 = right node
  */
-int adh_get_symbol_encoding(adh_symbol_t ch, unsigned char *bit_array) {
+int adh_get_symbol_encoding(adh_symbol_t ch, uint8_t bit_array[]) {
     adh_node_t * node = adh_search_symbol_in_tree(ch);
 
     return get_node_encoding(node, bit_array);
 }
 
-int get_node_encoding(adh_node_t *node, unsigned char bit_array[]) {
+int get_node_encoding(adh_node_t *node, uint8_t bit_array[]) {
     int bit_size = 0;
     if(node != NULL) {
         bit_size = get_node_level(node);
@@ -297,6 +299,6 @@ int get_node_level(adh_node_t *node) {
 /*
  * adh_get_symbol_encoding for NYT
  */
-int adh_get_NYT_encoding(unsigned char *bit_array) {
+int adh_get_NYT_encoding(uint8_t bit_array[]) {
     return get_node_encoding(adh_nyt_node, bit_array);
 }

@@ -16,7 +16,7 @@ typedef struct
 typedef union
 {
     first_byte_struct   split;
-    unsigned char       raw;
+    uint8_t             raw;
 } first_byte_union;
 #pragma pack()
 
@@ -43,12 +43,13 @@ typedef struct adh_node {
 //
 // public methods
 //
+
 int             adh_init_tree();
 void            adh_destroy_tree();
-void            adh_update_tree(adh_node_t *node, bool isNewNode);
+void            adh_update_tree(adh_node_t *node, bool is_new_node);
 adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t ch);
 adh_node_t *    adh_create_node_and_append(adh_symbol_t ch);
-int             adh_get_NYT_encoding(unsigned char *bit_array);
-int             adh_get_symbol_encoding(unsigned short ch, unsigned char *bit_array);
+int             adh_get_NYT_encoding(uint8_t bit_array[]);
+int             adh_get_symbol_encoding(unsigned short ch, uint8_t bit_array[]);
 
 #endif //ALGO_ADHUFF_COMMON_H

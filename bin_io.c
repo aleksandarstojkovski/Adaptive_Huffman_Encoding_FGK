@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <time.h>
 
-#include "constants.h"
 #include "bin_io.h"
 
 FILE* bin_open_read(const char *filename) {
@@ -36,12 +35,12 @@ FILE* bin_open_update(const char *filename) {
  *  Read a binary file in chunk
  *  for each char read call a callback function
  */
-int bin_read_file(const char *filename, void (*fn_process_char)(unsigned char)) {
+int bin_read_file(const char *filename, void (*fn_process_char)(uint8_t)) {
     FILE * filePtr = bin_open_read(filename);
     if(filePtr == NULL)
         return RC_FAIL;
 
-    unsigned char buffer[BUFFER_SIZE] = { 0 };
+    uint8_t buffer[BUFFER_SIZE] = { 0 };
     size_t bytesRead = 0;
     // read up to sizeof(buffer) bytes
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), filePtr)) > 0)
@@ -56,7 +55,7 @@ int bin_read_file(const char *filename, void (*fn_process_char)(unsigned char)) 
 /*
  * Diagnostic functions
  */
-void log_trace_char_bin(unsigned char ch) {
+void log_trace_char_bin(uint8_t ch) {
     if(TRACE_OFF)
         return;
 
@@ -67,7 +66,7 @@ void log_trace_char_bin(unsigned char ch) {
     printf("\n");
 }
 
-void log_trace_char_bin_msg(const char *msg, unsigned char ch) {
+void log_trace_char_bin_msg(const char *msg, uint8_t ch) {
     if(TRACE_OFF)
         return;
 
@@ -110,20 +109,20 @@ void log_trace(const char *msg, ...) {
 /*
  * return '1' if the bit at bit_pos is 1, otherwise '0'
  */
-char bit_check(unsigned char ch, int bit_pos) {
-    unsigned int val = (ch & (1u << bit_pos));
+char bit_check(uint8_t ch, int bit_pos) {
+    uint8_t val = (ch & (1u << bit_pos));
     return val ? BIT_1 : BIT_0;
 }
 
-void bit_set_one(unsigned char * ch, int bit_pos) {
+void bit_set_one(uint8_t * ch, int bit_pos) {
     *ch |= (1u << bit_pos);
 }
 
-void bit_set_zero(unsigned char * ch, int bit_pos) {
+void bit_set_zero(uint8_t * ch, int bit_pos) {
     *ch  &= ~(1u << bit_pos);
 }
 
-void bit_copy(unsigned char * byte_to, unsigned char byte_from, int read_pos, int write_pos, int size) {
+void bit_copy(uint8_t * byte_to, uint8_t byte_from, int read_pos, int write_pos, int size) {
     for(unsigned int offset=0; offset < size; offset++) {
 
         unsigned int from = read_pos + offset;
