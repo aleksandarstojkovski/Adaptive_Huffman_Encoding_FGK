@@ -25,7 +25,7 @@ byte_t  get_num_bits_to_ignore();
  * Compress file
  */
 int adh_compress_file(const char input_file_name[], const char output_file_name[]) {
-    log_info("%-40s %s\n", "adh_compress_file:", input_file_name);
+    log_info("%-30s %s\n", "adh_compress_file:", input_file_name);
     buffer_bit_idx = HEADER_BITS;
 
     FILE * input_file_ptr = bin_open_read(input_file_name);
@@ -82,7 +82,9 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  * encode char
  */
 void process_symbol(byte_t symbol) {
-    log_trace_char_bin_msg("process_symbol: symbol=%d bits=", symbol);
+    log_trace("%-40s symbol=%3d bits=", "process_symbol:", symbol);
+    log_trace_char_bin(symbol);
+
     byte_t bit_array[MAX_CODE_SIZE] = {0};
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
@@ -116,7 +118,7 @@ void process_symbol(byte_t symbol) {
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol) {
-    log_trace("%-40s symbol=%d bits=\n", "output_symbol:", symbol);
+    log_trace("%-40s symbol=%3d bits=", "output_symbol:", symbol);
     log_trace_char_bin(symbol);
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
@@ -129,7 +131,7 @@ void output_symbol(byte_t symbol) {
  * copy data to output buffer as bit array
  */
 void output_bit_array(const byte_t bit_array[], int num_bit) {
-    log_trace("%-40s %d\n", "output_bit_array:", num_bit);
+    log_trace("%-40s num_bit=%d\n", "output_bit_array:", num_bit);
 
     for(int i = num_bit-1; i>=0; i--) {
 
@@ -162,7 +164,7 @@ void output_bit_array(const byte_t bit_array[], int num_bit) {
  */
 int flush_data() {
     static bool isFirstByte = true;
-    log_trace("%-40s: %d bits\n", "flush_data", buffer_bit_idx);
+    log_trace("%-40s %d bits\n", "flush_data", buffer_bit_idx);
 
     int num_bytes_to_write = bit_idx_to_byte_idx(buffer_bit_idx);
 
@@ -209,7 +211,7 @@ int flush_header() {
         return RC_FAIL;
     }
 
-    size_t bytesWritten = fwrite(&first_byte.raw, 1, 1, output_file_ptr);
+    size_t bytesWritten = fwrite(&first_byte.raw, sizeof(byte_t), 1, output_file_ptr);
     if(bytesWritten == 0) {
         perror("failed to overwrite first byte");
         return RC_FAIL;

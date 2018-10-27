@@ -55,7 +55,7 @@ void destroy_node(adh_node_t *node) {
     if(node == NULL)
         return;
 
-    log_trace("%-40s: symbol=%d, order=%d\n", "destroy_node:", node->symbol, node->order);
+    log_trace("%-40s symbol=%3d order=%3d\n", "destroy_node:", node->symbol, node->order);
 
     if(node->left != NULL) {
         destroy_node(node->left);
@@ -75,7 +75,7 @@ void destroy_node(adh_node_t *node) {
  * Must be used only for new for symbols (not present in the tree)
  */
 adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
-    log_trace("%-40s: symbol=%d\n", "adh_create_node_and_append:", symbol);
+    log_trace("%-40s symbol=%3d\n", "adh_create_node_and_append:", symbol);
 
     // IMPORTANT: right node must be created before left node because
     //            create_node() decrease adh_next_order each time it's called
@@ -115,7 +115,7 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     if(adh_next_order == 0)
         fprintf(stderr, "!!!! unexpected new node creation, adh_next_order = 0, symbol = %d \n", symbol);
 
-    log_trace("%-40s: order=%d, symbol=%d\n", "create_node:", adh_next_order, symbol);
+    log_trace("%-40s symbol=%3d order=%3d\n", "create_node:", symbol, adh_next_order);
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
     node->left = NULL;
@@ -133,7 +133,7 @@ adh_node_t * create_node(adh_symbol_t symbol) {
  * Search Char in Tree
  */
 adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
-    log_trace("%-40s symbol=%d\n", "find_node_by_symbol:", symbol);
+    log_trace("%-40s symbol=%3d\n", "find_node_by_symbol:", symbol);
 
     if (node->symbol == symbol){
         return node;
@@ -154,7 +154,7 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
 }
 
 adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
-    log_trace("%-40s weight=%u, order=%u\n", "search_node_same_weight_higher_order:", weight, order);
+    log_trace("%-40s weight=%3d order=%3d\n", "search_node_same_weight_higher_order:", weight, order);
 
     // if current node has same weight and higher order of input node, return it
     if ((node->weight == weight) && (node->order > order) && node != adh_root_node){
@@ -179,7 +179,7 @@ adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, adh_weight_t
  * Search symbol in tree
  */
 adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
-    log_trace("%-40s symbol=%d\n", "adh_search_symbol_in_tree:", symbol);
+    log_trace("%-40s symbol=%3d\n", "adh_search_symbol_in_tree:", symbol);
 
     return find_node_by_symbol(adh_root_node, symbol);
 }
@@ -208,9 +208,9 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     }
 
     // fix their fathers
-    adh_node_t *tempNode = node1->parent;
+    adh_node_t *temp_node = node1->parent;
     node1->parent = node2->parent;
-    node2->parent = tempNode;
+    node2->parent = temp_node;
 
     // revert original order, since doesn't need to be swapped
     adh_order_t temp_order = node1->order;
@@ -222,7 +222,7 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
  * Update Tree, fix sibling property
  */
 void adh_update_tree(adh_node_t *node, bool is_new_node) {
-    log_trace("%-40s is_new_node=%b\n", "adh_update_tree:", is_new_node);
+    log_trace("%-40s symbol=%3d order=%d weight=%d is_new=%d\n", "adh_update_tree:", node->symbol, node->order, node->weight, is_new_node);
 
     // update parents' weight
     adh_node_t * parent = node->parent;
@@ -231,28 +231,28 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
         parent = parent->parent;
     }
 
-    adh_node_t * nodeToCheck;
+    adh_node_t * node_to_check;
 
     // if node is new it's father is NYT, therefore we don't need to check it
     // if node is not new, his father needs also to be checked
     if(is_new_node == true) {
-        nodeToCheck = node->parent->parent;
+        node_to_check = node->parent->parent;
     } else {
-        nodeToCheck = node->parent;
+        node_to_check = node->parent;
     }
 
-    while(nodeToCheck != NULL && nodeToCheck != adh_root_node) {
+    while(node_to_check != NULL && node_to_check != adh_root_node) {
         // search in tree node with same weight and higher order
-        adh_node_t * nodeToBeSwappedWith = search_node_same_weight_higher_order(adh_root_node,
-                                                                                nodeToCheck->weight,
-                                                                                nodeToCheck->order);
+        adh_node_t * node_to_swap = search_node_same_weight_higher_order(adh_root_node,
+                                                                                node_to_check->weight,
+                                                                                node_to_check->order);
 
-        // if nodeToBeSwappedWith == NULL, then no swap is needed
-        if (nodeToBeSwappedWith != NULL) {
-            swap_nodes(nodeToCheck, nodeToBeSwappedWith);
+        // if node_to_swap == NULL, then no swap is needed
+        if (node_to_swap != NULL) {
+            swap_nodes(node_to_check, node_to_swap);
         }
         // continue ascending the tree
-        nodeToCheck = nodeToCheck->parent;
+        node_to_check = node_to_check->parent;
     }
 }
 

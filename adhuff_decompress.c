@@ -23,7 +23,7 @@ void    read_header(FILE *inputFilePtr);
  * decompress file
  */
 int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
-    log_info("adh_decompress_file: %s ...\n", input_file_name);
+    log_info("%-30s %s\n", "adh_decompress_file:", input_file_name);
     input_buffer_bit_idx = HEADER_BITS;
 
     FILE * input_file_ptr = bin_open_read(input_file_name);
@@ -85,9 +85,9 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         }
 
         int out_byte_idx = bit_idx_to_byte_idx(output_buffer_bit_idx);
-        size_t bytes_written = fwrite(output_buffer, out_byte_idx, 1, output_file_ptr);
+        size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), out_byte_idx, output_file_ptr);
         if(bytes_written != out_byte_idx)
-            perror("bytes_written != out_byte_idx");
+            fprintf(stderr, "bytes_written (%d) != out_byte_idx (%d)\n", bytes_written, out_byte_idx);
 
         adh_destroy_tree();
     }

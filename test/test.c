@@ -5,18 +5,19 @@
 #include "../constants.h"
 #include "../bin_io.h"
 #include "../adhuff_compress.h"
+#include "../adhuff_decompress.h"
 
-
+void    test_uncompress_all_files();
 void    test_compress_all_files();
-
 void    test_bit_helpers();
 void    test_bit_check(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_set_zero(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_set_one(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected);
 
-#define NUM_TEST_FILES  12
-static const char * TEST_FILES[NUM_TEST_FILES] = {
+#define MAX_FILE_NAME  80
+#define NUM_TEST_FILES  11  // skip immagine.tiff for the moment
+static const char * TEST_FILES[] = {
         "../../test/res/a-bad-filename",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
@@ -36,11 +37,28 @@ static const char * TEST_FILES[NUM_TEST_FILES] = {
 int main(int argc, char* argv[]) {
     test_bit_helpers();
     test_compress_all_files();
+    test_uncompress_all_files();
+}
+
+void test_uncompress_all_files() {
+    log_info("test_uncompress_all_files\n");
+    char input_filename[MAX_FILE_NAME];
+    char output_filename[MAX_FILE_NAME];
+
+    for(int i=0; i<NUM_TEST_FILES; i++) {
+        strcpy(input_filename, TEST_FILES[i]);
+        strcat(input_filename, ".compressed");
+
+        char * filename = strrchr(TEST_FILES[i], '/') + 1;
+        strcpy(output_filename, filename);
+
+        adh_decompress_file(input_filename, output_filename);
+    }
 }
 
 void test_compress_all_files() {
     log_info("test_compress_all_files\n");
-    char output_filename[30];
+    char output_filename[MAX_FILE_NAME];
 
     for(int i=0; i<NUM_TEST_FILES; i++) {
 
