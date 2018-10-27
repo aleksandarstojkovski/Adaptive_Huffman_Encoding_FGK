@@ -9,44 +9,46 @@
 #pragma pack(1)
 typedef struct
 {
-    unsigned int data: HEADER_DATA_BITS;    // rest of the bits for data
-    unsigned int header: HEADER_BITS;       // bits for header
+    unsigned int        data: HEADER_DATA_BITS;    // rest of the bits for data
+    unsigned int        header: HEADER_BITS;       // bits for header
 } first_byte_struct;
 
 typedef union
 {
-    first_byte_struct split;
-    unsigned char raw;
+    first_byte_struct   split;
+    unsigned char       raw;
 } first_byte_union;
 #pragma pack()
 
 /*
- * Node struct
+ * A symbol in adh:
+ * - BYTE     = [0..255]
+ * - NYT      = 256        // Not Yet Transmitted
+ * - OLD_NYT  = 257
  */
-struct Node {
-    unsigned short value;
-    unsigned int weight;
-    unsigned short order;
-    struct Node *left;
-    struct Node *right;
-    struct Node *parent;
-};
-typedef struct Node Node;
+typedef unsigned short  adh_symbol_t;
+
+/*
+ * adh_node_t struct
+ */
+typedef struct adh_node {
+    adh_symbol_t        symbol;
+    unsigned int        weight;
+    unsigned short      order;
+    struct adh_node *   left;
+    struct adh_node *   right;
+    struct adh_node *   parent;
+} adh_node_t;
 
 //
 // public methods
 //
-int     initializeTree();
-void    destroyTree();
-
-void    updateTree(Node * node, bool isNewNode);
-
-Node *  searchCharInTree(unsigned short ch);
-
-Node *  createNodeAndAppend(unsigned short ch);
-
-int     getNYTCode(unsigned char bit_array[]);
-int     getSymbolCode(unsigned short ch, unsigned char bit_array[]);
-
+int             adh_init_tree();
+void            adh_destroy_tree();
+void            adh_update_tree(adh_node_t *node, bool isNewNode);
+adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t ch);
+adh_node_t *    adh_create_node_and_append(adh_symbol_t ch);
+int             adh_get_NYT_encoding(unsigned char *bit_array);
+int             adh_get_symbol_encoding(unsigned short ch, unsigned char *bit_array);
 
 #endif //ALGO_ADHUFF_COMMON_H

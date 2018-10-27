@@ -26,10 +26,10 @@ int main(int argc, char* argv[])
         rc = 1;
     }
     else if (strcmp(argv[1], "-c") == 0) {
-        rc = compressFile(argv[2], argv[3]);
+        rc = adh_compress_file(argv[2], argv[3]);
     }
     else if (strcmp(argv[1], "-d") == 0) {
-        rc = decompressFile(argv[2], argv[3]);
+        rc = adh_decompress_file(argv[2], argv[3]);
     }
     else {
         fprintf(stderr, "Unexpected argument\n");

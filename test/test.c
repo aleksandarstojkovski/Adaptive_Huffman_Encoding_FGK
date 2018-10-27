@@ -7,15 +7,15 @@
 #include "../adhuff_compress.h"
 
 
-int testReadAllBinaryFiles();
-int testReadBinaryFile(const char *filename);
-void testCompressAll();
+int     test_read_all_test_files();
+int     test_read_bin_file(const char *filename);
+void    test_compress_all_test_files();
 
-void test_bit();
-void test_bit_check(unsigned char toTest, int bit_pos, char expected);
-void test_bit_set_zero(unsigned char toTest, int bit_pos, char expected);
-void test_bit_set_one(unsigned char toTest, int bit_pos, char expected);
-void test_bit_copy(unsigned char byte_from, unsigned char byte_to, int read_pos, int write_pos, int size, char expected);
+void    test_bit();
+void    test_bit_check(unsigned char toTest, int bit_pos, char expected);
+void    test_bit_set_zero(unsigned char toTest, int bit_pos, char expected);
+void    test_bit_set_one(unsigned char toTest, int bit_pos, char expected);
+void    test_bit_copy(unsigned char byte_from, unsigned char byte_to, int read_pos, int write_pos, int size, char expected);
 
 #define NUM_TEST_FILES  12
 static const char * TEST_FILES[NUM_TEST_FILES] = {
@@ -36,12 +36,12 @@ static const char * TEST_FILES[NUM_TEST_FILES] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    testCompressAll();
+    test_compress_all_test_files();
     //test_bit();
-    //testReadAllBinaryFiles();
+    //test_read_all_test_files();
 }
 
-void testCompressAll() {
+void test_compress_all_test_files() {
     char outputFile[30];
 
     for(int i=0; i<NUM_TEST_FILES; i++) {
@@ -50,17 +50,17 @@ void testCompressAll() {
         strcpy(outputFile, filename);
         strcat(outputFile, ".compressed");
 
-        compressFile(TEST_FILES[i], outputFile);
+        adh_compress_file(TEST_FILES[i], outputFile);
     }
 }
 
 /*
  * test all sample files
  */
-int testReadAllBinaryFiles() {
+int test_read_all_test_files() {
     int rc = RC_OK;
     for(int i=0; i<NUM_TEST_FILES; i++) {
-        rc = testReadBinaryFile(TEST_FILES[i]);
+        rc = test_read_bin_file(TEST_FILES[i]);
         if(rc != 0)
             break;
     }
@@ -71,9 +71,9 @@ int testReadAllBinaryFiles() {
 /*
  * test Read binary file
  */
-int testReadBinaryFile(const char *filename) {
-    info("test read: %s\n", filename);
-    return readBinaryFile(filename, traceCharBin);
+int test_read_bin_file(const char *filename) {
+    log_info("test read: %s\n", filename);
+    return bin_read_file(filename, log_trace_char_bin);
 }
 
 /*

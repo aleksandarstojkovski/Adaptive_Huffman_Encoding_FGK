@@ -25,23 +25,23 @@ int getBitsToIgnore();
 /*
  * Compress file
  */
-int compressFile(const char * input_file, const char * output_file) {
-    info("compressFile: %s ...\n", input_file);
+int adh_compress_file(const char *input_file, const char *output_file) {
+    log_info("adh_compress_file: %s ...\n", input_file);
     buffer_bit_idx = HEADER_BITS;
 
-    FILE * inputFilePtr = openReadBinary(input_file);
+    FILE * inputFilePtr = bin_open_read(input_file);
     if (inputFilePtr == NULL) {
         return RC_FAIL;
     }
 
-    outputFilePtr = openCreateBinary(output_file);
+    outputFilePtr = bin_open_create(output_file);
     if (outputFilePtr == NULL) {
         return RC_FAIL;
     }
 
     unsigned char buffer[BUFFER_SIZE] = {0};
 
-    int rc = initializeTree();
+    int rc = adh_init_tree();
     if (rc == 0) {
 
         size_t bytesRead = 0;
@@ -53,7 +53,7 @@ int compressFile(const char * input_file, const char * output_file) {
         }
 
 
-        destroyTree();
+        adh_destroy_tree();
 
         if(buffer_bit_idx > 0) {
             // flush remaining data to file
@@ -66,7 +66,7 @@ int compressFile(const char * input_file, const char * output_file) {
         // close and reopen in update mode
         fclose(outputFilePtr);
 
-        outputFilePtr = openUpdateBinary(output_file);
+        outputFilePtr = bin_open_update(output_file);
         if (outputFilePtr == NULL) {
             return RC_FAIL;
         }
@@ -83,22 +83,22 @@ int compressFile(const char * input_file, const char * output_file) {
  * encode char
  */
 void encodeChar(unsigned char ch) {
-    traceCharBinMsg("processChar: ", ch);
+    log_trace_char_bin_msg("processChar: ", ch);
     unsigned char bit_array[MAX_CODE_SIZE] = {0};
 
-    Node* node = searchCharInTree(ch);
+    adh_node_t* node = adh_search_symbol_in_tree(ch);
 
     if(node == NULL) {
         // symbol not present in tree
 
         // write NYT code
-        int num_bit = getNYTCode(bit_array);
+        int num_bit = adh_get_NYT_encoding(bit_array);
         outputBitArray(bit_array, num_bit);
 
         // write symbol code
         outputChar(ch);
-        node = createNodeAndAppend(ch);
-        updateTree(node, true);
+        node = adh_create_node_and_append(ch);
+        adh_update_tree(node, true);
     } else {
         // char already present in tree
 
@@ -106,9 +106,9 @@ void encodeChar(unsigned char ch) {
         node->weight++;
 
         // write symbol code
-        int num_bit = getSymbolCode(ch, bit_array);
+        int num_bit = adh_get_symbol_encoding(ch, bit_array);
         outputBitArray(bit_array, num_bit);
-        updateTree(node, false);
+        adh_update_tree(node, false);
     }
 
 }
@@ -117,7 +117,7 @@ void encodeChar(unsigned char ch) {
  * copy data to output buffer as char
  */
 void outputChar(unsigned char ch) {
-    traceCharBinMsg("outputChar: ", ch);
+    log_trace_char_bin_msg("outputChar: ", ch);
 
     unsigned char bit_array[CHAR_BIT] = { 0 };
     for (int bitPos = CHAR_BIT-1; bitPos >= 0; --bitPos) {
@@ -132,7 +132,7 @@ void outputChar(unsigned char ch) {
  * copy data to output buffer as bit array
  */
 void outputBitArray(const unsigned char bit_array[], int num_bit) {
-    trace("outputBitArray: %d\n", num_bit);
+    log_trace("outputBitArray: %d\n", num_bit);
 
     for(int i = num_bit-1; i>=0; i--) {
 
@@ -165,7 +165,7 @@ void outputBitArray(const unsigned char bit_array[], int num_bit) {
  */
 int flushData() {
     static bool isFirstByte = true;
-    trace("flushData: %d bits\n", buffer_bit_idx);
+    log_trace("flushData: %d bits\n", buffer_bit_idx);
 
     unsigned int bytesToWrite = buffer_bit_idx / CHAR_BIT;
 
@@ -174,7 +174,7 @@ int flushData() {
         bytesToWrite++;
 
     for(int i=0; i<bytesToWrite; i++)
-        traceCharBinMsg("", output_buffer[i]);
+        log_trace_char_bin_msg("", output_buffer[i]);
 
     size_t bytesWritten = fwrite(output_buffer, sizeof(unsigned char), bytesToWrite, outputFilePtr);
     if(bytesWritten != bytesToWrite) {
@@ -195,13 +195,13 @@ int getBitsToIgnore() { return CHAR_BIT - (buffer_bit_idx % CHAR_BIT); }
  * flush header to file
  */
 int flushHeader() {
-    traceCharBinMsg("flushHeader ori: ", firstByteWritten);
+    log_trace_char_bin_msg("flushHeader ori: ", firstByteWritten);
 
     first_byte_union first_byte;
     first_byte.raw = firstByteWritten;
     first_byte.split.header = getBitsToIgnore();
 
-    traceCharBinMsg("flushHeader hdr: ", first_byte.raw);
+    log_trace_char_bin_msg("flushHeader hdr: ", first_byte.raw);
     fputc(first_byte.raw, outputFilePtr);
 
     if ( fseek(outputFilePtr, 0L, SEEK_SET) != 0 ) {

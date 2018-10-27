@@ -4,6 +4,6 @@
 //
 // public methods
 //
-int decompressFile(const char *input_file, const char *output_file);
+int adh_decompress_file(const char *input_file, const char *output_file);
 
 #endif //ALGO_ADHUFF_DECOMPRESS_H

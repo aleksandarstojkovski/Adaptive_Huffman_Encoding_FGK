@@ -7,7 +7,7 @@
 #include "constants.h"
 #include "bin_io.h"
 
-FILE* openReadBinary(const char * filename) {
+FILE* bin_open_read(const char *filename) {
     FILE * filePtr = fopen(filename, "rb");
     if(filePtr == NULL) {
         perror("cannot open file in [rb] mode");
@@ -15,7 +15,7 @@ FILE* openReadBinary(const char * filename) {
     return filePtr;
 }
 
-FILE* openCreateBinary(const char *filename) {
+FILE* bin_open_create(const char *filename) {
     FILE * filePtr = fopen(filename, "wb");
     if(filePtr == NULL) {
         perror("cannot open file in [wb] mode");
@@ -23,7 +23,7 @@ FILE* openCreateBinary(const char *filename) {
     return filePtr;
 }
 
-FILE* openUpdateBinary(const char * filename) {
+FILE* bin_open_update(const char *filename) {
     FILE * filePtr = fopen(filename, "rb+");
     if(filePtr == NULL) {
         perror("cannot open file in [rb+] mode");
@@ -36,8 +36,8 @@ FILE* openUpdateBinary(const char * filename) {
  *  Read a binary file in chunk
  *  for each char read call a callback function
  */
-int readBinaryFile(const char *filename, void (*processChar)(unsigned char)) {
-    FILE * filePtr = openReadBinary(filename);
+int bin_read_file(const char *filename, void (*fn_process_char)(unsigned char)) {
+    FILE * filePtr = bin_open_read(filename);
     if(filePtr == NULL)
         return RC_FAIL;
 
@@ -47,7 +47,7 @@ int readBinaryFile(const char *filename, void (*processChar)(unsigned char)) {
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), filePtr)) > 0)
     {
         for(int i=0;i<bytesRead;i++)
-            processChar(buffer[i]);
+            fn_process_char(buffer[i]);
     }
     fclose(filePtr);
     return RC_OK;
@@ -56,7 +56,7 @@ int readBinaryFile(const char *filename, void (*processChar)(unsigned char)) {
 /*
  * Diagnostic functions
  */
-void traceCharBin(unsigned char ch) {
+void log_trace_char_bin(unsigned char ch) {
     if(TRACE_OFF)
         return;
 
@@ -67,12 +67,12 @@ void traceCharBin(unsigned char ch) {
     printf("\n");
 }
 
-void traceCharBinMsg(const char *msg, unsigned char ch) {
+void log_trace_char_bin_msg(const char *msg, unsigned char ch) {
     if(TRACE_OFF)
         return;
 
-    trace(msg);
-    traceCharBin(ch);
+    log_trace(msg);
+    log_trace_char_bin(ch);
 }
 
 void printTime() {
@@ -86,7 +86,7 @@ void printTime() {
     printf("%s ", time_string);
 }
 
-void info(const char *msg, ...) {
+void log_info(const char *msg, ...) {
     printTime();
 
     va_list args;
@@ -95,7 +95,7 @@ void info(const char *msg, ...) {
     va_end(args);
 }
 
-void trace(const char *msg, ...) {
+void log_trace(const char *msg, ...) {
     if(TRACE_OFF)
         return;
 
@@ -130,7 +130,7 @@ void bit_copy(unsigned char * byte_to, unsigned char byte_from, int read_pos, in
         unsigned int to = write_pos + offset;
 
         unsigned int bit;
-        bit = (byte_from >> from) & 1u;            /* Get the source bit as 0/1 value */
+        bit = (byte_from >> from) & 1u;            /* Get the source bit as 0/1 symbol */
         *byte_to &= ~(1u << to);                  /* clear destination bit */
         *byte_to |= (bit << to);  /* set destination bit */
     }
