@@ -181,9 +181,11 @@ bool compare_bit_array(const byte_t input_buffer[], int input_buffer_bit_idx, co
         int byte_idx = bit_idx_to_byte_idx(input_buffer_bit_idx + bit_idx);
         byte_t input_byte = input_buffer[byte_idx];
 
-        byte_t value = bit_check(input_byte, (unsigned int)bit_idx);
+        int input_byte_bit_idx = bit_to_change(input_buffer_bit_idx + bit_idx);
+        byte_t value = bit_check(input_byte, (unsigned int)input_byte_bit_idx);
         if(value != node_bit_array[bit_idx]) {
             have_same_bits = false;
+            break;
         }
     }
     return have_same_bits;

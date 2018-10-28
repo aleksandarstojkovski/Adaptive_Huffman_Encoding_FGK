@@ -18,10 +18,10 @@ void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, 
 #define MAX_FILE_NAME  80
 #define NUM_TEST_FILES  11  // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
+        "../../test/res/ABA.txt",
         "../../test/res/a-bad-filename",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
-        "../../test/res/ABA.txt",
         "../../test/res/ABAB.txt",
         "../../test/res/ff_ff_ff",
         "../../test/res/empty",
