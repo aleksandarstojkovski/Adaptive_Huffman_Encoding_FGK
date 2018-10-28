@@ -24,8 +24,6 @@ int     read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read,
 void    decode_new_symbol(const byte_t input_buffer[]);
 void    decode_existing_symbol(const byte_t input_buffer[]);
 
-adh_node_t *adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits);
-
 /*
  * decompress file
  */
@@ -67,7 +65,8 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
 
             while(input_size != (input_buffer_bit_idx + bits_to_ignore) / SYMBOL_BITS) {
                 int num_bits = adh_get_NYT_encoding(node_bit_array);
-                bool is_nyt_code = compare_bit_array(input_buffer, input_buffer_bit_idx, node_bit_array, num_bits);
+                bool is_nyt_code = compare_input_and_bit_array(input_buffer, input_buffer_bit_idx, node_bit_array,
+                                                               num_bits);
                 if(is_nyt_code) {
                     input_buffer_bit_idx += num_bits;
                     // not coded byte
@@ -121,10 +120,12 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
     byte_t symbol = node->symbol;
 
     log_trace("%-40s symbol=%3d", "decode_existing_symbol:", symbol);
-}
 
-adh_node_t* adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits) {
-    return NULL;
+    int output_buffer_byte_idx = bit_idx_to_byte_idx(output_buffer_bit_idx);
+    output_buffer[output_buffer_byte_idx] = symbol;
+    output_buffer_bit_idx +=  SYMBOL_BITS;
+    adh_update_tree(node, false);
+
 }
 
 void decode_new_symbol(const byte_t input_buffer[]) {

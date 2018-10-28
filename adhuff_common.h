@@ -48,6 +48,7 @@ static const adh_symbol_t   ADH_OLD_NYT_CODE = ADH_NYT_CODE + 1;
 int             adh_init_tree();
 void            adh_destroy_tree();
 void            adh_update_tree(adh_node_t *node, bool is_new_node);
+adh_node_t *    adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits);
 adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t symbol);
 adh_node_t *    adh_create_node_and_append(adh_symbol_t symbol);
 int             adh_get_NYT_encoding(byte_t bit_array[]);

@@ -174,8 +174,19 @@ int get_available_bits(int buffer_bit_idx) {
     return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
 }
 
+bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_array2, int size2) {
+    if(size1 != size2)
+        return false;
 
-bool compare_bit_array(const byte_t input_buffer[], int input_buffer_bit_idx, const byte_t node_bit_array[], int num_bits) {
+    for (int i = 0; i < size1; ++i) {
+        if(bit_array1[i] != bit_array2[2])
+            return false;
+    }
+    return true;
+}
+
+bool compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx, const byte_t *node_bit_array,
+                                 int num_bits) {
     bool have_same_bits = true;
     for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {
         int byte_idx = bit_idx_to_byte_idx(input_buffer_bit_idx + bit_idx);

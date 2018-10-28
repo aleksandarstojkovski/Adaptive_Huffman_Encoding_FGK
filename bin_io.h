@@ -33,7 +33,9 @@ int         get_available_bits(int buffer_bit_idx);
 int         bit_to_change(int buffer_idx);
 int         bit_idx_to_byte_idx(int bit_idx);
 int         bits_to_bytes(int num_bits);
-bool        compare_bit_array(const byte_t input_buffer[], int input_buffer_bit_idx, const byte_t node_bit_array[], int num_bits);
+bool        compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_array2, int size2);
+bool        compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx,
+                                        const byte_t *node_bit_array, int num_bits);
 void        symbol_to_bits(byte_t symbol, byte_t bit_array[]);
 
 /*
