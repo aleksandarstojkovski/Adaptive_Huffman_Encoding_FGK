@@ -20,7 +20,8 @@ enum adh_constants {
     HEADER_BITS         = 3,
     HEADER_DATA_BITS    = 5,
     SYMBOL_BITS         = 8,
-    MAX_CODE_SIZE       = UINT8_MAX,
+    MAX_CODE_BYTES      = 32,
+    MAX_CODE_BITS       = 256,
     MAX_ORDER           = 513,
     BUFFER_SIZE         = 1024
 };

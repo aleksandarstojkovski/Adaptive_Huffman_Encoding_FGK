@@ -141,7 +141,8 @@ void bit_set_zero(byte_t * symbol, unsigned int bit_pos) {
 }
 
 /*
- * copy bits from left 7.. to right ..0
+ * copy bits from most significant bit to least significant
+ * e.g. from 5, size 4 -> 5,4,3,2
  */
 void bit_copy(byte_t byte_from, byte_t * byte_to, unsigned int read_pos, unsigned int write_pos, int size) {
     for(int offset=0; offset < size; offset++) {

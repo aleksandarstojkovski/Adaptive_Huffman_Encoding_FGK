@@ -84,7 +84,7 @@ void process_symbol(byte_t symbol) {
     log_trace("%-40s symbol=%3d bits=", "process_symbol:", symbol);
     log_trace_char_bin(symbol);
 
-    byte_t bit_array[MAX_CODE_SIZE] = {0};
+    byte_t bit_array[MAX_CODE_BITS] = {0};
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 

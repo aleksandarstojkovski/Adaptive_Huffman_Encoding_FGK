@@ -96,11 +96,13 @@ void test_bit_helpers() {
     // source 2 = 0000 0010
     // dest   1 = 0000 0001
     // res    9 = 0000 1001
-    test_bit_copy(0x02, 0x01, 1, 3, 2, 0x09);    // copy from left to right
+    // copy 10 from source to dest in pos 3
+    test_bit_copy(0x02, 0x01, 1, 3, 2, 0x09);
 
     // source 2 = 0000 1000
     // dest   1 = 0000 0001
     // res    9 = 0100 0001
+    // copy 0100 from source to dest in pos 7
     test_bit_copy(0x08, 0x01, 4, 7, 4, 0x41);
 }
 

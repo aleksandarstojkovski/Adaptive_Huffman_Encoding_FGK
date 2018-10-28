@@ -42,7 +42,7 @@ typedef struct adh_node {
     struct adh_node *   parent;
 } adh_node_t;
 
-static const adh_symbol_t   ADH_NYT_CODE = MAX_CODE_SIZE + 1;
+static const adh_symbol_t   ADH_NYT_CODE = MAX_CODE_BITS + 1;
 static const adh_symbol_t   ADH_OLD_NYT_CODE = ADH_NYT_CODE + 1;
 
 int             adh_init_tree();
