@@ -8,12 +8,11 @@
 /*
  * modules variables
  */
-static FILE *           output_file_ptr;
 static byte_t           output_buffer[BUFFER_SIZE] = {0};
-static unsigned short   output_buffer_bit_idx;
+static unsigned short   output_buffer_byte_idx;
 static unsigned short   input_buffer_bit_idx;
 static unsigned int     bits_to_ignore;
-static unsigned long    input_size;
+static long             input_size;
 
 /*
  * Private methods
@@ -31,16 +30,17 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
     int rc = RC_OK;
     log_info("%-30s %s\n", "adh_decompress_file:", input_file_name);
 
+    FILE * output_file_ptr = NULL;
     FILE * input_file_ptr = bin_open_read(input_file_name);
     if (input_file_ptr == NULL) {
         rc = RC_FAIL;
     }
 
-    if(rc == RC_OK)
+    if(rc == RC_OK) {
         output_file_ptr = bin_open_create(output_file_name);
-
-    if (output_file_ptr == NULL) {
-        rc = RC_FAIL;
+        if (output_file_ptr == NULL) {
+            rc = RC_FAIL;
+        }
     }
 
     if (rc == RC_OK)
@@ -49,6 +49,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
     if (rc == RC_OK) {
         read_header(input_file_ptr);
 
+        // TODO: handle big files, don't read entire file in memory
         input_size = get_filesize(input_file_ptr);
         int bytes_to_read = input_size;
 
@@ -77,26 +78,30 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
             }
         }
 
-        int out_byte_idx = bit_idx_to_byte_idx(output_buffer_bit_idx);
-        size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), out_byte_idx, output_file_ptr);
-        if(bytes_written != out_byte_idx)
-            fprintf(stderr, "bytes_written (%zu) != out_byte_idx (%d)\n", bytes_written, out_byte_idx);
+        size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_buffer_byte_idx, output_file_ptr);
+        if(bytes_written != output_buffer_byte_idx)
+            fprintf(stderr, "bytes_written (%zu) != out_byte_idx (%d)\n", bytes_written, output_buffer_byte_idx);
 
         adh_destroy_tree();
     }
 
-    if(output_file_ptr)
+    if(output_file_ptr) {
         fclose(output_file_ptr);
-    if(input_file_ptr)
+    }
+
+    if(input_file_ptr) {
         fclose(input_file_ptr);
+    }
 
     return rc;
 }
 
 void decode_existing_symbol(const byte_t input_buffer[]) {
+    log_trace("%-40s input_buffer_bit_idx=%d\n", "decode_existing_symbol:", input_buffer_bit_idx);
+
     int original_input_buffer_bit_idx = input_buffer_bit_idx;
 
-    adh_node_t* node;
+    adh_node_t* node = NULL;
     int     bit_array_size = 0;
     byte_t  bit_array[MAX_CODE_BITS] = {0};
     byte_t  sub_buffer[MAX_CODE_BYTES] = {0};
@@ -113,36 +118,38 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
         }
     }
 
-    if(node == NULL)
+    if(node == NULL) {
         fprintf(stderr, "cannot find node");
+    }
 
     input_buffer_bit_idx = original_input_buffer_bit_idx + bit_array_size;
     byte_t symbol = node->symbol;
 
-    log_trace("%-40s symbol=%3d", "decode_existing_symbol:", symbol);
+    log_trace("%-40s symbol=%-3d\n", "decode_existing_symbol:", symbol);
 
-    int output_buffer_byte_idx = bit_idx_to_byte_idx(output_buffer_bit_idx);
     output_buffer[output_buffer_byte_idx] = symbol;
-    output_buffer_bit_idx +=  SYMBOL_BITS;
+    output_buffer_byte_idx++;
     adh_update_tree(node, false);
-
 }
 
 void decode_new_symbol(const byte_t input_buffer[]) {
-    byte_t  temp_buffer[BUFFER_SIZE] = {0};
+    log_trace("%-40s input_buffer_bit_idx=%d\n", "decode_new_symbol:", input_buffer_bit_idx);
+
+    byte_t  temp_buffer[1] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, temp_buffer);
     if(num_bytes > 1)
         fprintf(stderr, "decode_new_symbol expected 1 byte received %d", num_bytes);
 
-    int output_buffer_byte_idx = bit_idx_to_byte_idx(output_buffer_bit_idx);
     output_buffer[output_buffer_byte_idx] = temp_buffer[0];
-    output_buffer_bit_idx +=  SYMBOL_BITS;
+    output_buffer_byte_idx++;
 
     adh_node_t * node = adh_create_node_and_append(output_buffer[output_buffer_byte_idx]);
     adh_update_tree(node, true);
 }
 
 int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]) {
+    log_trace("%-40s num_bits_to_read=%3d\n", "read_data_cross_bytes:", num_bits_to_read);
+
     int temp_buffer_bit_idx = 0;
     int temp_byte_idx = 0;
     while(num_bits_to_read > 0) {
@@ -170,9 +177,8 @@ int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byt
 }
 
 long get_filesize(FILE *input_file_ptr) {
-    long file_size;
     fseek(input_file_ptr, 0 , SEEK_END);
-    file_size = ftell(input_file_ptr);
+    long file_size = ftell(input_file_ptr);
     fseek(input_file_ptr, 0 , SEEK_SET);
     return file_size;
 }
@@ -181,6 +187,8 @@ long get_filesize(FILE *input_file_ptr) {
  * read header
  */
 void read_header(FILE *inputFilePtr) {
+    log_trace("read_header\n");
+
     byte_t header;
     fread(&header, sizeof(byte_t), 1, inputFilePtr);
 
@@ -189,8 +197,5 @@ void read_header(FILE *inputFilePtr) {
 
     bits_to_ignore = first_byte.split.header;
     input_buffer_bit_idx = HEADER_BITS;
-    output_buffer_bit_idx = 0;
-
-    //output_buffer[0] = (byte_t)(first_byte.split.data << (byte_t)HEADER_BITS);
-    //output_buffer_bit_idx = HEADER_DATA_BITS;
+    output_buffer_byte_idx = 0;
  }

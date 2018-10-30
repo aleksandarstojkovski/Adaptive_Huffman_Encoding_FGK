@@ -81,7 +81,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  * encode char
  */
 void process_symbol(byte_t symbol) {
-    log_trace("%-40s symbol=%3d bits=", "process_symbol:", symbol);
+    log_trace("%-40s symbol=%-3d bits=\n", "process_symbol:", symbol);
     log_trace_char_bin(symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
@@ -117,7 +117,7 @@ void process_symbol(byte_t symbol) {
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol) {
-    log_trace("%-40s symbol=%3d bits=", "output_symbol:", symbol);
+    log_trace("%-40s symbol=%-3d bits=\n", "output_symbol:", symbol);
     log_trace_char_bin(symbol);
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
@@ -138,7 +138,7 @@ void output_bit_array(const byte_t bit_array[], int num_bit) {
         int buffer_byte_idx = bit_idx_to_byte_idx(buffer_bit_idx);
 
         // calculate which bit to change in the byte
-        unsigned int input_bit_to_change = bit_to_change(buffer_bit_idx);
+        int input_bit_to_change = bit_to_change(buffer_bit_idx);
 
         if(bit_array[i] == BIT_1)
             bit_set_one(&output_buffer[buffer_byte_idx], input_bit_to_change);
@@ -195,7 +195,7 @@ int flush_header() {
 
     first_byte_union first_byte;
     first_byte.raw = first_byte_written;
-    first_byte.split.header = get_available_bits(buffer_bit_idx);
+    first_byte.split.header = (byte_t)get_available_bits(buffer_bit_idx);
 
     log_trace("%-40s new_bits=\n", "flush_header:");
     log_trace_char_bin(first_byte.raw);

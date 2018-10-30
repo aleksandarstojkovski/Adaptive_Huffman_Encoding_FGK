@@ -18,14 +18,14 @@ void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, 
 #define MAX_FILE_NAME  80
 #define NUM_TEST_FILES  11  // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
-        "../../test/res/ABA.txt",
+        "../../test/res/32k_ff",
         "../../test/res/a-bad-filename",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
+        "../../test/res/ABA.txt",
         "../../test/res/ABAB.txt",
         "../../test/res/ff_ff_ff",
         "../../test/res/empty",
-        "../../test/res/32k_ff",
         "../../test/res/alice_small.txt",
         "../../test/res/alice.txt",
         "../../test/res/32k_random",
@@ -35,7 +35,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    test_bit_helpers();
+    //test_bit_helpers();
     //test_compress_all_files();
     test_uncompress_all_files();
 }
