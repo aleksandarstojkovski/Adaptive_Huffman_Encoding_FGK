@@ -22,6 +22,7 @@ long    get_filesize(FILE *input_file_ptr);
 int     read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]);
 void    decode_new_symbol(const byte_t input_buffer[]);
 void    decode_existing_symbol(const byte_t input_buffer[]);
+void    flush_uncompressed(FILE *output_file_ptr);
 
 /*
  * decompress file
@@ -61,8 +62,10 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         size_t bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr);
         //while ((bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr)) > 0)
         {
-            if(bytes_read != bytes_to_read)
+            if(bytes_read != bytes_to_read) {
                 fprintf(stderr, "bytes_read (%zu) != bytes_to_read (%d)\n", bytes_read, bytes_to_read);
+                exit(RC_FAIL);
+            }
 
             while(input_size != (input_buffer_bit_idx + bits_to_ignore) / SYMBOL_BITS) {
                 int num_bits = adh_get_NYT_encoding(node_bit_array);
@@ -75,12 +78,13 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
                 } else {
                     decode_existing_symbol(input_buffer);
                 }
+
+                if(output_buffer_byte_idx == BUFFER_SIZE -1)
+                    flush_uncompressed(output_file_ptr);
             }
         }
 
-        size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_buffer_byte_idx, output_file_ptr);
-        if(bytes_written != output_buffer_byte_idx)
-            fprintf(stderr, "bytes_written (%zu) != out_byte_idx (%d)\n", bytes_written, output_buffer_byte_idx);
+        flush_uncompressed(output_file_ptr);
 
         adh_destroy_tree();
     }
@@ -94,6 +98,18 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
     }
 
     return rc;
+}
+
+void flush_uncompressed(FILE *output_file_ptr) {
+    log_trace("%-40s input_buffer_bit_idx=%d output_buffer_byte_idx=%d\n", "flush_uncompressed:", input_buffer_bit_idx, output_buffer_byte_idx);
+
+    size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_buffer_byte_idx, output_file_ptr);
+    if(bytes_written != output_buffer_byte_idx) {
+        fprintf(stderr, "bytes_written (%zu) != out_byte_idx (%d)\n", bytes_written, output_buffer_byte_idx);
+        exit(RC_FAIL);
+    }
+
+    output_buffer_byte_idx = 0;
 }
 
 void decode_existing_symbol(const byte_t input_buffer[]) {
@@ -110,16 +126,20 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
     for (int i = 0; i < num_bytes && node == NULL; ++i) {
         for (int j = 0; j < SYMBOL_BITS && node == NULL; ++j) {
             int bit_array_idx = i * MAX_CODE_BITS + j;
+            if(bit_array_idx >= MAX_CODE_BITS) {
+                fprintf(stderr, "bit_array_idx (%d) >= MAX_CODE_BITS (%d)", bit_array_idx, MAX_CODE_BITS);
+                exit(RC_FAIL);
+            }
+
+            bit_array[bit_array_idx] = bit_check(sub_buffer[i], j);
             bit_array_size++;
-
-            bit_copy(sub_buffer[i], &bit_array[bit_array_idx], j, 0, 1);
-
             node = adh_search_encoding_in_tree(bit_array, bit_array_size);
         }
     }
 
     if(node == NULL) {
         fprintf(stderr, "cannot find node");
+        exit(RC_FAIL);
     }
 
     input_buffer_bit_idx = original_input_buffer_bit_idx + bit_array_size;
@@ -135,16 +155,18 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
 void decode_new_symbol(const byte_t input_buffer[]) {
     log_trace("%-40s input_buffer_bit_idx=%d\n", "decode_new_symbol:", input_buffer_bit_idx);
 
-    byte_t  temp_buffer[1] = {0};
-    int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, temp_buffer);
-    if(num_bytes > 1)
+    byte_t  new_symbol[1] = {0};
+    int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, new_symbol);
+    if(num_bytes > 1) {
         fprintf(stderr, "decode_new_symbol expected 1 byte received %d", num_bytes);
+        exit(RC_FAIL);
+    }
 
-    output_buffer[output_buffer_byte_idx] = temp_buffer[0];
-    output_buffer_byte_idx++;
-
+    output_buffer[output_buffer_byte_idx] = new_symbol[0];
     adh_node_t * node = adh_create_node_and_append(output_buffer[output_buffer_byte_idx]);
     adh_update_tree(node, true);
+
+    output_buffer_byte_idx++;
 }
 
 int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]) {

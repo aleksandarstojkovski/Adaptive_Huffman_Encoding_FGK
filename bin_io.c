@@ -179,7 +179,7 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
         return false;
 
     for (int i = 0; i < size1; ++i) {
-        if(bit_array1[i] != bit_array2[2])
+        if(bit_array1[i] != bit_array2[i])
             return false;
     }
     return true;

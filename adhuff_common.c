@@ -113,8 +113,10 @@ adh_node_t * create_nyt() {
  * Create a new adh_node_t in the heap.
  */
 adh_node_t * create_node(adh_symbol_t symbol) {
-    if(adh_next_order == 0)
+    if(adh_next_order == 0) {
         fprintf(stderr, "!!!! unexpected new node creation, adh_next_order = 0, symbol = %d \n", symbol);
+        exit(RC_FAIL);
+    }
 
     log_trace("%-40s symbol=%-3d order=%-3d\n", "create_node:", symbol, adh_next_order);
 
@@ -315,7 +317,7 @@ int adh_get_NYT_encoding(byte_t bit_array[]) {
 }
 
 adh_node_t* adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits) {
-    log_trace("%-40s num_bits=%d symbol=%s\n", "adh_search_encoding_in_tree:", num_bits, bit_array);
+    log_trace("%-40s num_bits=%d encoding=%s\n", "adh_search_encoding_in_tree:", num_bits, bit_array);
 
     return find_node_by_encoding(adh_root_node, bit_array, num_bits);
 }
