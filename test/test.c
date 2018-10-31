@@ -36,7 +36,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_trace_active(false);
+    set_trace_active(true);
     test_bit_helpers();
     test_all_files();
 }
@@ -65,6 +65,8 @@ void test_all_files() {
 }
 
 int compare_files(const char *original, const char *generated) {
+    log_info("compare_files\n");
+
     FILE* fp_original = bin_open_read(original);
     FILE* fp_generated = bin_open_read(generated);
 

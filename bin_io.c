@@ -17,7 +17,6 @@ static bool             TRACE_ACTIVE = false;
 //
 FILE* bin_open_file(const char *filename, const char *mode);
 
-
 /*
  *  open file in read binary mode.
  */
@@ -84,10 +83,6 @@ void log_trace_char_bin(byte_t symbol) {
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
-    for (int i = SYMBOL_BITS -1; i >= 0; --i) {
-        printf("%c", bit_array[i]);
-    }
-    puts("");
 }
 
 void print_time() {
@@ -121,6 +116,16 @@ void log_trace(const char *msg, ...) {
     va_end(args);
 }
 
+void log_trace_bit_array(const byte_t *bit_array, int num_bit) {
+    if(!get_trace_active())
+        return;
+
+    for(int i = num_bit-1; i>=0; i--) {
+        log_trace("%c", bit_array[i]);
+    }
+    log_trace("\n");
+
+}
 //
 // bit manipulation functions
 //
@@ -211,9 +216,7 @@ void symbol_to_bits(byte_t symbol, byte_t bit_array[]) {
         bit_array[bit_pos] = val;
     }
 
-    log_trace("%-40s symbol=%-3d char=%c bits=", "symbol_to_bits", symbol, symbol);
-    for(int i = SYMBOL_BITS-1; i>=0; i--) {
-        log_trace("%c", bit_array[i]);
-    }
-    log_trace("\n");
+    //log_trace("%-40s symbol=%-3d char=%c bits=", "symbol_to_bits", symbol, symbol);
+    log_trace_bit_array(bit_array, SYMBOL_BITS);
 }
+

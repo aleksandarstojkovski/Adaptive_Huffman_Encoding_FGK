@@ -26,9 +26,9 @@ int             get_node_level(const adh_node_t *node);
  * Initialize the tree with a single NYT node
  */
 int adh_init_tree() {
-    adh_next_order = MAX_ORDER;
     log_trace("adh_init_tree\n");
 
+    adh_next_order = MAX_ORDER;
     if(adh_root_node != NULL) {
         perror("adh_init_tree: root already initialized");
         return RC_FAIL;
@@ -296,12 +296,7 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
             node = parent;
             parent = parent->parent;
         }
-
-        for (int i = bit_idx-1; i >= 0; --i) {
-            log_trace("%c", bit_array[i]);
-        }
-        log_trace("\n");
-
+        log_trace_bit_array(bit_array, bit_idx);
     }
 
     return bit_size;

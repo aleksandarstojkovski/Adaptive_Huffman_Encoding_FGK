@@ -1,3 +1,4 @@
+#include <string.h>
 #include "adhuff_compress.h"
 #include "adhuff_common.h"
 #include "constants.h"
@@ -6,21 +7,20 @@
 //
 // modules variables
 //
-static byte_t   output_buffer[BUFFER_SIZE] = {0};
 static int      output_bit_idx;
-static FILE *   output_file_ptr;
 static byte_t   first_byte_written;
+static bool     isFirstByte = true;
 
 //
 // private methods
 //
-void    process_symbol(byte_t symbol);
-void    output_bit_array(const byte_t bit_array[], int num_bit);
-void    output_symbol(byte_t symbol);
-void    output_new_symbol(byte_t symbol);
-int     flush_data();
-int     flush_header();
-void    output_existing_symbol(byte_t symbol, adh_node_t *node);
+void    process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
+void    output_bit_array(const byte_t bit_array[], int num_bit, byte_t *output_buffer, FILE* output_file_ptr);
+void    output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
+void    output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
+int     flush_data(byte_t *output_buffer, FILE* output_file_ptr);
+int     flush_header(FILE* output_file_ptr);
+void    output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
 
 /*
  * Compress file
@@ -28,17 +28,19 @@ void    output_existing_symbol(byte_t symbol, adh_node_t *node);
 int adh_compress_file(const char input_file_name[], const char output_file_name[]) {
     log_info("%-30s %-40s %s\n", "adh_compress_file", input_file_name, output_file_name);
     output_bit_idx = HEADER_BITS;
+    isFirstByte = true;
 
-    FILE * input_file_ptr = bin_open_read(input_file_name);
+    FILE* input_file_ptr = bin_open_read(input_file_name);
     if (input_file_ptr == NULL) {
         return RC_FAIL;
     }
 
-    output_file_ptr = bin_open_create(output_file_name);
+    FILE* output_file_ptr = bin_open_create(output_file_name);
     if (output_file_ptr == NULL) {
         return RC_FAIL;
     }
 
+    byte_t output_buffer[BUFFER_SIZE] = {0};
     byte_t input_buffer[BUFFER_SIZE] = {0};
 
     int rc = adh_init_tree();
@@ -48,7 +50,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
         while ((bytesRead = fread(input_buffer, sizeof(byte_t), BUFFER_SIZE, input_file_ptr)) > 0)
         {
             for(int i=0;i<bytesRead;i++)
-                process_symbol(input_buffer[i]);
+                process_symbol(input_buffer[i], output_buffer, output_file_ptr);
         }
 
 
@@ -56,7 +58,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
 
         if(output_bit_idx > 0) {
             // flush remaining data to file
-            rc = flush_data();
+            rc = flush_data(output_buffer, output_file_ptr);
             if (rc == RC_FAIL) {
                 return rc;
             }
@@ -69,7 +71,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
         if (output_file_ptr == NULL) {
             return RC_FAIL;
         }
-        rc = flush_header();
+        rc = flush_header(output_file_ptr);
     }
 
     fclose(output_file_ptr);
@@ -81,22 +83,22 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
 /*
  * encode char
  */
-void process_symbol(byte_t symbol) {
+void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     log_trace("%-40s symbol=%-3d char=%c hex=0x%02X\n", "process_symbol", symbol, symbol, symbol);
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
     if(node == NULL) {
         // symbol not present in tree
-        output_new_symbol(symbol);
+        output_new_symbol(symbol, output_buffer, output_file_ptr);
     } else {
         // char already present in tree
-        output_existing_symbol(symbol, node);
+        output_existing_symbol(symbol, node, output_buffer, output_file_ptr);
     }
 
 }
 
-void output_existing_symbol(byte_t symbol, adh_node_t *node) {
+void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
     log_trace("%-40s symbol=%-3d char=%c\n", "output_existing_symbol", symbol, symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
@@ -105,20 +107,20 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node) {
 
     // write symbol code
     int num_bit = adh_get_symbol_encoding(symbol, bit_array);
-    output_bit_array(bit_array, num_bit);
+    output_bit_array(bit_array, num_bit, output_buffer, output_file_ptr);
     adh_update_tree(node, false);
 }
 
-void output_new_symbol(byte_t symbol) {
+void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     log_trace("%-40s symbol=%-3d char=%c\n", "output_new_symbol", symbol, symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // write NYT code
     int num_bit = adh_get_NYT_encoding(bit_array);
-    output_bit_array(bit_array, num_bit);
+    output_bit_array(bit_array, num_bit, output_buffer, output_file_ptr);
 
     // write symbol code
-    output_symbol(symbol);
+    output_symbol(symbol, output_buffer, output_file_ptr);
     adh_node_t* new_node = adh_create_node_and_append(symbol);
     adh_update_tree(new_node, true);
 }
@@ -126,24 +128,21 @@ void output_new_symbol(byte_t symbol) {
 /*
  * copy data to output buffer as char
  */
-void output_symbol(byte_t symbol) {
+void output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     log_trace("%-40s symbol=%-3d char=%c\n", "output_symbol", symbol, symbol);
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
-    output_bit_array(bit_array, SYMBOL_BITS);
+    output_bit_array(bit_array, SYMBOL_BITS, output_buffer, output_file_ptr);
 }
 
 
 /*
  * copy data to output buffer as bit array
  */
-void output_bit_array(const byte_t bit_array[], int num_bit) {
+void output_bit_array(const byte_t bit_array[], int num_bit, byte_t *output_buffer, FILE* output_file_ptr) {
     log_trace("%-40s num_bit=%d bits=", "output_bit_array", num_bit);
-    for(int i = num_bit-1; i>=0; i--) {
-        log_trace("%c", bit_array[i]);
-    }
-    log_trace("\n");
+    log_trace_bit_array(bit_array, num_bit);
 
     for(int i = num_bit-1; i>=0; i--) {
 
@@ -162,7 +161,7 @@ void output_bit_array(const byte_t bit_array[], int num_bit) {
 
         // buffer full, flush data to file
         if(output_bit_idx == BUFFER_SIZE * SYMBOL_BITS) {
-            flush_data();
+            flush_data(output_buffer, output_file_ptr);
 
             // reset buffer index
             output_bit_idx = input_bit_to_change;
@@ -174,9 +173,8 @@ void output_bit_array(const byte_t bit_array[], int num_bit) {
 /*
  * flush data to file
  */
-int flush_data() {
-    static bool isFirstByte = true;
-    log_trace("%-40s %d bits\n", "flush_data", output_bit_idx);
+int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
+    log_trace("%-40s output_bit_idx=%d\n", "flush_data", output_bit_idx);
 
     int num_bytes_to_write = bit_idx_to_byte_idx(output_bit_idx);
 
@@ -202,8 +200,8 @@ int flush_data() {
 /*
  * flush header to file
  */
-int flush_header() {
-    log_trace("%-40s old_bits=", "flush_header:");
+int flush_header(FILE* output_file_ptr) {
+    log_trace("%-40s old_bits=", "flush_header");
     log_trace_char_bin(first_byte_written);
 
     first_byte_union first_byte;

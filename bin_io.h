@@ -17,6 +17,7 @@ int         bin_read_file(const char *filename, void (*fn_process_char)(byte_t))
 //
 void        log_info(const char *msg, ...);
 void        log_trace(const char *msg, ...);
+void        log_trace_bit_array(const byte_t *bit_array, int num_bit);
 void        log_trace_char_bin(byte_t symbol);
 void        set_trace_active(bool is_off);
 bool        get_trace_active();
