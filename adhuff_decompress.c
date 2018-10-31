@@ -29,7 +29,7 @@ void    flush_uncompressed(FILE *output_file_ptr);
  */
 int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
     int rc = RC_OK;
-    log_info("%-30s %s\t%s\n", "adh_decompress_file:", input_file_name, output_file_name);
+    log_info("%-30s %s\t%s\n", "adh_decompress_file", input_file_name, output_file_name);
 
     FILE * output_file_ptr = NULL;
     FILE * input_file_ptr = bin_open_read(input_file_name);
@@ -101,7 +101,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
 }
 
 void flush_uncompressed(FILE *output_file_ptr) {
-    log_trace("%-40s input_buffer_bit_idx=%d output_buffer_byte_idx=%d\n", "flush_uncompressed:", input_buffer_bit_idx, output_buffer_byte_idx);
+    log_trace("%-40s input_buffer_bit_idx=%d output_buffer_byte_idx=%d\n", "flush_uncompressed", input_buffer_bit_idx, output_buffer_byte_idx);
 
     size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_buffer_byte_idx, output_file_ptr);
     if(bytes_written != output_buffer_byte_idx) {
@@ -113,7 +113,7 @@ void flush_uncompressed(FILE *output_file_ptr) {
 }
 
 void decode_existing_symbol(const byte_t input_buffer[]) {
-    log_trace("%-40s input_buffer_bit_idx=%d\n", "decode_existing_symbol:", input_buffer_bit_idx);
+    log_trace("%-40s input_buffer_bit_idx=%d\n", "decode_existing_symbol", input_buffer_bit_idx);
 
     int original_input_buffer_bit_idx = input_buffer_bit_idx;
 
@@ -145,7 +145,7 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
     input_buffer_bit_idx = original_input_buffer_bit_idx + bit_array_size;
     byte_t symbol = node->symbol;
 
-    log_trace("%-40s symbol=%-3d\n", "decode_existing_symbol:", symbol);
+    log_trace("%-40s symbol=%-3d char=%c \n", "decode_existing_symbol", symbol, symbol);
 
     output_buffer[output_buffer_byte_idx] = symbol;
     output_buffer_byte_idx++;
@@ -153,7 +153,7 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
 }
 
 void decode_new_symbol(const byte_t input_buffer[]) {
-    log_trace("%-40s input_buffer_bit_idx=%d\n", "decode_new_symbol:", input_buffer_bit_idx);
+    log_trace("%-40s input_buffer_bit_idx=%d\n", "decode_new_symbol", input_buffer_bit_idx);
 
     byte_t  new_symbol[1] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, new_symbol);
@@ -170,7 +170,7 @@ void decode_new_symbol(const byte_t input_buffer[]) {
 }
 
 int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]) {
-    log_trace("%-40s num_bits_to_read=%3d\n", "read_data_cross_bytes:", num_bits_to_read);
+    log_trace("%-40s num_bits_to_read=%-3d\n", "read_data_cross_bytes", num_bits_to_read);
 
     int temp_buffer_bit_idx = 0;
     int temp_byte_idx = 0;

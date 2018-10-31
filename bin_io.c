@@ -62,8 +62,7 @@ int bin_read_file(const char *filename, void (*fn_process_char)(byte_t)) {
 
     byte_t buffer[BUFFER_SIZE] = { 0 };
     size_t bytes_read = 0;
-    // read up to sizeof(buffer) bytes
-    while ((bytes_read = fread(buffer, 1, sizeof(buffer), file_ptr)) > 0)
+    while ((bytes_read = fread(buffer, sizeof(byte_t), sizeof(buffer), file_ptr)) > 0)
     {
         for(int i=0;i<bytes_read;i++)
             fn_process_char(buffer[i]);
@@ -189,6 +188,8 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
 
 bool compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx, const byte_t *node_bit_array,
                                  int num_bits) {
+    log_trace("%-40s num_bit=%d ", "compare_input_and_bit_array", num_bits);
+
     bool have_same_bits = true;
     for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {
         int byte_idx = bit_idx_to_byte_idx(input_buffer_bit_idx + bit_idx);
@@ -209,4 +210,10 @@ void symbol_to_bits(byte_t symbol, byte_t bit_array[]) {
         byte_t val = bit_check(symbol, (unsigned int)bit_pos);
         bit_array[bit_pos] = val;
     }
+
+    log_trace("%-40s symbol=%-3d char=%c bits=", "symbol_to_bits", symbol, symbol);
+    for(int i = SYMBOL_BITS-1; i>=0; i--) {
+        log_trace("%c", bit_array[i]);
+    }
+    log_trace("\n");
 }
