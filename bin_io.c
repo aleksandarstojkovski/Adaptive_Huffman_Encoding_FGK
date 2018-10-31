@@ -188,7 +188,7 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
 
 bool compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx, const byte_t *node_bit_array,
                                  int num_bits) {
-    log_trace("%-40s num_bit=%d ", "compare_input_and_bit_array", num_bits);
+    log_trace("%-40s num_bit=%d \n", "compare_input_and_bit_array", num_bits);
 
     bool have_same_bits = true;
     for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {

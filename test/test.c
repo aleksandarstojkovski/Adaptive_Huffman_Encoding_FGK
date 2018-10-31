@@ -16,7 +16,7 @@ void    test_bit_set_one(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected);
 
 #define MAX_FILE_NAME  80
-#define NUM_TEST_FILES  1  // skip immagine.tiff for the moment
+#define NUM_TEST_FILES  10  // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
         "../../test/res/ABAB.txt",
         "../../test/res/A.txt",
@@ -35,9 +35,9 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_trace_active(true);
+    set_trace_active(false);
 
-    //test_bit_helpers();
+    test_bit_helpers();
     test_compress_all_files();
     test_uncompress_all_files();
 }

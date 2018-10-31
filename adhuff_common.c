@@ -282,11 +282,10 @@ int adh_get_symbol_encoding(adh_symbol_t symbol, byte_t bit_array[]) {
  * return the length of the array
  */
 int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
-    log_trace("%-40s symbol=%-3d char=%c\n", "get_node_encoding", node->symbol, node->symbol);
-
     int bit_size = 0;
     if(node != NULL) {
         bit_size = get_node_level(node);
+        log_trace("%-40s symbol=%-3d char=%c num_bits=%d bits=", "get_node_encoding", node->symbol, node->symbol, bit_size);
 
         int bit_idx = 0;
         adh_node_t * parent= node->parent;
@@ -297,7 +296,14 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
             node = parent;
             parent = parent->parent;
         }
+
+        for (int i = bit_idx-1; i >= 0; --i) {
+            log_trace("%c", bit_array[i]);
+        }
+        log_trace("\n");
+
     }
+
     return bit_size;
 }
 
