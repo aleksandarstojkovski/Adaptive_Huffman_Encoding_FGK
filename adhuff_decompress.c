@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "adhuff_decompress.h"
 #include "adhuff_common.h"
@@ -54,7 +55,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         input_size = get_filesize(input_file_ptr);
         int bytes_to_read = input_size;
 
-        //byte_t input_buffer[BUFFER_SIZE] = { 0 };
+        memset(output_buffer, 0, sizeof(output_buffer));
         byte_t input_buffer[input_size];
         byte_t node_bit_array[MAX_CODE_BITS] = { 0 };
 

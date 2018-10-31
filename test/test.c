@@ -65,7 +65,7 @@ void test_all_files() {
 }
 
 int compare_files(const char *original, const char *generated) {
-    log_info("compare_files\n");
+    log_info("%-30s %-40s %s\n", "compare_files", original, generated);
 
     FILE* fp_original = bin_open_read(original);
     FILE* fp_generated = bin_open_read(generated);
