@@ -1,19 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zconf.h>
 
 #include "../constants.h"
 #include "../bin_io.h"
 #include "../adhuff_compress.h"
 #include "../adhuff_decompress.h"
 
-void    test_uncompress_all_files();
-void    test_compress_all_files();
+void    test_all_files();
 void    test_bit_helpers();
 void    test_bit_check(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_set_zero(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_set_one(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected);
+int     compare_files(const char *original, const char *generated);
 
 #define MAX_FILE_NAME  80
 #define NUM_TEST_FILES  10  // skip immagine.tiff for the moment
@@ -36,42 +37,63 @@ static const char * TEST_FILES[] = {
  */
 int main(int argc, char* argv[]) {
     set_trace_active(false);
-
     test_bit_helpers();
-    test_compress_all_files();
-    test_uncompress_all_files();
+    test_all_files();
 }
 
-void test_uncompress_all_files() {
-    log_info("**** test_uncompress_all_files\n");
-    char input_filename[MAX_FILE_NAME];
-    char output_filename[MAX_FILE_NAME];
+void test_all_files() {
+    log_info("********** test_all_files **********\n");
+    char compressed[MAX_FILE_NAME];
+    char uncompressed[MAX_FILE_NAME];
 
     for(int i=0; i<NUM_TEST_FILES; i++) {
         char * filename = strrchr(TEST_FILES[i], '/') + 1;
 
-        strcpy(input_filename, filename);
-        strcat(input_filename, ".compressed");
+        strcpy(compressed, filename);
+        strcat(compressed, ".compressed");
 
-        strcpy(output_filename, filename);
-        strcat(output_filename, ".uncompressed");
+        strcpy(uncompressed, filename);
+        strcat(uncompressed, ".uncompressed");
 
-        adh_decompress_file(input_filename, output_filename);
+        adh_compress_file(TEST_FILES[i], compressed);
+        adh_decompress_file(compressed, uncompressed);
+
+        int rc = compare_files(TEST_FILES[i], uncompressed);
+        if(rc == RC_FAIL)
+            break;
     }
 }
 
-void test_compress_all_files() {
-    log_info("**** test_compress_all_files\n");
-    char output_filename[MAX_FILE_NAME];
+int compare_files(const char *original, const char *generated) {
+    FILE* fp_original = bin_open_read(original);
+    FILE* fp_generated = bin_open_read(generated);
 
-    for(int i=0; i<NUM_TEST_FILES; i++) {
+    // obtain file size:
+    fseek (fp_original, 0, SEEK_END);
 
-        char * filename = strrchr(TEST_FILES[i], '/') + 1;
-        strcpy(output_filename, filename);
-        strcat(output_filename, ".compressed");
+    long sz_original = ftell (fp_original);
+    rewind (fp_original);
 
-        adh_compress_file(TEST_FILES[i], output_filename);
+    // obtain file size:
+    fseek (fp_generated, 0, SEEK_END);
+    long sz_generated = ftell (fp_generated);
+    rewind (fp_generated);
+
+    if (sz_original != sz_generated) {
+        fprintf(stderr, "compare_files: different file size.  original: %ld != generated: %ld\n", sz_original, sz_generated);
+        return RC_FAIL;
     }
+
+    char ch1, ch2;
+    for (int i=0; i<sz_original; i++) {
+        fread(&ch1, 1, 1, fp_original);
+        fread(&ch2, 1, 1, fp_generated);
+        if (ch1 != ch2) {
+            fprintf(stderr, "compare_files: different byte found at position (%x). original 0x%02X != generated 0x%02X\n", i , ch1, ch2);
+            return RC_FAIL;
+        }
+    }
+    return RC_OK;
 }
 
 /*

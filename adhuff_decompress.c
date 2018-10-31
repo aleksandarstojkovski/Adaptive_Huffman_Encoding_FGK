@@ -29,7 +29,7 @@ void    flush_uncompressed(FILE *output_file_ptr);
  */
 int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
     int rc = RC_OK;
-    log_info("%-30s %s\t%s\n", "adh_decompress_file", input_file_name, output_file_name);
+    log_info("%-30s %-40s %s\n", "adh_decompress_file", input_file_name, output_file_name);
 
     FILE * output_file_ptr = NULL;
     FILE * input_file_ptr = bin_open_read(input_file_name);
@@ -126,7 +126,7 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
     for (int byte_idx = 0; byte_idx < num_bytes && node == NULL; ++byte_idx) {
         for (int bit_idx = 0; bit_idx < SYMBOL_BITS && node == NULL; ++bit_idx) {
             if(bit_array_size > MAX_CODE_BITS) {
-                fprintf(stderr, "bit_bit_array_sizerray_idx (%d) >= MAX_CODE_BITS (%d)", bit_array_size, MAX_CODE_BITS);
+                fprintf(stderr, "bit_array_size (%d) >= MAX_CODE_BITS (%d)", bit_array_size, MAX_CODE_BITS);
                 exit(RC_FAIL);
             }
 

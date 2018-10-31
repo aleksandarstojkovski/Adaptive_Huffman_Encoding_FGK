@@ -26,7 +26,7 @@ void    output_existing_symbol(byte_t symbol, adh_node_t *node);
  * Compress file
  */
 int adh_compress_file(const char input_file_name[], const char output_file_name[]) {
-    log_info("%-30s %s\t%s\n", "adh_compress_file", input_file_name, output_file_name);
+    log_info("%-30s %-40s %s\n", "adh_compress_file", input_file_name, output_file_name);
     output_bit_idx = HEADER_BITS;
 
     FILE * input_file_ptr = bin_open_read(input_file_name);
