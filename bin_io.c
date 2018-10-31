@@ -6,12 +6,17 @@
 
 #include "bin_io.h"
 
-static const byte_t    SINGLE_BIT_1 = 0x01u;
+//
+// private variables
+//
+static const byte_t     SINGLE_BIT_1 = 0x01u;
+static bool             TRACE_ACTIVE = false;
 
 //
 // private methods
 //
 FILE* bin_open_file(const char *filename, const char *mode);
+
 
 /*
  *  open file in read binary mode.
@@ -71,22 +76,16 @@ int bin_read_file(const char *filename, void (*fn_process_char)(byte_t)) {
 //
 // Diagnostic functions
 //
+void        set_trace_active(bool is_active) { TRACE_ACTIVE = is_active; }
+bool        get_trace_active() { return TRACE_ACTIVE; }
 
 void log_trace_char_bin(byte_t symbol) {
-    if(TRACE_OFF)
+    if(!get_trace_active())
         return;
 
     byte_t bit_array[SYMBOL_BITS+1] = { 0 };
     symbol_to_bits(symbol, bit_array);
     printf("%s\n", bit_array);
-}
-
-void log_trace_char_bin_msg(const char *msg, byte_t symbol) {
-    if(TRACE_OFF)
-        return;
-
-    log_trace(msg, symbol);
-    log_trace_char_bin(symbol);
 }
 
 void print_time() {
@@ -110,7 +109,7 @@ void log_info(const char *msg, ...) {
 }
 
 void log_trace(const char *msg, ...) {
-    if(TRACE_OFF)
+    if(!get_trace_active())
         return;
 
     va_list args;

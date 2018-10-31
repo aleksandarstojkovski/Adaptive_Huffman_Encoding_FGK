@@ -131,7 +131,7 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
                 exit(RC_FAIL);
             }
 
-            bit_array[bit_array_idx] = bit_check(sub_buffer[i], j);
+            bit_array[bit_array_idx] = bit_check(sub_buffer[i], SYMBOL_BITS - j -1);
             bit_array_size++;
             node = adh_search_encoding_in_tree(bit_array, bit_array_size);
         }
@@ -163,7 +163,7 @@ void decode_new_symbol(const byte_t input_buffer[]) {
     }
 
     output_buffer[output_buffer_byte_idx] = new_symbol[0];
-    adh_node_t * node = adh_create_node_and_append(output_buffer[output_buffer_byte_idx]);
+    adh_node_t * node = adh_create_node_and_append(new_symbol[0]);
     adh_update_tree(node, true);
 
     output_buffer_byte_idx++;

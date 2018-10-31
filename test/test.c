@@ -16,15 +16,15 @@ void    test_bit_set_one(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected);
 
 #define MAX_FILE_NAME  80
-#define NUM_TEST_FILES  11  // skip immagine.tiff for the moment
+#define NUM_TEST_FILES  12  // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
+        "../../test/res/ff_ff_ff",
         "../../test/res/32k_ff",
         "../../test/res/a-bad-filename",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
         "../../test/res/ABA.txt",
         "../../test/res/ABAB.txt",
-        "../../test/res/ff_ff_ff",
         "../../test/res/empty",
         "../../test/res/alice_small.txt",
         "../../test/res/alice.txt",
@@ -35,6 +35,8 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
+    set_trace_active(false);
+
     //test_bit_helpers();
     //test_compress_all_files();
     test_uncompress_all_files();
@@ -51,6 +53,7 @@ void test_uncompress_all_files() {
 
         char * filename = strrchr(TEST_FILES[i], '/') + 1;
         strcpy(output_filename, filename);
+        strcat(output_filename, ".uncompressed");
 
         adh_decompress_file(input_filename, output_filename);
     }

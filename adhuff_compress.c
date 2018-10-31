@@ -81,7 +81,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  * encode char
  */
 void process_symbol(byte_t symbol) {
-    log_trace("%-40s symbol=%-3d bits=\n", "process_symbol:", symbol);
+    log_trace("%-40s symbol=%-3d bits=", "process_symbol:", symbol);
     log_trace_char_bin(symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
@@ -117,7 +117,7 @@ void process_symbol(byte_t symbol) {
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol) {
-    log_trace("%-40s symbol=%-3d bits=\n", "output_symbol:", symbol);
+    log_trace("%-40s symbol=%-3d bits=", "output_symbol:", symbol);
     log_trace_char_bin(symbol);
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
