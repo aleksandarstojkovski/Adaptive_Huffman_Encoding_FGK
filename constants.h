@@ -6,6 +6,7 @@
 #define ALGO_CONSTANTS_H
 
 #include <stdlib.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <stdbool.h>
 

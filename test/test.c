@@ -16,42 +16,43 @@ void    test_bit_set_one(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected);
 
 #define MAX_FILE_NAME  80
-#define NUM_TEST_FILES  12  // skip immagine.tiff for the moment
+#define NUM_TEST_FILES  1  // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
-        "../../test/res/ff_ff_ff",
-        "../../test/res/32k_ff",
-        "../../test/res/a-bad-filename",
+        "../../test/res/ABAB.txt",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
         "../../test/res/ABA.txt",
-        "../../test/res/ABAB.txt",
         "../../test/res/empty",
+        "../../test/res/ff_ff_ff",
+        "../../test/res/32k_ff",
         "../../test/res/alice_small.txt",
         "../../test/res/alice.txt",
         "../../test/res/32k_random",
-        "../../test/res/immagine.tiff" };
+        "../../test/res/immagine.tiff",
+        "../../test/res/a-bad-filename"};
 
 /*
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_trace_active(false);
+    set_trace_active(true);
 
     //test_bit_helpers();
-    //test_compress_all_files();
+    test_compress_all_files();
     test_uncompress_all_files();
 }
 
 void test_uncompress_all_files() {
-    log_info("test_uncompress_all_files\n");
+    log_info("**** test_uncompress_all_files\n");
     char input_filename[MAX_FILE_NAME];
     char output_filename[MAX_FILE_NAME];
 
     for(int i=0; i<NUM_TEST_FILES; i++) {
-        strcpy(input_filename, TEST_FILES[i]);
+        char * filename = strrchr(TEST_FILES[i], '/') + 1;
+
+        strcpy(input_filename, filename);
         strcat(input_filename, ".compressed");
 
-        char * filename = strrchr(TEST_FILES[i], '/') + 1;
         strcpy(output_filename, filename);
         strcat(output_filename, ".uncompressed");
 
@@ -60,7 +61,7 @@ void test_uncompress_all_files() {
 }
 
 void test_compress_all_files() {
-    log_info("test_compress_all_files\n");
+    log_info("**** test_compress_all_files\n");
     char output_filename[MAX_FILE_NAME];
 
     for(int i=0; i<NUM_TEST_FILES; i++) {

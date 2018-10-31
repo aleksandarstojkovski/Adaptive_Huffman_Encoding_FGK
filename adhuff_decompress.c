@@ -29,7 +29,7 @@ void    flush_uncompressed(FILE *output_file_ptr);
  */
 int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
     int rc = RC_OK;
-    log_info("%-30s %s\n", "adh_decompress_file:", input_file_name);
+    log_info("%-30s %s\t%s\n", "adh_decompress_file:", input_file_name, output_file_name);
 
     FILE * output_file_ptr = NULL;
     FILE * input_file_ptr = bin_open_read(input_file_name);
@@ -123,22 +123,22 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
     byte_t  sub_buffer[MAX_CODE_BYTES] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, MAX_CODE_BITS, sub_buffer);
 
-    for (int i = 0; i < num_bytes && node == NULL; ++i) {
-        for (int j = 0; j < SYMBOL_BITS && node == NULL; ++j) {
-            int bit_array_idx = i * MAX_CODE_BITS + j;
+    for (int byte_idx = 0; byte_idx < num_bytes && node == NULL; ++byte_idx) {
+        for (int bit_idx = 0; bit_idx < SYMBOL_BITS && node == NULL; ++bit_idx) {
+            int bit_array_idx = (byte_idx * SYMBOL_BITS) + bit_idx;
             if(bit_array_idx >= MAX_CODE_BITS) {
                 fprintf(stderr, "bit_array_idx (%d) >= MAX_CODE_BITS (%d)", bit_array_idx, MAX_CODE_BITS);
                 exit(RC_FAIL);
             }
 
-            bit_array[bit_array_idx] = bit_check(sub_buffer[i], SYMBOL_BITS - j -1);
+            bit_array[bit_array_idx] = bit_check(sub_buffer[byte_idx], SYMBOL_BITS - bit_idx -1);
             bit_array_size++;
             node = adh_search_encoding_in_tree(bit_array, bit_array_size);
         }
     }
 
     if(node == NULL) {
-        fprintf(stderr, "cannot find node");
+        fprintf(stderr, "decode_existing_symbol: cannot find node");
         exit(RC_FAIL);
     }
 

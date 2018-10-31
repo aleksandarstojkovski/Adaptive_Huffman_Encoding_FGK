@@ -83,9 +83,12 @@ void log_trace_char_bin(byte_t symbol) {
     if(!get_trace_active())
         return;
 
-    byte_t bit_array[SYMBOL_BITS+1] = { 0 };
+    byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
-    printf("%s\n", bit_array);
+    for (int i = SYMBOL_BITS -1; i >= 0; --i) {
+        printf("%c", bit_array[i]);
+    }
+    puts("");
 }
 
 void print_time() {
