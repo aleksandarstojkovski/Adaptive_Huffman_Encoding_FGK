@@ -334,7 +334,7 @@ adh_node_t* adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits) 
 adh_node_t* find_node_by_encoding(adh_node_t *node, const byte_t bit_array[], int num_bits) {
     log_trace("find_node_by_encoding", "symbol=%-8d char=%-8c\n", node->symbol, node->symbol);
 
-    if (node->symbol < ADH_NYT_CODE){
+    if (node->symbol > ADH_NYT_CODE){
         byte_t node_bit_array[MAX_CODE_BITS] = {0};
         int node_num_bits = get_node_encoding(node, node_bit_array);
         if(compare_bit_arrays(bit_array, num_bits, node_bit_array, node_num_bits))

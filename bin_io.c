@@ -138,11 +138,11 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
 }
 
 bool compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx, const byte_t *node_bit_array,
-                                 int num_bits) {
-    log_trace("compare_input_and_bit_array", "num_bit=%-8d \n", num_bits);
+                                 int length) {
+    log_trace("compare_input_and_bit_array", "length=%-8d \n", length);
 
     bool have_same_bits = true;
-    for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {
+    for(int bit_idx=0; bit_idx<length; bit_idx++) {
         int byte_idx = bit_idx_to_byte_idx(input_buffer_bit_idx + bit_idx);
         byte_t input_byte = input_buffer[byte_idx];
 

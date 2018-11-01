@@ -30,9 +30,9 @@ void    flush_uncompressed(FILE *output_file_ptr);
  * decompress file
  */
 int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
-    int rc = RC_OK;
     log_info("adh_decompress_file", "%-40s %s\n", input_file_name, output_file_name);
 
+    int rc = RC_OK;
     FILE * output_file_ptr = NULL;
     FILE * input_file_ptr = bin_open_read(input_file_name);
     if (input_file_ptr == NULL) {
