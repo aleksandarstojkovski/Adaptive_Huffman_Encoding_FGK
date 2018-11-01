@@ -162,7 +162,6 @@ void symbol_to_bits(byte_t symbol, byte_t bit_array[]) {
         bit_array[bit_pos] = val;
     }
 
-    //log_trace("symbol_to_bits", "symbol=%-8d char=%-8c bits=", symbol, symbol);
     log_trace_bit_array(bit_array, SYMBOL_BITS);
 }
 

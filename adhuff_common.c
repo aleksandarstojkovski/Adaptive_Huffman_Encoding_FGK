@@ -158,8 +158,8 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
     return NULL;
 }
 
-adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
-    log_trace("search_node_same_weight_higher_order", "weight=%-8d order=%-8d\n", weight, order);
+adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
+    log_trace("find_node_same_weight_hi_order", "weight=%-8d order=%-8d\n", weight, order);
     if(node == NULL)
         return NULL;
 
@@ -169,13 +169,13 @@ adh_node_t * search_node_same_weight_higher_order(adh_node_t *node, adh_weight_t
     }
 
     if(node->left != NULL){
-        adh_node_t * leftRes = search_node_same_weight_higher_order(node->left, weight, order);
+        adh_node_t * leftRes = find_node_same_weight_hi_order(node->left, weight, order);
         if(leftRes != NULL)
             return leftRes;
     }
 
     if(node->right != NULL){
-        adh_node_t * rightRes = search_node_same_weight_higher_order(node->right, weight, order);
+        adh_node_t * rightRes = find_node_same_weight_hi_order(node->right, weight, order);
         if(rightRes != NULL)
             return rightRes;
     }
@@ -251,9 +251,9 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
 
     while(node_to_check != NULL && node_to_check != adh_root_node) {
         // search in tree node with same weight and higher order
-        adh_node_t * node_to_swap = search_node_same_weight_higher_order(adh_root_node,
-                                                                                node_to_check->weight,
-                                                                                node_to_check->order);
+        adh_node_t * node_to_swap = find_node_same_weight_hi_order(adh_root_node,
+                                                                   node_to_check->weight,
+                                                                   node_to_check->order);
 
         // if node_to_swap == NULL, then no swap is needed
         if (node_to_swap != NULL) {

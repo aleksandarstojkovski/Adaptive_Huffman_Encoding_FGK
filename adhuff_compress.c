@@ -132,7 +132,7 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("output_symbol", "symbol=%-8d char=%-8c\n", symbol, symbol);
+    log_trace("output_symbol", "symbol=%-8d char=%-8c bits=", symbol, symbol);
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
