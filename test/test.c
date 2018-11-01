@@ -37,7 +37,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_trace_active(true);
+    set_trace_active(false);
     test_bit_helpers();
     test_all_files();
 }

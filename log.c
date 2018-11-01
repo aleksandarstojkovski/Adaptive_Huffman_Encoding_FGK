@@ -1,5 +1,5 @@
 #include <stdarg.h>
-#include <sys/time.h>
+#include <time.h>
 
 #include "log.h"
 #include "bin_io.h"
@@ -19,14 +19,14 @@ void print_time() {
     time (&raw_time);
     struct tm * time_info = localtime(&raw_time);
 
-    char time_string[10];
-    strftime(time_string, 10, "%T", time_info);
+    char time_string[10] = {0};
+    strftime(time_string, 10, "%H:%M:%S", time_info);
 
     printf("%s\t", time_string);
 }
 
 void print_method(const char *method) {
-    printf("%-40s\t", method);
+    printf("%-30s\t", method);
 }
 
 
