@@ -5,12 +5,12 @@
 #include <math.h>
 
 #include "bin_io.h"
+#include "log.h"
 
 //
 // private variables
 //
 static const byte_t     SINGLE_BIT_1 = 0x01u;
-static bool             TRACE_ACTIVE = false;
 
 //
 // private methods
@@ -71,61 +71,7 @@ int bin_read_file(const char *filename, void (*fn_process_char)(byte_t)) {
 }
 
 
-//
-// Diagnostic functions
-//
-void        set_trace_active(bool is_active) { TRACE_ACTIVE = is_active; }
-bool        get_trace_active() { return TRACE_ACTIVE; }
 
-void log_trace_char_bin(byte_t symbol) {
-    if(!get_trace_active())
-        return;
-
-    byte_t bit_array[SYMBOL_BITS] = { 0 };
-    symbol_to_bits(symbol, bit_array);
-}
-
-void print_time() {
-    time_t rawtime;
-    time (&rawtime);
-    struct tm * timeinfo = localtime (&rawtime);
-
-    char time_string[10];
-    strftime(time_string, 10, "%T",timeinfo);
-
-    printf("%s ", time_string);
-}
-
-void log_info(const char *msg, ...) {
-    print_time();
-
-    va_list args;
-    va_start(args, msg);
-    vprintf(msg, args);
-    va_end(args);
-}
-
-void log_trace(const char *msg, ...) {
-    if(!get_trace_active())
-        return;
-
-    va_list args;
-
-    va_start(args, msg);
-    vprintf(msg, args);
-    va_end(args);
-}
-
-void log_trace_bit_array(const byte_t *bit_array, int num_bit) {
-    if(!get_trace_active())
-        return;
-
-    for(int i = num_bit-1; i>=0; i--) {
-        log_trace("%c", bit_array[i]);
-    }
-    log_trace("\n");
-
-}
 //
 // bit manipulation functions
 //
@@ -193,7 +139,7 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
 
 bool compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx, const byte_t *node_bit_array,
                                  int num_bits) {
-    log_trace("%-40s num_bit=%d \n", "compare_input_and_bit_array", num_bits);
+    log_trace("compare_input_and_bit_array", "num_bit=%-8d \n", num_bits);
 
     bool have_same_bits = true;
     for(int bit_idx=0; bit_idx<num_bits; bit_idx++) {
@@ -216,7 +162,7 @@ void symbol_to_bits(byte_t symbol, byte_t bit_array[]) {
         bit_array[bit_pos] = val;
     }
 
-    //log_trace("%-40s symbol=%-3d char=%c bits=", "symbol_to_bits", symbol, symbol);
+    //log_trace("symbol_to_bits", "symbol=%-8d char=%-8c bits=", symbol, symbol);
     log_trace_bit_array(bit_array, SYMBOL_BITS);
 }
 

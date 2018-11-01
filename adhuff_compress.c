@@ -3,6 +3,7 @@
 #include "adhuff_common.h"
 #include "constants.h"
 #include "bin_io.h"
+#include "log.h"
 
 //
 // modules variables
@@ -26,7 +27,7 @@ void    output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_b
  * Compress file
  */
 int adh_compress_file(const char input_file_name[], const char output_file_name[]) {
-    log_info("%-30s %-40s %s\n", "adh_compress_file", input_file_name, output_file_name);
+    log_info("adh_compress_file", "%-40s %s\n", input_file_name, output_file_name);
     output_bit_idx = HEADER_BITS;
     isFirstByte = true;
 
@@ -84,7 +85,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  * encode char
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("%-40s symbol=%-3d char=%c hex=0x%02X\n", "process_symbol", symbol, symbol, symbol);
+    log_trace("process_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", symbol, symbol, symbol);
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
@@ -99,7 +100,7 @@ void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr)
 }
 
 void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("%-40s symbol=%-3d char=%c\n", "output_existing_symbol", symbol, symbol);
+    log_trace("output_existing_symbol", "symbol=%-8d char=%-8c\n", symbol, symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // increase weight
@@ -112,7 +113,7 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buff
 }
 
 void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("%-40s symbol=%-3d char=%c\n", "output_new_symbol", symbol, symbol);
+    log_trace("output_new_symbol", "symbol=%-8d char=%-8c\n", symbol, symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // write NYT code
@@ -129,7 +130,7 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("%-40s symbol=%-3d char=%c\n", "output_symbol", symbol, symbol);
+    log_trace("output_symbol", "symbol=%-8d char=%-8c\n", symbol, symbol);
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
@@ -141,7 +142,7 @@ void output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) 
  * copy data to output buffer as bit array
  */
 void output_bit_array(const byte_t bit_array[], int num_bit, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("%-40s num_bit=%d bits=", "output_bit_array", num_bit);
+    log_trace("output_bit_array", "num_bit=%-8d bits=", num_bit);
     log_trace_bit_array(bit_array, num_bit);
 
     for(int i = num_bit-1; i>=0; i--) {
@@ -174,7 +175,7 @@ void output_bit_array(const byte_t bit_array[], int num_bit, byte_t *output_buff
  * flush data to file
  */
 int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("%-40s output_bit_idx=%d\n", "flush_data", output_bit_idx);
+    log_trace("flush_data", "output_bit_idx=%d\n", output_bit_idx);
 
     int num_bytes_to_write = bit_idx_to_byte_idx(output_bit_idx);
 
@@ -201,15 +202,16 @@ int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
  * flush header to file
  */
 int flush_header(FILE* output_file_ptr) {
-    log_trace("%-40s old_bits=", "flush_header");
+    log_trace("flush_header", "old_bits=");
     log_trace_char_bin(first_byte_written);
 
     first_byte_union first_byte;
     first_byte.raw = first_byte_written;
     first_byte.split.header = (byte_t)get_available_bits(output_bit_idx);
 
-    log_trace("%-40s new_bits=", "flush_header:");
+    log_trace("flush_header", "new_bits=");
     log_trace_char_bin(first_byte.raw);
+
     fputc(first_byte.raw, output_file_ptr);
 
     if ( fseek(output_file_ptr, 0L, SEEK_SET) != 0 ) {

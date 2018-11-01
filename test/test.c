@@ -4,6 +4,7 @@
 #include <zconf.h>
 
 #include "../constants.h"
+#include "../log.h"
 #include "../bin_io.h"
 #include "../adhuff_compress.h"
 #include "../adhuff_decompress.h"
@@ -42,7 +43,7 @@ int main(int argc, char* argv[]) {
 }
 
 void test_all_files() {
-    log_info("********** test_all_files **********\n");
+    log_info("test_all_files", "\n");
     char compressed[MAX_FILE_NAME];
     char uncompressed[MAX_FILE_NAME];
 
@@ -65,7 +66,7 @@ void test_all_files() {
 }
 
 int compare_files(const char *original, const char *generated) {
-    log_info("%-30s %-40s %s\n", "compare_files", original, generated);
+    log_info("compare_files", "%-40s %s\n", original, generated);
 
     FILE* fp_original = bin_open_read(original);
     FILE* fp_generated = bin_open_read(generated);
@@ -102,7 +103,7 @@ int compare_files(const char *original, const char *generated) {
  * test bit manipulation functions
  */
 void test_bit_helpers() {
-    log_info("test_bit_helpers\n");
+    log_info("test_bit_helpers", "\n");
     // 2 = 00000010
     test_bit_check(2, 2, BIT_0);
     test_bit_check(2, 1, BIT_1);
@@ -147,7 +148,7 @@ void test_bit_set_zero(byte_t source, unsigned int bit_pos, byte_t expected) {
 void test_bit_check(byte_t source, unsigned int bit_pos, byte_t expected) {
     char val = bit_check(source, bit_pos);
     if(val != expected)
-        perror("error checking bit");
+        fprintf(stderr, "error checking bit");
 }
 
 void test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected) {
