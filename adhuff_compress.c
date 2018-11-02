@@ -88,7 +88,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  * encode char
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    char symbol_str[40] = {0};
+    char symbol_str[50] = {0};
     log_info("process_symbol", "out_bit_idx=%-8d %s\n", out_bit_idx,
             fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
@@ -106,7 +106,7 @@ void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr)
 }
 
 void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
-    char symbol_str[40] = {0};
+    char symbol_str[50] = {0};
     log_debug("output_existing_symbol", "out_bit_idx=%-8d %s\n", out_bit_idx, fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
@@ -124,7 +124,7 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
 
-    char symbol_str[40] = {0};
+    char symbol_str[50] = {0};
     char bit_array_str[9] = {0};
     log_debug("output_new_symbol", "out_bit_idx=%-8d %s bin=%s\n",
             out_bit_idx,

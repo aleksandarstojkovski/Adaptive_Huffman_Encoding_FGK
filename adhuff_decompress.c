@@ -177,7 +177,7 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     in_bit_idx = original_input_buffer_bit_idx + bit_array_size;
     byte_t symbol = node->symbol;
 
-    char symbol_str[40] = {0};
+    char symbol_str[50] = {0};
     log_debug("decode_existing_symbol", "in_bit_idx=%-8d %s\n", in_bit_idx, fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     output_buffer[output_byte_idx] = symbol;
@@ -198,7 +198,7 @@ int decode_new_symbol(const byte_t input_buffer[]) {
 
     output_buffer[output_byte_idx] = new_symbol[0];
 
-    char symbol_str[40] = {0};
+    char symbol_str[50] = {0};
     log_debug("decode_new_symbol", "in_bit_idx=%-8d %s\n", in_bit_idx, fmt_symbol(new_symbol[0], symbol_str, sizeof(symbol_str)));
     adh_node_t * node = adh_create_node_and_append(new_symbol[0]);
     adh_update_tree(node, true);
