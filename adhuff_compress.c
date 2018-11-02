@@ -22,8 +22,7 @@ void    output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_fil
 int     flush_data(byte_t *output_buffer, FILE* output_file_ptr);
 int     flush_header(FILE* output_file_ptr);
 void    output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
-
-void output_nyt(const byte_t *output_buffer, const FILE *output_file_ptr);
+void    output_nyt(byte_t *output_buffer, FILE *output_file_ptr);
 
 /*
  * Compress file
@@ -64,6 +63,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
         // flush remaining data to file
         rc = flush_data(output_buffer, output_file_ptr);
         if (rc == RC_FAIL) {
+            release_resources(output_file_ptr, input_file_ptr);
             return rc;
         }
 
@@ -74,13 +74,13 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
 
         output_file_ptr = bin_open_update(output_file_name);
         if (output_file_ptr == NULL) {
+            release_resources(output_file_ptr, input_file_ptr);
             return RC_FAIL;
         }
         rc = flush_header(output_file_ptr);
     }
 
-    fclose(output_file_ptr);
-    fclose(input_file_ptr);
+    release_resources(output_file_ptr, input_file_ptr);
 
     return rc;
 }
@@ -126,13 +126,15 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
     adh_update_tree(new_node, true);
 }
 
-void output_nyt(const byte_t *output_buffer, const FILE *output_file_ptr) {
-    log_debug("output_nyt", "out_bit_idx=%-8d\n", out_bit_idx);
+void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
+    log_trace("output_nyt", "out_bit_idx=%-8d\n", out_bit_idx);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // write NYT code
-    int num_bit = adh_get_NYT_encoding(bit_array);
-    output_bit_array(bit_array, num_bit, output_buffer, output_file_ptr);
+    int nyt_size = adh_get_NYT_encoding(bit_array);
+    output_bit_array(bit_array, nyt_size, output_buffer, output_file_ptr);
+
+    log_debug("output_nyt", "out_bit_idx=%-8d nyt_size=%d\n", out_bit_idx, nyt_size);
 }
 
 /*

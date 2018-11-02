@@ -22,13 +22,10 @@ static long             input_size;
 void    read_header(FILE *inputFilePtr);
 long    get_filesize(FILE *input_file_ptr);
 int     read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]);
-void    decode_new_symbol(const byte_t input_buffer[]);
-void    decode_existing_symbol(const byte_t input_buffer[]);
-void    flush_uncompressed(FILE *output_file_ptr);
-
-void release_resources(const FILE *output_file_ptr, const FILE *input_file_ptr);
-
-int skip_nyt_bits(int nyt_size);
+int     decode_new_symbol(const byte_t input_buffer[]);
+int     decode_existing_symbol(const byte_t input_buffer[]);
+int     flush_uncompressed(FILE *output_file_ptr);
+int     skip_nyt_bits(int nyt_size);
 
 /*
  * decompress file
@@ -85,13 +82,26 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
                     }
 
                     // not coded byte
-                    decode_new_symbol(input_buffer);
+                    rc = decode_new_symbol(input_buffer);
+                    if(rc == RC_FAIL) {
+                        release_resources(output_file_ptr, input_file_ptr);
+                        return rc;
+                    }
                 } else {
-                    decode_existing_symbol(input_buffer);
+                    rc = decode_existing_symbol(input_buffer);
+                    if(rc == RC_FAIL) {
+                        release_resources(output_file_ptr, input_file_ptr);
+                        return rc;
+                    }
                 }
 
-                if(output_byte_idx == BUFFER_SIZE -1)
-                    flush_uncompressed(output_file_ptr);
+                if(output_byte_idx == BUFFER_SIZE -1) {
+                    rc = flush_uncompressed(output_file_ptr);
+                    if(rc == RC_FAIL) {
+                        release_resources(output_file_ptr, input_file_ptr);
+                        return rc;
+                    }
+                }
             }
         }
 
@@ -117,30 +127,20 @@ int skip_nyt_bits(int nyt_size) {
     return RC_OK;
 }
 
-void release_resources(const FILE *output_file_ptr, const FILE *input_file_ptr) {
-    if(output_file_ptr) {
-        fclose(output_file_ptr);
-    }
-
-    if(input_file_ptr) {
-        fclose(input_file_ptr);
-    }
-}
-
-
-void flush_uncompressed(FILE *output_file_ptr) {
+int flush_uncompressed(FILE *output_file_ptr) {
     log_debug("flush_uncompressed", "in_bit_idx=%-8d output_byte_idx=%d\n", in_bit_idx, output_byte_idx);
 
     size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_byte_idx, output_file_ptr);
     if(bytes_written != output_byte_idx) {
         log_error("flush_uncompressed", "bytes_written (%zu) != out_byte_idx (%d)\n", bytes_written, output_byte_idx);
-        exit(RC_FAIL);
+        return RC_FAIL;
     }
 
     output_byte_idx = 0;
+    return RC_OK;
 }
 
-void decode_existing_symbol(const byte_t input_buffer[]) {
+int decode_existing_symbol(const byte_t input_buffer[]) {
     log_trace("decode_existing_symbol", "in_bit_idx=%d\n", in_bit_idx);
 
     int original_input_buffer_bit_idx = in_bit_idx;
@@ -155,7 +155,7 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
         for (int bit_idx = 0; bit_idx < SYMBOL_BITS && node == NULL; ++bit_idx) {
             if(bit_array_size > MAX_CODE_BITS) {
                 log_error("decode_existing_symbol", "bit_array_size (%d) >= MAX_CODE_BITS (%d)", bit_array_size, MAX_CODE_BITS);
-                exit(RC_FAIL);
+                return RC_FAIL;
             }
 
             // shift left previous bits
@@ -171,7 +171,7 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
 
     if(node == NULL) {
         log_error("decode_existing_symbol", "cannot find node bit_array_size=%d", bit_array_size);
-        exit(RC_FAIL);
+        return RC_FAIL;
     }
 
     in_bit_idx = original_input_buffer_bit_idx + bit_array_size;
@@ -182,16 +182,17 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
     output_buffer[output_byte_idx] = symbol;
     output_byte_idx++;
     adh_update_tree(node, false);
+    return RC_OK;
 }
 
-void decode_new_symbol(const byte_t input_buffer[]) {
+int decode_new_symbol(const byte_t input_buffer[]) {
     log_trace("decode_new_symbol", "in_bit_idx=%d\n", in_bit_idx);
 
     byte_t  new_symbol[1] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, new_symbol);
     if(num_bytes > 1) {
         log_error("decode_new_symbol", "expected 1 byte received %d", num_bytes);
-        exit(RC_FAIL);
+        return RC_FAIL;
     }
 
     output_buffer[output_byte_idx] = new_symbol[0];
@@ -200,6 +201,7 @@ void decode_new_symbol(const byte_t input_buffer[]) {
     adh_update_tree(node, true);
 
     output_byte_idx++;
+    return RC_OK;
 }
 
 int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]) {

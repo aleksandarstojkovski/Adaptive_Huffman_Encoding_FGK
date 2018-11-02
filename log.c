@@ -35,14 +35,14 @@ void print_time(FILE* fp) {
     time (&raw_time);
     struct tm * time_info = localtime(&raw_time);
 
-    char time_string[10] = {0};
-    strftime(time_string, 10, "%H:%M:%S", time_info);
+    char time_string[9] = {0};
+    strftime(time_string, 9, "%H:%M:%S", time_info);
 
-    fprintf(fp, "%s\t", time_string);
+    fprintf(fp, "%s  ", time_string);
 }
 
 void print_method(FILE* fp, const char *method) {
-    fprintf(fp, "%-30s\t", method);
+    fprintf(fp, "%-35s ", method);
 }
 
 

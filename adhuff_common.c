@@ -78,27 +78,28 @@ void destroy_node(adh_node_t *node) {
  * Must be used only for new for symbols (not present in the tree)
  */
 adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
-    log_trace("adh_create_node_and_append", "ch=%-3c code=%-4d\n", symbol, symbol);
+    log_trace("adh_create_node_and_append", "char=%-3c code=%-4d\n", symbol, symbol);
 
     // IMPORTANT: right node must be created before left node because
     //            create_node() decrease adh_next_order each time it's called
 
     // create right leaf node with passed symbol (and weight 1)
     adh_node_t * newNode = create_node(symbol);
-    newNode->weight = 1;
-    newNode->parent = adh_nyt_node;
-    adh_nyt_node->right = newNode;
+    if(newNode) {
+        newNode->weight = 1;
+        newNode->parent = adh_nyt_node;
+        adh_nyt_node->right = newNode;
 
-    // create left leaf node with no symbol
-    adh_node_t * newNYT = create_nyt();
-    newNYT->parent = adh_nyt_node;
-    adh_nyt_node->left = newNYT;
+        // create left leaf node with no symbol
+        adh_node_t * newNYT = create_nyt();
+        newNYT->parent = adh_nyt_node;
+        adh_nyt_node->left = newNYT;
 
-    // the new left node is the new NYT node
-    adh_nyt_node = newNYT;
-    // reset old NYT symbol, since is not a NYT anymore
-    newNYT->parent->symbol = ADH_OLD_NYT_CODE;
-
+        // the new left node is the new NYT node
+        adh_nyt_node = newNYT;
+        // reset old NYT symbol, since is not a NYT anymore
+        newNYT->parent->symbol = ADH_OLD_NYT_CODE;
+    }
     return newNode;
 }
 
@@ -117,7 +118,7 @@ adh_node_t * create_nyt() {
 adh_node_t * create_node(adh_symbol_t symbol) {
     if(adh_next_order == 0) {
         log_error("create_node", "unexpected new node creation, adh_next_order = 0, symbol = %d \n", symbol);
-        exit(RC_FAIL);
+        return NULL;
     }
 
     log_trace("create_node", "char=%-3c code=%-4dorder=%-8d\n", symbol, symbol,adh_next_order);
@@ -138,7 +139,7 @@ adh_node_t * create_node(adh_symbol_t symbol) {
  * Search Char in Tree
  */
 adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
-    log_trace("find_node_by_symbol", "ch=%-3c code=%-4d\n", symbol, symbol);
+    log_trace("find_node_by_symbol", "char=%-3c code=%-4d\n", symbol, symbol);
 
     if (node->symbol == symbol){
         return node;
@@ -186,7 +187,7 @@ adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weigh
  * Search symbol in tree
  */
 adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
-    log_trace("adh_search_symbol_in_tree", "ch=%-3c code=%-4d\n", symbol, symbol);
+    log_trace("adh_search_symbol_in_tree", "char=%-3c code=%-4d\n", symbol, symbol);
 
     return find_node_by_symbol(adh_root_node, symbol);
 }
@@ -271,7 +272,7 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
  * return the length of the array
  */
 int adh_get_symbol_encoding(adh_symbol_t symbol, byte_t bit_array[]) {
-    log_trace("adh_get_symbol_encoding", "ch=%-3c code=%-4d\n", symbol, symbol);
+    log_trace("adh_get_symbol_encoding", "char=%-3c code=%-4d\n", symbol, symbol);
     adh_node_t * node = adh_search_symbol_in_tree(symbol);
 
     return get_node_encoding(node, bit_array);

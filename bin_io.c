@@ -165,3 +165,12 @@ void symbol_to_bits(byte_t symbol, byte_t bit_array[]) {
     log_trace_bit_array(bit_array, SYMBOL_BITS);
 }
 
+void release_resources(FILE *output_file_ptr, FILE *input_file_ptr) {
+    if(output_file_ptr) {
+        fclose(output_file_ptr);
+    }
+
+    if(input_file_ptr) {
+        fclose(input_file_ptr);
+    }
+}

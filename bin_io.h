@@ -29,6 +29,9 @@ bool        compare_input_and_bit_array(const byte_t *input_buffer, int input_bu
                                         const byte_t *node_bit_array, int length);
 void        symbol_to_bits(byte_t symbol, byte_t bit_array[]);
 
+void        release_resources(FILE *output_file_ptr, FILE *input_file_ptr);
+
+
 /*
  * bit_array_t 256 bit (64 * 4)
  */
