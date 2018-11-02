@@ -55,11 +55,16 @@ void test_all_files() {
         strcpy(uncompressed, filename);
         strcat(uncompressed, ".uncompressed");
 
-        adh_compress_file(TEST_FILES[i], compressed);
-        puts("--------");
-        adh_decompress_file(compressed, uncompressed);
+        int rc = adh_compress_file(TEST_FILES[i], compressed);
+        if(rc == RC_FAIL)
+            break;
 
-        int rc = compare_files(TEST_FILES[i], uncompressed);
+        puts("--------");
+        rc = adh_decompress_file(compressed, uncompressed);
+        if(rc == RC_FAIL)
+            break;
+
+        rc = compare_files(TEST_FILES[i], uncompressed);
         if(rc == RC_FAIL)
             break;
     }

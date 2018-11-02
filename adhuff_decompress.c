@@ -26,6 +26,10 @@ void    decode_new_symbol(const byte_t input_buffer[]);
 void    decode_existing_symbol(const byte_t input_buffer[]);
 void    flush_uncompressed(FILE *output_file_ptr);
 
+void release_resources(const FILE *output_file_ptr, const FILE *input_file_ptr);
+
+int skip_nyt_bits(int nyt_size);
+
 /*
  * decompress file
  */
@@ -66,14 +70,20 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         {
             if(bytes_read != bytes_to_read) {
                 log_error("adh_decompress_file", "bytes_read (%zu) != bytes_to_read (%d)\n", bytes_read, bytes_to_read);
-                exit(RC_FAIL);
+                release_resources(output_file_ptr, input_file_ptr);
+                return RC_FAIL;
             }
 
             while(input_size > (in_bit_idx + bits_to_ignore) / SYMBOL_BITS) {
                 int num_bits = adh_get_NYT_encoding(node_bit_array);
                 bool is_nyt_code = compare_input_and_bit_array(input_buffer, in_bit_idx, node_bit_array, num_bits);
                 if(is_nyt_code) {
-                    in_bit_idx += num_bits;
+                    rc = skip_nyt_bits(num_bits);
+                    if(rc == RC_FAIL) {
+                        release_resources(output_file_ptr, input_file_ptr);
+                        return rc;
+                    }
+
                     // not coded byte
                     decode_new_symbol(input_buffer);
                 } else {
@@ -90,6 +100,24 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         adh_destroy_tree();
     }
 
+    release_resources(output_file_ptr, input_file_ptr);
+
+    return rc;
+}
+
+int skip_nyt_bits(int nyt_size) {
+    log_debug("skip_nyt_bits", "in_bit_idx=%-8d nyt_size=%d\n", in_bit_idx, nyt_size);
+    in_bit_idx += nyt_size;
+
+    int byte_idx = bits_to_bytes(in_bit_idx);
+    if(byte_idx > input_size) {
+        log_error("adh_decompress_file", "too many bits read: byte_idx (%d) > input_size (%d)", byte_idx, input_size);
+        return RC_FAIL;
+    }
+    return RC_OK;
+}
+
+void release_resources(const FILE *output_file_ptr, const FILE *input_file_ptr) {
     if(output_file_ptr) {
         fclose(output_file_ptr);
     }
@@ -97,9 +125,8 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
     if(input_file_ptr) {
         fclose(input_file_ptr);
     }
-
-    return rc;
 }
+
 
 void flush_uncompressed(FILE *output_file_ptr) {
     log_debug("flush_uncompressed", "in_bit_idx=%-8d output_byte_idx=%d\n", in_bit_idx, output_byte_idx);

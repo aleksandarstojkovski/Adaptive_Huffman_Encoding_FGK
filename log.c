@@ -56,7 +56,7 @@ void log_trace_char_bin(byte_t symbol) {
 
 void log_error(const char *method, const char *format, ...) {
     // sleep some milliseconds to let info finish printing
-    sleep_ms(200);
+    sleep_ms(400);
 
     print_time(stderr);
     print_method(stderr, method);
