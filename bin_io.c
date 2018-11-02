@@ -138,11 +138,11 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
 }
 
 bool compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx, const byte_t *node_bit_array,
-                                 int length) {
-    log_trace("compare_input_and_bit_array", "length=%-8d \n", length);
+                                 int size) {
+    log_debug("compare_input_and_bit_array", "size=%-3d \n", size);
 
     bool have_same_bits = true;
-    for(int bit_idx=0; bit_idx<length; bit_idx++) {
+    for(int bit_idx=0; bit_idx<size; bit_idx++) {
         int byte_idx = bit_idx_to_byte_idx(input_buffer_bit_idx + bit_idx);
         byte_t input_byte = input_buffer[byte_idx];
 
@@ -161,8 +161,6 @@ void symbol_to_bits(byte_t symbol, byte_t bit_array[]) {
         byte_t val = bit_check(symbol, (unsigned int)bit_pos);
         bit_array[bit_pos] = val;
     }
-
-    log_trace_bit_array(bit_array, SYMBOL_BITS);
 }
 
 void release_resources(FILE *output_file_ptr, FILE *input_file_ptr) {

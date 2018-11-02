@@ -31,5 +31,6 @@ void        set_log_level(log_level_t level);
 log_level_t get_log_level();
 
 char *      fmt_symbol(adh_symbol_t symbol, char *buffer, size_t size);
+char *      fmt_bit_array(const byte_t *bit_array, int num_bit, char *buffer, size_t size);
 
 #endif //ADHUFF_EXE_LOG_H

@@ -138,6 +138,18 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 }
 
 char * fmt_symbol(adh_symbol_t symbol, char *buffer, size_t size) {
-    snprintf(buffer, size, "char=%-3c code=%-4d hex=0x%02X", symbol, symbol, symbol);
+    //snprintf(buffer, size, "char=%-3c code=%-4d hex=0x%02X", symbol, symbol, symbol);
+    snprintf(buffer, size, "char=%-3c code=%-4d", symbol, symbol);
+    return buffer;
+}
+
+char * fmt_bit_array(const byte_t *bit_array, int num_bit, char *buffer, size_t size) {
+    int j = 0;
+    for(int i = num_bit-1; i>=0 && (j < size-2); i--) {
+        buffer[j] = bit_array[i];
+        j++;
+    }
+
+    buffer[j] = 0;
     return buffer;
 }

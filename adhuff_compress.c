@@ -16,7 +16,7 @@ static bool     is_first_byte = true;
 // private methods
 //
 void    process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
-void    output_bit_array(const byte_t bit_array[], int length, byte_t *output_buffer, FILE* output_file_ptr);
+void    output_bit_array(const byte_t bit_array[], int size, byte_t *output_buffer, FILE* output_file_ptr);
 void    output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
 void    output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
 int     flush_data(byte_t *output_buffer, FILE* output_file_ptr);
@@ -90,7 +90,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     char symbol_str[40] = {0};
-    log_trace("process_symbol", "%s\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
+    log_info("process_symbol", "%s\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
@@ -130,7 +130,7 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
 }
 
 void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
-    log_trace("output_nyt", "out_bit_idx=%-8d\n", out_bit_idx);
+    log_debug("output_nyt", "out_bit_idx=%-8d\n", out_bit_idx);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // write NYT code
@@ -144,23 +144,27 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    char symbol_str[40];
-    log_trace("output_symbol", "%s bits=", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
-
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
+
+    char symbol_str[40] = {0};
+    char bit_array_str[9] = {0};
+    log_debug("output_symbol", "%s bin=%s\n",
+            fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
+            fmt_bit_array(bit_array, SYMBOL_BITS, bit_array_str, sizeof(bit_array_str)));
+
     output_bit_array(bit_array, SYMBOL_BITS, output_buffer, output_file_ptr);
 }
-
 
 /*
  * copy data to output buffer as bit array
  */
-void output_bit_array(const byte_t bit_array[], int length, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("output_bit_array", "length=%-8d bits=", length);
-    log_trace_bit_array(bit_array, length);
+void output_bit_array(const byte_t bit_array[], int size, byte_t *output_buffer, FILE* output_file_ptr) {
+    char bit_array_str[256] = {0};
+    log_debug("output_bit_array", "size=%-3d bin=%s\n", size,
+              fmt_bit_array(bit_array, size, bit_array_str, sizeof(bit_array_str)));
 
-    for(int i = length-1; i>=0; i--) {
+    for(int i = size-1; i>=0; i--) {
         // calculate the current position (in byte) of the output_buffer
         int buffer_byte_idx = bit_idx_to_byte_idx(out_bit_idx);
 

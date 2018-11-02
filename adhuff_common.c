@@ -58,7 +58,7 @@ void destroy_node(adh_node_t *node) {
     if(node == NULL)
         return;
 
-    char symbol_str[40];
+    char symbol_str[40] = {0};
     log_trace("destroy_node", "%s order=%-8d\n", fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order);
 
     if(node->left != NULL) {
@@ -79,7 +79,7 @@ void destroy_node(adh_node_t *node) {
  * Must be used only for new for symbols (not present in the tree)
  */
 adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
-    log_trace("adh_create_node_and_append", "char=%-3c code=%-4d\n", symbol, symbol);
+    log_debug("adh_create_node_and_append", "char=%-3c code=%-4d\n", symbol, symbol);
 
     // IMPORTANT: right node must be created before left node because
     //            create_node() decrease adh_next_order each time it's called
@@ -108,7 +108,7 @@ adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
  * Create a new adh_node_t in the heap.
  */
 adh_node_t * create_nyt() {
-    log_trace("create_nyt", "\n");
+    log_debug("create_nyt", "\n");
 
     return create_node(ADH_NYT_CODE);
 }
@@ -122,7 +122,7 @@ adh_node_t * create_node(adh_symbol_t symbol) {
         return NULL;
     }
 
-    char symbol_str[40];
+    char symbol_str[40] = {0};
     log_trace("create_node", "%s order=%-8d\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)), adh_next_order);
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
@@ -189,8 +189,8 @@ adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weigh
  * Search symbol in tree
  */
 adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
-    char symbol_str[40];
-    log_trace("adh_search_symbol_in_tree", "%s\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
+    char symbol_str[40] = {0};
+    log_debug("adh_search_symbol_in_tree", "%s\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     return find_node_by_symbol(adh_root_node, symbol);
 }
@@ -204,7 +204,9 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
 
     fmt_symbol(node1->symbol, symbol1_str, sizeof(symbol1_str));
     fmt_symbol(node2->symbol, symbol2_str, sizeof(symbol2_str));
-    log_debug("swap_nodes", "(%s) <-> (%s)\n", symbol1_str, symbol2_str);
+    log_debug("swap_nodes", "(%s order=%d weight=%d) <-> (%s order=%d weight=%d)\n",
+            symbol1_str, node1->order, node1->weight,
+            symbol2_str, node2->order, node2->weight);
 
     // check if node1 is left or right child
     if (node1->parent->left == node1){
@@ -239,7 +241,7 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
  * Update Tree, fix sibling property
  */
 void adh_update_tree(adh_node_t *node, bool is_new_node) {
-    log_trace("adh_update_tree", "char=%-3c code=%-4d order=%-8d weight=%-8d is_new=%d\n", node->symbol, node->symbol, node->order, node->weight, is_new_node);
+    log_debug("adh_update_tree", "char=%-3c code=%-4d order=%-8d weight=%-8d is_new=%d\n", node->symbol, node->symbol, node->order, node->weight, is_new_node);
 
     // update parents' weight
     adh_node_t * parent = node->parent;
@@ -280,7 +282,7 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
  * return the length of the array
  */
 int adh_get_symbol_encoding(adh_symbol_t symbol, byte_t bit_array[]) {
-    char symbol_str[40];
+    char symbol_str[40] = {0};
     log_trace("adh_get_symbol_encoding", "%s\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
     adh_node_t * node = adh_search_symbol_in_tree(symbol);
 
@@ -297,8 +299,6 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
     int bit_size = 0;
     if(node != NULL) {
         bit_size = get_node_level(node);
-        log_trace("get_node_encoding", "char=%-3c code=%-4dorder=%-8d weight=%-8d node_encoding=", node->symbol, node->symbol, node->order, node->weight);
-
         int bit_idx = 0;
         adh_node_t * parent= node->parent;
         while(parent != NULL) {
@@ -308,14 +308,19 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
             node = parent;
             parent = parent->parent;
         }
-        log_trace_bit_array(bit_array, bit_idx);
+
+        char symbol_str[40] = {0};
+        char bit_array_str[256] = {0};
+        log_trace("get_node_encoding", "%s order=%-8d weight=%-8d node_encoding=%s\n",
+                fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight,
+                fmt_bit_array(bit_array, bit_idx, bit_array_str, sizeof(bit_array_str)));
     }
 
     return bit_size;
 }
 
 int get_node_level(const adh_node_t *node) {
-    char symbol_str[40];
+    char symbol_str[40] = {0};
     log_trace("get_node_level", "%s order=%-8d weight=%-8d \n", fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight);
 
     int level = 0;
@@ -337,15 +342,21 @@ int adh_get_NYT_encoding(byte_t bit_array[]) {
 }
 
 adh_node_t* adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits) {
-    log_trace("adh_search_encoding_in_tree", "encoding=");
-    log_trace_bit_array(bit_array, num_bits);
+    char bit_array_str[256] = {0};
+    log_debug("adh_search_encoding_in_tree", "encoding=%s\n",
+              fmt_bit_array(bit_array, num_bits, bit_array_str, sizeof(bit_array_str)));
 
     return find_node_by_encoding(adh_root_node, bit_array, num_bits);
 }
 
 adh_node_t* find_node_by_encoding(adh_node_t *node, const byte_t bit_array[], int num_bits) {
-    log_trace("find_node_by_encoding", "char=%-3c code=%-4d order=%-8d weight=%-8d encoding=", node->symbol, node->symbol, node->order, node->weight);
-    log_trace_bit_array(bit_array, num_bits);
+    char symbol_str[40] = {0};
+    char bit_array_str[256] = {0};
+    log_trace("find_node_by_encoding", "%s order=%-8d weight=%-8d encoding=%s\n",
+              fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight,
+              node->order, node->weight,
+              fmt_bit_array(bit_array, num_bits, bit_array_str, sizeof(bit_array_str)));
+
 
     if (node->symbol > ADH_NYT_CODE){
         byte_t node_bit_array[MAX_CODE_BITS] = {0};

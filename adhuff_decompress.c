@@ -141,7 +141,7 @@ int flush_uncompressed(FILE *output_file_ptr) {
 }
 
 int decode_existing_symbol(const byte_t input_buffer[]) {
-    log_trace("decode_existing_symbol", "in_bit_idx=%d\n", in_bit_idx);
+    log_debug("decode_existing_symbol", "in_bit_idx=%d\n", in_bit_idx);
 
     int original_input_buffer_bit_idx = in_bit_idx;
 
@@ -198,7 +198,7 @@ int decode_new_symbol(const byte_t input_buffer[]) {
 
     output_buffer[output_byte_idx] = new_symbol[0];
 
-    char symbol_str[40];
+    char symbol_str[40] = {0};
     log_debug("decode_new_symbol", "in_bit_idx=%-8d %s\n", in_bit_idx, fmt_symbol(new_symbol[0], symbol_str, sizeof(symbol_str)));
     adh_node_t * node = adh_create_node_and_append(new_symbol[0]);
     adh_update_tree(node, true);
@@ -208,7 +208,7 @@ int decode_new_symbol(const byte_t input_buffer[]) {
 }
 
 int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]) {
-    log_trace("read_data_cross_bytes", "num_bits_to_read=%-8d\n", num_bits_to_read);
+    log_debug("read_data_cross_bytes", "num_bits_to_read=%-8d\n", num_bits_to_read);
 
     int temp_buffer_bit_idx = 0;
     int temp_byte_idx = 0;
@@ -247,7 +247,7 @@ long get_filesize(FILE *input_file_ptr) {
  * read header
  */
 void read_header(FILE *inputFilePtr) {
-    log_trace("read_header", "\n");
+    log_debug("read_header", "\n");
 
     byte_t header;
     fread(&header, sizeof(byte_t), 1, inputFilePtr);
