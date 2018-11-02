@@ -59,7 +59,7 @@ void destroy_node(adh_node_t *node) {
         return;
 
     char symbol_str[40] = {0};
-    log_trace("destroy_node", "%s order=%-8d\n", fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order);
+    log_trace("destroy_node", "%s order=%-3d\n", fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order);
 
     if(node->left != NULL) {
         destroy_node(node->left);
@@ -123,7 +123,7 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     }
 
     char symbol_str[40] = {0};
-    log_trace("create_node", "%s order=%-8d\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)), adh_next_order);
+    log_trace("create_node", "%s order=%-3d\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)), adh_next_order);
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
     node->left = NULL;
@@ -162,7 +162,7 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
 }
 
 adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
-    log_trace("find_node_same_weight_hi_order", "weight=%-8d order=%-8d\n", weight, order);
+    log_trace("find_node_same_weight_hi_order", "weight=%-8d order=%-3d\n", weight, order);
     if(node == NULL)
         return NULL;
 
@@ -241,7 +241,10 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
  * Update Tree, fix sibling property
  */
 void adh_update_tree(adh_node_t *node, bool is_new_node) {
-    log_debug("adh_update_tree", "char=%-3c code=%-4d order=%-8d weight=%-8d is_new=%d\n", node->symbol, node->symbol, node->order, node->weight, is_new_node);
+
+    char symbol_str[40] = {0};
+    log_debug("adh_update_tree", "%s order=%-3d weight=%-8d is_new=%d\n",
+              fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight, is_new_node);
 
     // update parents' weight
     adh_node_t * parent = node->parent;
@@ -310,8 +313,8 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
         }
 
         char symbol_str[40] = {0};
-        char bit_array_str[256] = {0};
-        log_trace("get_node_encoding", "%s order=%-8d weight=%-8d node_encoding=%s\n",
+        char bit_array_str[MAX_BIT_STR] = {0};
+        log_trace("get_node_encoding", "%s order=%-3d weight=%-8d node_encoding=%s\n",
                 fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight,
                 fmt_bit_array(bit_array, bit_idx, bit_array_str, sizeof(bit_array_str)));
     }
@@ -321,7 +324,7 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
 
 int get_node_level(const adh_node_t *node) {
     char symbol_str[40] = {0};
-    log_trace("get_node_level", "%s order=%-8d weight=%-8d \n", fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight);
+    log_trace("get_node_level", "%s order=%-3d weight=%-8d \n", fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight);
 
     int level = 0;
     adh_node_t * parent = node->parent;
@@ -342,7 +345,7 @@ int adh_get_NYT_encoding(byte_t bit_array[]) {
 }
 
 adh_node_t* adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits) {
-    char bit_array_str[256] = {0};
+    char bit_array_str[MAX_BIT_STR] = {0};
     log_debug("adh_search_encoding_in_tree", "encoding=%s\n",
               fmt_bit_array(bit_array, num_bits, bit_array_str, sizeof(bit_array_str)));
 
@@ -351,8 +354,8 @@ adh_node_t* adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits) 
 
 adh_node_t* find_node_by_encoding(adh_node_t *node, const byte_t bit_array[], int num_bits) {
     char symbol_str[40] = {0};
-    char bit_array_str[256] = {0};
-    log_trace("find_node_by_encoding", "%s order=%-8d weight=%-8d encoding=%s\n",
+    char bit_array_str[MAX_BIT_STR] = {0};
+    log_trace("find_node_by_encoding", "%s order=%-3d weight=%-8d encoding=%s\n",
               fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight,
               node->order, node->weight,
               fmt_bit_array(bit_array, num_bits, bit_array_str, sizeof(bit_array_str)));
