@@ -12,7 +12,7 @@
  */
 static byte_t           output_buffer[BUFFER_SIZE] = {0};
 static unsigned short   output_byte_idx;
-static unsigned short   input_bit_idx;
+static unsigned short   in_bit_idx;
 static unsigned int     bits_to_ignore;
 static long             input_size;
 
@@ -69,12 +69,11 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
                 exit(RC_FAIL);
             }
 
-            while(input_size != (input_bit_idx + bits_to_ignore) / SYMBOL_BITS) {
+            while(input_size > (in_bit_idx + bits_to_ignore) / SYMBOL_BITS) {
                 int num_bits = adh_get_NYT_encoding(node_bit_array);
-                bool is_nyt_code = compare_input_and_bit_array(input_buffer, input_bit_idx, node_bit_array,
-                                                               num_bits);
+                bool is_nyt_code = compare_input_and_bit_array(input_buffer, in_bit_idx, node_bit_array, num_bits);
                 if(is_nyt_code) {
-                    input_bit_idx += num_bits;
+                    in_bit_idx += num_bits;
                     // not coded byte
                     decode_new_symbol(input_buffer);
                 } else {
@@ -103,7 +102,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
 }
 
 void flush_uncompressed(FILE *output_file_ptr) {
-    log_trace("flush_uncompressed", "input_bit_idx=%d output_byte_idx=%d\n", input_bit_idx, output_byte_idx);
+    log_debug("flush_uncompressed", "in_bit_idx=%-8d output_byte_idx=%d\n", in_bit_idx, output_byte_idx);
 
     size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_byte_idx, output_file_ptr);
     if(bytes_written != output_byte_idx) {
@@ -115,9 +114,9 @@ void flush_uncompressed(FILE *output_file_ptr) {
 }
 
 void decode_existing_symbol(const byte_t input_buffer[]) {
-    log_trace("decode_existing_symbol", "input_bit_idx=%d\n", input_bit_idx);
+    log_trace("decode_existing_symbol", "in_bit_idx=%d\n", in_bit_idx);
 
-    int original_input_buffer_bit_idx = input_bit_idx;
+    int original_input_buffer_bit_idx = in_bit_idx;
 
     adh_node_t* node = NULL;
     int     bit_array_size = 0;
@@ -148,10 +147,10 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
         exit(RC_FAIL);
     }
 
-    input_bit_idx = original_input_buffer_bit_idx + bit_array_size;
+    in_bit_idx = original_input_buffer_bit_idx + bit_array_size;
     byte_t symbol = node->symbol;
 
-    log_debug("decode_existing_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", symbol, symbol, symbol);
+    log_debug("decode_existing_symbol", "in_bit_idx=%-8d char=%-3c code=%-4d hex=0x%02X\n", in_bit_idx, symbol, symbol, symbol);
 
     output_buffer[output_byte_idx] = symbol;
     output_byte_idx++;
@@ -159,7 +158,7 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
 }
 
 void decode_new_symbol(const byte_t input_buffer[]) {
-    log_trace("decode_new_symbol", "input_bit_idx=%d\n", input_bit_idx);
+    log_trace("decode_new_symbol", "in_bit_idx=%d\n", in_bit_idx);
 
     byte_t  new_symbol[1] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, new_symbol);
@@ -169,7 +168,7 @@ void decode_new_symbol(const byte_t input_buffer[]) {
     }
 
     output_buffer[output_byte_idx] = new_symbol[0];
-    log_debug("decode_new_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", new_symbol[0], new_symbol[0], new_symbol[0]);
+    log_debug("decode_new_symbol", "in_bit_idx=%-8d char=%-3c code=%-4d hex=0x%02X\n", in_bit_idx, new_symbol[0], new_symbol[0], new_symbol[0]);
     adh_node_t * node = adh_create_node_and_append(new_symbol[0]);
     adh_update_tree(node, true);
 
@@ -182,14 +181,14 @@ int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byt
     int temp_buffer_bit_idx = 0;
     int temp_byte_idx = 0;
     while(num_bits_to_read > 0) {
-        int input_byte_idx = bit_idx_to_byte_idx(input_bit_idx);
+        int input_byte_idx = bit_idx_to_byte_idx(in_bit_idx);
         if(input_byte_idx > input_size-1)
             break;
 
-        int available_bits = get_available_bits(input_bit_idx);
+        int available_bits = get_available_bits(in_bit_idx);
         int bits_to_copy = available_bits > num_bits_to_read ? num_bits_to_read : available_bits;
 
-        int read_bit_idx = bit_to_change(input_bit_idx);
+        int read_bit_idx = bit_to_change(in_bit_idx);
         int write_bit_idx = bit_to_change(temp_buffer_bit_idx);
 
         temp_byte_idx = bit_idx_to_byte_idx(temp_buffer_bit_idx);
@@ -198,7 +197,7 @@ int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byt
         // e.g. from 5 and size 4 -> 5,4,3,2
         bit_copy(input_buffer[input_byte_idx], &sub_buffer[temp_byte_idx], read_bit_idx, write_bit_idx, bits_to_copy);
 
-        input_bit_idx += bits_to_copy;
+        in_bit_idx += bits_to_copy;
         temp_buffer_bit_idx += bits_to_copy;
         num_bits_to_read -= bits_to_copy;
     }
@@ -225,6 +224,6 @@ void read_header(FILE *inputFilePtr) {
     first_byte.raw = header;
 
     bits_to_ignore = first_byte.split.header;
-    input_bit_idx = HEADER_BITS;
+    in_bit_idx = HEADER_BITS;
     output_byte_idx = 0;
  }

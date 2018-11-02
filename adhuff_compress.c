@@ -23,6 +23,8 @@ int     flush_data(byte_t *output_buffer, FILE* output_file_ptr);
 int     flush_header(FILE* output_file_ptr);
 void    output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
 
+void output_nyt(const byte_t *output_buffer, const FILE *output_file_ptr);
+
 /*
  * Compress file
  */
@@ -87,12 +89,13 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  * encode char
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("process_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", symbol, symbol, symbol);
+    log_trace("process_symbol", "char=%-3c code=%-4d hex=0x%02X\n", symbol, symbol, symbol);
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
     if(node == NULL) {
         // symbol not present in tree
+        output_nyt(output_buffer, output_file_ptr);
         output_new_symbol(symbol, output_buffer, output_file_ptr);
     } else {
         // char already present in tree
@@ -102,7 +105,7 @@ void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr)
 }
 
 void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_debug("output_existing_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", symbol, symbol, symbol);
+    log_debug("output_existing_symbol", "out_bit_idx=%-8d char=%-3c code=%-4d hex=0x%02X\n", out_bit_idx, symbol, symbol, symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // increase weight
@@ -115,12 +118,7 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buff
 }
 
 void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_debug("output_new_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", symbol, symbol, symbol);
-
-    byte_t bit_array[MAX_CODE_BITS] = {0};
-    // write NYT code
-    int num_bit = adh_get_NYT_encoding(bit_array);
-    output_bit_array(bit_array, num_bit, output_buffer, output_file_ptr);
+    log_debug("output_new_symbol", "out_bit_idx=%-8d char=%-3c code=%-4d hex=0x%02X\n", out_bit_idx, symbol, symbol, symbol);
 
     // write symbol code
     output_symbol(symbol, output_buffer, output_file_ptr);
@@ -128,11 +126,20 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
     adh_update_tree(new_node, true);
 }
 
+void output_nyt(const byte_t *output_buffer, const FILE *output_file_ptr) {
+    log_debug("output_nyt", "out_bit_idx=%-8d\n", out_bit_idx);
+
+    byte_t bit_array[MAX_CODE_BITS] = {0};
+    // write NYT code
+    int num_bit = adh_get_NYT_encoding(bit_array);
+    output_bit_array(bit_array, num_bit, output_buffer, output_file_ptr);
+}
+
 /*
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("output_symbol", "symbol=%-8d char=%-8c bits=", symbol, symbol);
+    log_trace("output_symbol", "char=%-3c code=%-4d bits=", symbol, symbol);
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
@@ -179,12 +186,11 @@ void output_bit_array(const byte_t bit_array[], int length, byte_t *output_buffe
  */
 int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
     if(out_bit_idx > 0) {
-        log_trace("flush_data", "out_bit_idx=%d\n", out_bit_idx);
-
         int num_bytes_to_write = bit_idx_to_byte_idx(out_bit_idx);
-
         if (get_available_bits(out_bit_idx) > 0)
             num_bytes_to_write++;
+
+        log_debug("flush_data", "out_bit_idx=%-8d num_bytes_to_write=%d\n", out_bit_idx, num_bytes_to_write);
 
         for (int i = 0; i < num_bytes_to_write; i++)
             log_trace_char_bin(output_buffer[i]);
