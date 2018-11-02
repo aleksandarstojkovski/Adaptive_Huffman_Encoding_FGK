@@ -58,7 +58,8 @@ void destroy_node(adh_node_t *node) {
     if(node == NULL)
         return;
 
-    log_trace("destroy_node", "char=%-3c code=%-4dorder=%-8d\n", node->symbol, node->symbol, node->order);
+    char symbol_str[40];
+    log_trace("destroy_node", "%s order=%-8d\n", fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order);
 
     if(node->left != NULL) {
         destroy_node(node->left);
@@ -121,7 +122,8 @@ adh_node_t * create_node(adh_symbol_t symbol) {
         return NULL;
     }
 
-    log_trace("create_node", "char=%-3c code=%-4dorder=%-8d\n", symbol, symbol,adh_next_order);
+    char symbol_str[40];
+    log_trace("create_node", "%s order=%-8d\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)), adh_next_order);
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
     node->left = NULL;
@@ -187,7 +189,8 @@ adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weigh
  * Search symbol in tree
  */
 adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
-    log_trace("adh_search_symbol_in_tree", "char=%-3c code=%-4d\n", symbol, symbol);
+    char symbol_str[40];
+    log_trace("adh_search_symbol_in_tree", "%s\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     return find_node_by_symbol(adh_root_node, symbol);
 }
@@ -196,7 +199,12 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
  * Swap Nodes
  */
 void swap_nodes(adh_node_t *node1, adh_node_t *node2){
-    log_trace("swap_nodes", "node1=%-8d node2=%-8d\n", node1->symbol, node2->symbol);
+    char symbol1_str[40];
+    char symbol2_str[40];
+
+    fmt_symbol(node1->symbol, symbol1_str, sizeof(symbol1_str));
+    fmt_symbol(node2->symbol, symbol2_str, sizeof(symbol2_str));
+    log_debug("swap_nodes", "(%s) <-> (%s)\n", symbol1_str, symbol2_str);
 
     // check if node1 is left or right child
     if (node1->parent->left == node1){
@@ -231,7 +239,7 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
  * Update Tree, fix sibling property
  */
 void adh_update_tree(adh_node_t *node, bool is_new_node) {
-    log_trace("adh_update_tree", "char=%-3c code=%-4dorder=%-8d weight=%-8d is_new=%d\n", node->symbol, node->symbol, node->order, node->weight, is_new_node);
+    log_trace("adh_update_tree", "char=%-3c code=%-4d order=%-8d weight=%-8d is_new=%d\n", node->symbol, node->symbol, node->order, node->weight, is_new_node);
 
     // update parents' weight
     adh_node_t * parent = node->parent;
@@ -272,7 +280,8 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
  * return the length of the array
  */
 int adh_get_symbol_encoding(adh_symbol_t symbol, byte_t bit_array[]) {
-    log_trace("adh_get_symbol_encoding", "char=%-3c code=%-4d\n", symbol, symbol);
+    char symbol_str[40];
+    log_trace("adh_get_symbol_encoding", "%s\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
     adh_node_t * node = adh_search_symbol_in_tree(symbol);
 
     return get_node_encoding(node, bit_array);
@@ -306,7 +315,8 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
 }
 
 int get_node_level(const adh_node_t *node) {
-    log_trace("get_node_level", "char=%-3c code=%-4dorder=%-8d weight=%-8d \n", node->symbol, node->symbol, node->order, node->weight);
+    char symbol_str[40];
+    log_trace("get_node_level", "%s order=%-8d weight=%-8d \n", fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight);
 
     int level = 0;
     adh_node_t * parent = node->parent;
@@ -334,7 +344,7 @@ adh_node_t* adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits) 
 }
 
 adh_node_t* find_node_by_encoding(adh_node_t *node, const byte_t bit_array[], int num_bits) {
-    log_trace("find_node_by_encoding", "char=%-3c code=%-4dorder=%-8d weight=%-8d encoding=", node->symbol, node->symbol, node->order, node->weight);
+    log_trace("find_node_by_encoding", "char=%-3c code=%-4d order=%-8d weight=%-8d encoding=", node->symbol, node->symbol, node->order, node->weight);
     log_trace_bit_array(bit_array, num_bits);
 
     if (node->symbol > ADH_NYT_CODE){
@@ -357,3 +367,4 @@ adh_node_t* find_node_by_encoding(adh_node_t *node, const byte_t bit_array[], in
     }
     return NULL;
 }
+

@@ -45,7 +45,6 @@ void print_method(FILE* fp, const char *method) {
     fprintf(fp, "%-35s ", method);
 }
 
-
 void log_trace_char_bin(byte_t symbol) {
     if(get_log_level() < LOG_TRACE)
         return;
@@ -136,4 +135,9 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 #else
     usleep(milliseconds * 1000);
 #endif
+}
+
+char * fmt_symbol(adh_symbol_t symbol, char *buffer, size_t size) {
+    snprintf(buffer, size, "char=%-3c code=%-4d hex=0x%02X", symbol, symbol, symbol);
+    return buffer;
 }

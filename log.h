@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "constants.h"
+#include "adhuff_common.h"
 
 typedef enum {
     LOG_ERROR=0,
@@ -29,5 +30,6 @@ void        log_trace_char_bin(byte_t symbol);
 void        set_log_level(log_level_t level);
 log_level_t get_log_level();
 
+char *      fmt_symbol(adh_symbol_t symbol, char *buffer, size_t size);
 
 #endif //ADHUFF_EXE_LOG_H

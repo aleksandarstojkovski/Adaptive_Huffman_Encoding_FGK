@@ -89,7 +89,8 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  * encode char
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("process_symbol", "char=%-3c code=%-4d hex=0x%02X\n", symbol, symbol, symbol);
+    char symbol_str[40] = {0};
+    log_trace("process_symbol", "%s\n", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
@@ -105,7 +106,8 @@ void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr)
 }
 
 void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_debug("output_existing_symbol", "out_bit_idx=%-8d char=%-3c code=%-4d hex=0x%02X\n", out_bit_idx, symbol, symbol, symbol);
+    char symbol_str[40] = {0};
+    log_debug("output_existing_symbol", "out_bit_idx=%-8d %s\n", out_bit_idx, fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // increase weight
@@ -118,7 +120,8 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buff
 }
 
 void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_debug("output_new_symbol", "out_bit_idx=%-8d char=%-3c code=%-4d hex=0x%02X\n", out_bit_idx, symbol, symbol, symbol);
+    char symbol_str[40] = {0};
+    log_debug("output_new_symbol", "out_bit_idx=%-8d %s\n", out_bit_idx, fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     // write symbol code
     output_symbol(symbol, output_buffer, output_file_ptr);
@@ -141,7 +144,8 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
  * copy data to output buffer as char
  */
 void output_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("output_symbol", "char=%-3c code=%-4d bits=", symbol, symbol);
+    char symbol_str[40];
+    log_trace("output_symbol", "%s bits=", fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
