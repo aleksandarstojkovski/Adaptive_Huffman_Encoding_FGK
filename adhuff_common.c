@@ -116,7 +116,7 @@ adh_node_t * create_nyt() {
  */
 adh_node_t * create_node(adh_symbol_t symbol) {
     if(adh_next_order == 0) {
-        fprintf(stderr, "!!!! unexpected new node creation, adh_next_order = 0, symbol = %d \n", symbol);
+        log_error("create_node", "unexpected new node creation, adh_next_order = 0, symbol = %d \n", symbol);
         exit(RC_FAIL);
     }
 
@@ -287,7 +287,7 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
     int bit_size = 0;
     if(node != NULL) {
         bit_size = get_node_level(node);
-        log_trace("get_node_encoding", "symbol=%-8d char=%-8c num_bits=%-8d bits=", node->symbol, node->symbol, bit_size);
+        log_trace("get_node_encoding", "symbol=%-8d char=%-8c order=%-8d weight=%-8d node_encoding=", node->symbol, node->symbol, node->order, node->weight);
 
         int bit_idx = 0;
         adh_node_t * parent= node->parent;
@@ -305,7 +305,7 @@ int get_node_encoding(const adh_node_t *node, byte_t bit_array[]) {
 }
 
 int get_node_level(const adh_node_t *node) {
-    log_trace("get_node_level", "symbol=%-8d char=%-8c\n", node->symbol, node->symbol);
+    log_trace("get_node_level", "symbol=%-8d char=%-8c order=%-8d weight=%-8d \n", node->symbol, node->symbol, node->order, node->weight);
 
     int level = 0;
     adh_node_t * parent = node->parent;
@@ -326,13 +326,15 @@ int adh_get_NYT_encoding(byte_t bit_array[]) {
 }
 
 adh_node_t* adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits) {
-    log_trace("adh_search_encoding_in_tree", "num_bits=%-6d encoding=%s\n", num_bits, bit_array);
+    log_trace("adh_search_encoding_in_tree", "encoding=");
+    log_trace_bit_array(bit_array, num_bits);
 
     return find_node_by_encoding(adh_root_node, bit_array, num_bits);
 }
 
 adh_node_t* find_node_by_encoding(adh_node_t *node, const byte_t bit_array[], int num_bits) {
-    log_trace("find_node_by_encoding", "symbol=%-8d char=%-8c\n", node->symbol, node->symbol);
+    log_trace("find_node_by_encoding", "symbol=%-8d char=%-8c order=%-8d weight=%-8d encoding=", node->symbol, node->symbol, node->order, node->weight);
+    log_trace_bit_array(bit_array, num_bits);
 
     if (node->symbol > ADH_NYT_CODE){
         byte_t node_bit_array[MAX_CODE_BITS] = {0};

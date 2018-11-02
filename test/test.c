@@ -36,7 +36,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_trace_active(true);
+    set_log_level(LOG_DEBUG);
     test_bit_helpers();
     test_all_files();
 }
@@ -56,6 +56,7 @@ void test_all_files() {
         strcat(uncompressed, ".uncompressed");
 
         adh_compress_file(TEST_FILES[i], compressed);
+        puts("--------");
         adh_decompress_file(compressed, uncompressed);
 
         int rc = compare_files(TEST_FILES[i], uncompressed);
@@ -82,7 +83,7 @@ int compare_files(const char *original, const char *generated) {
     rewind (fp_generated);
 
     if (sz_original != sz_generated) {
-        fprintf(stderr, "compare_files: different file size.  original: %ld != generated: %ld\n", sz_original, sz_generated);
+        log_error("compare_files", "different file size.  original: %ld != generated: %ld\n", sz_original, sz_generated);
         return RC_FAIL;
     }
 
@@ -91,7 +92,7 @@ int compare_files(const char *original, const char *generated) {
         fread(&ch1, 1, 1, fp_original);
         fread(&ch2, 1, 1, fp_generated);
         if (ch1 != ch2) {
-            fprintf(stderr, "compare_files: different byte found at position (%x). original 0x%02X != generated 0x%02X\n", i , ch1, ch2);
+            log_error("compare_files", "different byte found at position (%x). original 0x%02X != generated 0x%02X\n", i , ch1, ch2);
             return RC_FAIL;
         }
     }
@@ -147,11 +148,11 @@ void test_bit_set_zero(byte_t source, unsigned int bit_pos, byte_t expected) {
 void test_bit_check(byte_t source, unsigned int bit_pos, byte_t expected) {
     char val = bit_check(source, bit_pos);
     if(val != expected)
-        fprintf(stderr, "error checking bit");
+        log_error("test_bit_check", "error checking bit");
 }
 
 void test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected) {
     bit_copy(source, &destination, read_pos, write_pos, size);
     if(destination != expected)
-        fprintf(stderr, "error copying bits: expected=0x%02X received=0x%02X\n", expected, destination);
+        log_error("test_bit_copy", "error copying bits: expected=0x%02X received=0x%02X\n", expected, destination);
 }

@@ -1,20 +1,36 @@
 #include <stdarg.h>
+
+#ifdef WIN32
+#include <windows.h>
+#elif _POSIX_C_SOURCE >= 199309L
+#include <time.h>   // for nanosleep
+#else
+#include <unistd.h> // for usleep
+#endif
+
+
 #include <time.h>
 
 #include "log.h"
 #include "bin_io.h"
 
-static bool             TRACE_ACTIVE = false;
-
+static log_level_t log_level = LOG_INFO;
 //
 // Diagnostic functions
 //
-void        set_trace_active(bool is_active) { TRACE_ACTIVE = is_active; }
-bool        get_trace_active() { return TRACE_ACTIVE; }
-void        print_time();
-void        print_method(const char *method);
+void        print_time(FILE* fp);
+void        print_method(FILE* fp, const char *method);
+void        sleep_ms(int milliseconds);
 
-void print_time() {
+void set_log_level(log_level_t level) {
+    log_level = level;
+}
+
+log_level_t get_log_level() {
+    return log_level;
+}
+
+void print_time(FILE* fp) {
     time_t raw_time;
     time (&raw_time);
     struct tm * time_info = localtime(&raw_time);
@@ -22,28 +38,57 @@ void print_time() {
     char time_string[10] = {0};
     strftime(time_string, 10, "%H:%M:%S", time_info);
 
-    printf("%s\t", time_string);
+    fprintf(fp, "%s\t", time_string);
 }
 
-void print_method(const char *method) {
-    printf("%-30s\t", method);
+void print_method(FILE* fp, const char *method) {
+    fprintf(fp, "%-30s\t", method);
 }
 
 
 void log_trace_char_bin(byte_t symbol) {
-    if(!get_trace_active())
+    if(get_log_level() < LOG_TRACE)
         return;
 
     byte_t bit_array[SYMBOL_BITS] = { 0 };
     symbol_to_bits(symbol, bit_array);
 }
 
+void log_error(const char *method, const char *format, ...) {
+    // sleep some milliseconds to let info finish printing
+    sleep_ms(200);
+
+    print_time(stderr);
+    print_method(stderr, method);
+
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+}
+
 /*
- * Wrapper to printf to add execution time information
+ * log information on screen formatting method name and adding execution time
  */
 void log_info(const char *method, const char *format, ...) {
-    print_time();
-    print_method(method);
+    print_time(stdout);
+    print_method(stdout, method);
+
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+}
+
+/*
+ * same as log_info, but only if debug level is active
+ */
+void log_debug(const char *method, const char *format, ...) {
+    if(get_log_level() < LOG_DEBUG)
+        return;
+
+    print_time(stdout);
+    print_method(stdout, method);
 
     va_list args;
     va_start(args, format);
@@ -53,14 +98,14 @@ void log_info(const char *method, const char *format, ...) {
 
 
 /*
- * same as log_info, but only if trace is active
+ * same as log_info, but only if trace level is active
  */
 void log_trace(const char *method, const char *format, ...) {
-    if(!get_trace_active())
+    if(get_log_level() < LOG_TRACE)
         return;
 
-    print_time();
-    print_method(method);
+    print_time(stdout);
+    print_method(stdout, method);
 
     va_list args;
     va_start(args, format);
@@ -69,7 +114,7 @@ void log_trace(const char *method, const char *format, ...) {
 }
 
 void log_trace_bit_array(const byte_t *bit_array, int num_bit) {
-    if(!get_trace_active())
+    if(get_log_level() < LOG_TRACE)
         return;
 
     for(int i = num_bit-1; i>=0; i--) {
@@ -77,4 +122,18 @@ void log_trace_bit_array(const byte_t *bit_array, int num_bit) {
     }
     printf("\n");
 
+}
+
+void sleep_ms(int milliseconds) // cross-platform sleep function
+{
+#ifdef WIN32
+    Sleep(milliseconds);
+#elif _POSIX_C_SOURCE >= 199309L
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+#else
+    usleep(milliseconds * 1000);
+#endif
 }

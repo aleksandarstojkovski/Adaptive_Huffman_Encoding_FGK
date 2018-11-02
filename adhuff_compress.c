@@ -102,7 +102,7 @@ void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr)
 }
 
 void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("output_existing_symbol", "symbol=%-8d char=%-8c\n", symbol, symbol);
+    log_debug("output_existing_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", symbol, symbol, symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // increase weight
@@ -115,7 +115,7 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buff
 }
 
 void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    log_trace("output_new_symbol", "symbol=%-8d char=%-8c\n", symbol, symbol);
+    log_debug("output_new_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", symbol, symbol, symbol);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // write NYT code

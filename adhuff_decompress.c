@@ -65,7 +65,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         //while ((bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr)) > 0)
         {
             if(bytes_read != bytes_to_read) {
-                fprintf(stderr, "bytes_read (%zu) != bytes_to_read (%d)\n", bytes_read, bytes_to_read);
+                log_error("adh_decompress_file", "bytes_read (%zu) != bytes_to_read (%d)\n", bytes_read, bytes_to_read);
                 exit(RC_FAIL);
             }
 
@@ -107,7 +107,7 @@ void flush_uncompressed(FILE *output_file_ptr) {
 
     size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_byte_idx, output_file_ptr);
     if(bytes_written != output_byte_idx) {
-        fprintf(stderr, "bytes_written (%zu) != out_byte_idx (%d)\n", bytes_written, output_byte_idx);
+        log_error("flush_uncompressed", "bytes_written (%zu) != out_byte_idx (%d)\n", bytes_written, output_byte_idx);
         exit(RC_FAIL);
     }
 
@@ -128,7 +128,7 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
     for (int byte_idx = 0; byte_idx < num_bytes && node == NULL; ++byte_idx) {
         for (int bit_idx = 0; bit_idx < SYMBOL_BITS && node == NULL; ++bit_idx) {
             if(bit_array_size > MAX_CODE_BITS) {
-                fprintf(stderr, "bit_array_size (%d) >= MAX_CODE_BITS (%d)", bit_array_size, MAX_CODE_BITS);
+                log_error("decode_existing_symbol", "bit_array_size (%d) >= MAX_CODE_BITS (%d)", bit_array_size, MAX_CODE_BITS);
                 exit(RC_FAIL);
             }
 
@@ -144,14 +144,14 @@ void decode_existing_symbol(const byte_t input_buffer[]) {
     }
 
     if(node == NULL) {
-        fprintf(stderr, "decode_existing_symbol: cannot find node");
+        log_error("decode_existing_symbol", "cannot find node bit_array_size=%d", bit_array_size);
         exit(RC_FAIL);
     }
 
     input_bit_idx = original_input_buffer_bit_idx + bit_array_size;
     byte_t symbol = node->symbol;
 
-    log_trace("decode_existing_symbol", "symbol=%-8d char=%-8c\n", symbol, symbol);
+    log_debug("decode_existing_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", symbol, symbol, symbol);
 
     output_buffer[output_byte_idx] = symbol;
     output_byte_idx++;
@@ -164,11 +164,12 @@ void decode_new_symbol(const byte_t input_buffer[]) {
     byte_t  new_symbol[1] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, new_symbol);
     if(num_bytes > 1) {
-        fprintf(stderr, "decode_new_symbol expected 1 byte received %d", num_bytes);
+        log_error("decode_new_symbol", "expected 1 byte received %d", num_bytes);
         exit(RC_FAIL);
     }
 
     output_buffer[output_byte_idx] = new_symbol[0];
+    log_debug("decode_new_symbol", "symbol=%-8d char=%-8c hex=0x%02X\n", new_symbol[0], new_symbol[0], new_symbol[0]);
     adh_node_t * node = adh_create_node_and_append(new_symbol[0]);
     adh_update_tree(node, true);
 

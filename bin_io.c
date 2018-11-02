@@ -45,7 +45,7 @@ FILE* bin_open_update(const char *filename) {
 FILE* bin_open_file(const char *filename, const char *mode) {
     FILE* file_ptr = fopen(filename, mode);
     if(file_ptr == NULL) {
-        fprintf(stderr, "cannot open file [%s] in [%s] mode\n", filename, mode);
+        log_error("bin_open_file", "cannot open file [%s] in [%s] mode\n", filename, mode);
     }
     return file_ptr;
 }

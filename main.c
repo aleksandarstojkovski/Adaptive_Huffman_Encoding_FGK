@@ -4,6 +4,7 @@
 
 #include "adhuff_compress.h"
 #include "adhuff_decompress.h"
+#include "log.h"
 
 /*
  * Print usage
@@ -21,7 +22,7 @@ int main(int argc, char* argv[])
 {
     int rc = 0;
     if (argc < 4) {
-        fprintf(stderr, "Not enough parameters.\n");
+        log_error("main", "Not enough parameters.\n");
         printUsage();
         rc = 1;
     }
@@ -32,7 +33,7 @@ int main(int argc, char* argv[])
         rc = adh_decompress_file(argv[2], argv[3]);
     }
     else {
-        fprintf(stderr, "Unexpected argument\n");
+        log_error("main", "Unexpected argument\n");
         printUsage();
         rc = 2;
     }
