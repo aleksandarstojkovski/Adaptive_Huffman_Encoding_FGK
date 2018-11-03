@@ -1,9 +1,9 @@
 # Adaptive Huffman Encoding (FGK)
 
-###Description
+## Description
 Test for SUPSI project
 
-###Compilation
+## Compilation
 ````
 make
 ````
@@ -12,7 +12,7 @@ or, manual compilation
 gcc -lm *.c -o adaptive_huffman
 ````
 
-### Execution
+## Execution
 Encode
 ````
 ./adaptive_huffman -c <input_file> <output_file>
