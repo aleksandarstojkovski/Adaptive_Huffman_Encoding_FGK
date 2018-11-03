@@ -1,6 +1,26 @@
-# algo
+# Adaptive Huffman Encoding (FGK)
 
+###Description
 Test for SUPSI project
+
+###Compilation
+````
+make
+````
+or, manual compilation
+````
+gcc -lm *.c -o adaptive_huffman
+````
+
+### Execution
+Encode
+````
+./adaptive_huffman -c <input_file> <output_file>
+````
+Decode
+````
+./adaptive_huffman -d <input_file> <output_file>
+````
 
 ### utils
  hexadecimal dump of a file: **xxd**
