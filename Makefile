@@ -6,7 +6,7 @@ DEPS = *.h
 OBJ = *.c
 
 %.o: %.c $(DEPS)
-    $(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 adaptive_huffman: $(OBJ)
-    $(CC) -o $@ $^ $(CFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS)
