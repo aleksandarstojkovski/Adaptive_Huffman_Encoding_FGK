@@ -239,27 +239,29 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
 
 /*
  * Update Tree, fix sibling property
+ * @param1: node to be updated.
+ * @param2: true if node is new, false if node is not new.
  */
 void adh_update_tree(adh_node_t *node, bool is_new_node) {
 
     char symbol_str[50] = {0};
+
+    // debug log
     log_debug("adh_update_tree", "%s order=%-3d weight=%-8d is_new=%d\n",
               fmt_symbol(node->symbol, symbol_str, sizeof(symbol_str)), node->order, node->weight, is_new_node);
 
-    // update parents' weight
-    adh_node_t * parent = node->parent;
-    while(parent != NULL) {
-        parent->weight++;
-        parent = parent->parent;
-    }
-
+    // create node_to_check
     adh_node_t * node_to_check;
 
-    // if node is new it's father is NYT, therefore we don't need to check it
-    // if node is not new, his father needs also to be checked
+    // if node is new, it's father is NYT, therefore we can safely update it's weight
+    // if node is not new, his father needs to be checked before updating it's weight
     if(is_new_node == true) {
+        // safely update weight of parent
+        node->parent->weight++;
+        // the next node to be checked is the parent of the parent
         node_to_check = node->parent->parent;
     } else {
+        // the next node to be checked is the parent, since the node is not new
         node_to_check = node->parent;
     }
 
@@ -269,10 +271,13 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
                                                                    node_to_check->weight,
                                                                    node_to_check->order);
 
+
         // if node_to_swap == NULL, then no swap is needed
         if (node_to_swap != NULL) {
             swap_nodes(node_to_check, node_to_swap);
         }
+        // now we can safely update the weight of the node
+        node_to_check->weight++;
         // continue ascending the tree
         node_to_check = node_to_check->parent;
     }
