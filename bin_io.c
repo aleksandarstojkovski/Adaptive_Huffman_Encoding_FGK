@@ -139,7 +139,10 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
 
 bool compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx, const byte_t *node_bit_array,
                                  int size) {
-    log_debug("compare_input_and_bit_array", "size=%-3d \n", size);
+    char bit_array_str[MAX_BIT_STR] = {0};
+    log_debug("compare_input_and_bit_array", "size=%-3d bin=%-5s \n",
+              size,
+              fmt_bit_array(node_bit_array, size, bit_array_str, sizeof(bit_array_str)));
 
     bool have_same_bits = true;
     for(int bit_idx=0; bit_idx<size; bit_idx++) {
