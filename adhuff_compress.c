@@ -22,6 +22,7 @@ int     flush_data(byte_t *output_buffer, FILE* output_file_ptr);
 int     flush_header(FILE* output_file_ptr);
 void    output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
 void    output_nyt(byte_t *output_buffer, FILE *output_file_ptr);
+void    print_final_stats(const FILE *output_file_ptr);
 
 /*
  * Compress file
@@ -66,7 +67,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
             return rc;
         }
 
-        adh_destroy_tree();
+        print_final_stats(output_file_ptr);
 
         // close and reopen in update mode
         fclose(output_file_ptr);
@@ -82,6 +83,11 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
     release_resources(output_file_ptr, input_file_ptr);
 
     return rc;
+}
+
+void print_final_stats(const FILE *output_file_ptr) {
+    long size = ftell(output_file_ptr);
+    log_info(" print_final_stats", "size=%ld (bytes)    out_bit_idx=%d\n", size, out_bit_idx);
 }
 
 /*
@@ -144,7 +150,7 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     // write NYT code
     int nyt_size = adh_get_NYT_encoding(bit_array);
     char bit_array_str[MAX_BIT_STR] = {0};
-    log_debug("  output_nyt", "size=%-3d bin=%-5s out_bit_idx=%-8d\n",
+    log_info("  output_nyt", "size=%-3d bin=%-5s out_bit_idx=%-8d\n",
             nyt_size,
             fmt_bit_array(bit_array, nyt_size, bit_array_str, sizeof(bit_array_str)),
             out_bit_idx);

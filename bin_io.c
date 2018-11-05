@@ -140,7 +140,7 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
 bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const byte_t *node_bit_array,
                            int size) {
     char bit_array_str[MAX_BIT_STR] = {0};
-    log_debug("compare_input_and_nyt", "size=%-3d bin=%-5s in_bit_idx=%d\n",
+    log_info("compare_input_and_nyt", "size=%-3d bin=%-5s in_bit_idx=%d\n",
               size,
               fmt_bit_array(node_bit_array, size, bit_array_str, sizeof(bit_array_str)),
               in_bit_idx);
@@ -175,4 +175,5 @@ void release_resources(FILE *output_file_ptr, FILE *input_file_ptr) {
     if(input_file_ptr) {
         fclose(input_file_ptr);
     }
+    adh_destroy_tree();
 }
