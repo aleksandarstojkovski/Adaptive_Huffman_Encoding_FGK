@@ -137,21 +137,22 @@ bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_a
     return true;
 }
 
-bool compare_input_and_bit_array(const byte_t *input_buffer, int input_buffer_bit_idx, const byte_t *node_bit_array,
-                                 int size) {
+bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const byte_t *node_bit_array,
+                           int size) {
     char bit_array_str[MAX_BIT_STR] = {0};
-    log_debug("compare_input_and_bit_array", "size=%-3d bin=%-5s \n",
+    log_debug("compare_input_and_nyt", "size=%-3d bin=%-5s in_bit_idx=%d\n",
               size,
-              fmt_bit_array(node_bit_array, size, bit_array_str, sizeof(bit_array_str)));
+              fmt_bit_array(node_bit_array, size, bit_array_str, sizeof(bit_array_str)),
+              in_bit_idx);
 
     bool have_same_bits = true;
-    for(int bit_idx=0; bit_idx<size; bit_idx++) {
-        int byte_idx = bit_idx_to_byte_idx(input_buffer_bit_idx + bit_idx);
+    for(int offset=0; offset<size; offset++) {
+        int byte_idx = bit_idx_to_byte_idx(in_bit_idx + offset);
         byte_t input_byte = input_buffer[byte_idx];
 
-        int input_byte_bit_idx = bit_to_change(input_buffer_bit_idx + bit_idx);
+        int input_byte_bit_idx = bit_to_change(in_bit_idx + offset);
         byte_t value = bit_check(input_byte, (unsigned int)input_byte_bit_idx);
-        if(value != node_bit_array[bit_idx]) {
+        if(value != node_bit_array[size-offset-1]) {
             have_same_bits = false;
             break;
         }

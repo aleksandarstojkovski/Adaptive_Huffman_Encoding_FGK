@@ -60,7 +60,6 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
 
         memset(output_buffer, 0, sizeof(output_buffer));
         byte_t input_buffer[input_size];
-        byte_t node_bit_array[MAX_CODE_BITS] = { 0 };
 
         // read up to sizeof(buffer) bytes
         size_t bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr);
@@ -73,10 +72,13 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
             }
 
             while(input_size > (in_bit_idx + bits_to_ignore) / SYMBOL_BITS) {
-                int num_bits = adh_get_NYT_encoding(node_bit_array);
-                bool is_nyt_code = compare_input_and_bit_array(input_buffer, in_bit_idx, node_bit_array, num_bits);
+
+                byte_t nyt_encoding[MAX_CODE_BITS] = { 0 };
+                int nyt_size = adh_get_NYT_encoding(nyt_encoding);
+
+                bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, nyt_encoding, nyt_size);
                 if(is_nyt_code) {
-                    rc = skip_nyt_bits(num_bits);
+                    rc = skip_nyt_bits(nyt_size);
                     if(rc == RC_FAIL) {
                         release_resources(output_file_ptr, input_file_ptr);
                         return rc;
