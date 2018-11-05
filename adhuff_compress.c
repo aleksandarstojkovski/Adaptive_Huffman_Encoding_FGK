@@ -89,8 +89,9 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     char symbol_str[50] = {0};
-    log_info("process_symbol", "out_bit_idx=%-8d %s\n", out_bit_idx,
-            fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
+    log_info(" process_symbol", "%s out_bit_idx=%-8d\n",
+            fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
+            out_bit_idx);
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
@@ -107,7 +108,9 @@ void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr)
 
 void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
     char symbol_str[50] = {0};
-    log_debug("output_existing_symbol", "out_bit_idx=%-8d %s\n", out_bit_idx, fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
+    log_debug("  output_existing_symbol", "%s out_bit_idx=%-8d\n",
+            fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
+            out_bit_idx);
 
     byte_t bit_array[MAX_CODE_BITS] = {0};
     // increase weight
@@ -126,10 +129,9 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
 
     char symbol_str[50] = {0};
     char bit_array_str[9] = {0};
-    log_debug("output_new_symbol", "out_bit_idx=%-8d %s bin=%s\n",
-            out_bit_idx,
-            fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
-            fmt_bit_array(bit_array, SYMBOL_BITS, bit_array_str, sizeof(bit_array_str)));
+    log_debug("  output_new_symbol", "%s out_bit_idx=%-8d bin=%s\n",
+              fmt_symbol(symbol, symbol_str, sizeof(symbol_str)), out_bit_idx,
+              fmt_bit_array(bit_array, SYMBOL_BITS, bit_array_str, sizeof(bit_array_str)));
 
     output_bit_array(bit_array, SYMBOL_BITS, output_buffer, output_file_ptr);
 
@@ -142,9 +144,10 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     // write NYT code
     int nyt_size = adh_get_NYT_encoding(bit_array);
     char bit_array_str[MAX_BIT_STR] = {0};
-    log_debug("output_nyt", "out_bit_idx=%-8d size=%-3d bin=%s\n",
-            out_bit_idx, nyt_size,
-            fmt_bit_array(bit_array, nyt_size, bit_array_str, sizeof(bit_array_str)));
+    log_debug("  output_nyt", "size=%-3d bin=%-5s out_bit_idx=%-8d\n",
+            nyt_size,
+            fmt_bit_array(bit_array, nyt_size, bit_array_str, sizeof(bit_array_str)),
+            out_bit_idx);
 
     output_bit_array(bit_array, nyt_size, output_buffer, output_file_ptr);
 }

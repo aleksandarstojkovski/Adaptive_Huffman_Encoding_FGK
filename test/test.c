@@ -36,7 +36,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_log_level(LOG_DEBUG);
+    set_log_level(LOG_INFO);
     test_bit_helpers();
     test_all_files();
 }

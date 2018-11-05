@@ -21,11 +21,12 @@ static long             input_size;
  */
 void    read_header(FILE *inputFilePtr);
 long    get_filesize(FILE *input_file_ptr);
-int     read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]);
+int     read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byte_t sub_buffer[]);
 int     decode_new_symbol(const byte_t input_buffer[]);
 int     decode_existing_symbol(const byte_t input_buffer[]);
 int     flush_uncompressed(FILE *output_file_ptr);
 int     skip_nyt_bits(int nyt_size);
+void    output_symbol(byte_t symbol);
 
 /*
  * decompress file
@@ -141,9 +142,9 @@ int flush_uncompressed(FILE *output_file_ptr) {
 }
 
 int decode_existing_symbol(const byte_t input_buffer[]) {
-    log_debug("decode_existing_symbol", "in_bit_idx=%d\n", in_bit_idx);
-
     int original_input_buffer_bit_idx = in_bit_idx;
+
+    log_debug("decode_existing_symbol", "\n");
 
     adh_node_t* node = NULL;
     int     bit_array_size = 0;
@@ -175,50 +176,49 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     }
 
     in_bit_idx = original_input_buffer_bit_idx + bit_array_size;
-    byte_t symbol = node->symbol;
-
-    char symbol_str[50] = {0};
-    log_debug("decode_existing_symbol", "in_bit_idx=%-8d %s\n", in_bit_idx, fmt_symbol(symbol, symbol_str, sizeof(symbol_str)));
-
-    output_buffer[output_byte_idx] = symbol;
-    output_byte_idx++;
+    output_symbol(node->symbol);
     adh_update_tree(node, false);
     return RC_OK;
 }
 
+void output_symbol(byte_t symbol) {
+    char symbol_str[50] = {0};
+    log_info("  output_symbol", "%s in_bit_idx=%-8d\n",
+            fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
+              in_bit_idx);
+
+    output_buffer[output_byte_idx] = symbol;
+    output_byte_idx++;
+}
+
 int decode_new_symbol(const byte_t input_buffer[]) {
-    log_trace("decode_new_symbol", "in_bit_idx=%d\n", in_bit_idx);
+    log_debug("decode_new_symbol", "in_bit_idx=%-8d\n", in_bit_idx);
 
     byte_t  new_symbol[1] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, new_symbol);
     if(num_bytes > 1) {
-        log_error("decode_new_symbol", "expected 1 byte received %d", num_bytes);
+        log_error("decode_new_symbol", "expected 1 byte received %d bytes", num_bytes);
         return RC_FAIL;
     }
 
-    output_buffer[output_byte_idx] = new_symbol[0];
-
-    char symbol_str[50] = {0};
-    log_debug("decode_new_symbol", "in_bit_idx=%-8d %s\n", in_bit_idx, fmt_symbol(new_symbol[0], symbol_str, sizeof(symbol_str)));
+    output_symbol(new_symbol[0]);
     adh_node_t * node = adh_create_node_and_append(new_symbol[0]);
     adh_update_tree(node, true);
-
-    output_byte_idx++;
     return RC_OK;
 }
 
-int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byte_t sub_buffer[]) {
-    log_debug("read_data_cross_bytes", "num_bits_to_read=%-8d\n", num_bits_to_read);
+int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byte_t sub_buffer[]) {
+    log_debug("  read_data_cross_bytes", "in_bit_idx=%-8d max_bits_to_read=%-8d\n", in_bit_idx, max_bits_to_read);
 
     int temp_buffer_bit_idx = 0;
     int temp_byte_idx = 0;
-    while(num_bits_to_read > 0) {
+    while(max_bits_to_read > 0) {
         int input_byte_idx = bit_idx_to_byte_idx(in_bit_idx);
         if(input_byte_idx > input_size-1)
             break;
 
         int available_bits = get_available_bits(in_bit_idx);
-        int bits_to_copy = available_bits > num_bits_to_read ? num_bits_to_read : available_bits;
+        int bits_to_copy = available_bits > max_bits_to_read ? max_bits_to_read : available_bits;
 
         int read_bit_idx = bit_to_change(in_bit_idx);
         int write_bit_idx = bit_to_change(temp_buffer_bit_idx);
@@ -231,7 +231,7 @@ int read_data_cross_bytes(const byte_t input_buffer[], int num_bits_to_read, byt
 
         in_bit_idx += bits_to_copy;
         temp_buffer_bit_idx += bits_to_copy;
-        num_bits_to_read -= bits_to_copy;
+        max_bits_to_read -= bits_to_copy;
     }
     return temp_byte_idx + 1;
 }
