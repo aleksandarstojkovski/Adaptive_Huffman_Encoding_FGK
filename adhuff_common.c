@@ -210,8 +210,11 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
             symbol1_str, node1->order, node1->weight,
             symbol2_str, node2->order, node2->weight);
 
+    bool is_node1_left = node1->parent->left == node1;
+    bool is_node2_left = node2->parent->left == node2;
+
     // check if node1 is left or right child
-    if (node1->parent->left == node1){
+    if (is_node1_left){
         //node1 is left child
         node1->parent->left = node2;
     } else {
@@ -220,7 +223,7 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     }
 
     // check if node2 is left or right child
-    if (node2->parent->left == node2){
+    if (is_node2_left){
         //node2 is left child
         node2->parent->left = node1;
     } else {
@@ -254,18 +257,7 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
 
     // create node_to_check
     adh_node_t * node_to_check;
-
-    // if node is new, it's father is NYT, therefore we can safely update it's weight
-    // if node is not new, his father needs to be checked before updating it's weight
-    if(is_new_node == true) {
-        // safely update weight of parent
-        node->parent->weight++;
-        // the next node to be checked is the parent of the parent
-        node_to_check = node->parent->parent;
-    } else {
-        // the next node to be checked is the parent, since the node is not new
-        node_to_check = node->parent;
-    }
+    node_to_check = node->parent;
 
     while(node_to_check != NULL && node_to_check != adh_root_node) {
         // search in tree node with same weight and higher order
