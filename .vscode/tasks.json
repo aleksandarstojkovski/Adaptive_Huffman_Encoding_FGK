@@ -1,0 +1,27 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build algo test",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "-g",
+                "-lm", 
+                "bin_io.c", 
+                "adhuff_compress.c", 
+                "adhuff_decompress.c", 
+                "adhuff_common.c", 
+                "log.c", 
+                "test/test.c", 
+                "-o", "cmake-build-debug/test/adh_test"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

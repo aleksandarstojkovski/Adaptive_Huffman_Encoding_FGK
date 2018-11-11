@@ -22,7 +22,7 @@ int     flush_data(byte_t *output_buffer, FILE* output_file_ptr);
 int     flush_header(FILE* output_file_ptr);
 void    output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
 void    output_nyt(byte_t *output_buffer, FILE *output_file_ptr);
-void    print_final_stats(const FILE *output_file_ptr);
+void    print_final_stats(FILE *output_file_ptr);
 
 /*
  * Compress file
@@ -85,7 +85,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
     return rc;
 }
 
-void print_final_stats(const FILE *output_file_ptr) {
+void print_final_stats(FILE *output_file_ptr) {
     long size = ftell(output_file_ptr);
     log_info(" print_final_stats", "size=%ld (bytes)    out_bit_idx=%d\n", size, out_bit_idx);
 }
