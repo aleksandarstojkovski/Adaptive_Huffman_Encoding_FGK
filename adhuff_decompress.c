@@ -14,7 +14,7 @@ static byte_t           output_buffer[BUFFER_SIZE] = {0};
 static unsigned int     output_byte_idx;
 static unsigned int     in_bit_idx;
 static unsigned int     bits_to_ignore;
-static unsigned int     last_bit;
+static unsigned int     last_bit_idx;
 
 /*
  * Private methods
@@ -71,9 +71,9 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
                 return RC_FAIL;
             }
 
-            last_bit = (input_size * SYMBOL_BITS) - bits_to_ignore -1;
+            last_bit_idx = (input_size * SYMBOL_BITS) - bits_to_ignore -1;
 
-            while(last_bit > in_bit_idx) {
+            while(in_bit_idx <= last_bit_idx) {
 
                 byte_t nyt_encoding[MAX_CODE_BITS] = { 0 };
                 int nyt_size = adh_get_NYT_encoding(nyt_encoding);
@@ -124,8 +124,8 @@ int skip_nyt_bits(int nyt_size) {
     log_debug("skip_nyt_bits", "in_bit_idx=%-8d nyt_size=%d\n", in_bit_idx, nyt_size);
     in_bit_idx += nyt_size;
 
-    if(in_bit_idx > last_bit) {
-        log_error("adh_decompress_file", "too many bits read: in_bit_idx (%d) > last_bit (%d)", in_bit_idx, last_bit);
+    if(in_bit_idx > last_bit_idx) {
+        log_error("adh_decompress_file", "too many bits read: in_bit_idx (%d) > last_bit_idx (%d)", in_bit_idx, last_bit_idx);
         return RC_FAIL;
     }
     return RC_OK;
@@ -216,7 +216,7 @@ int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byt
     int temp_buffer_bit_idx = 0;
     int temp_byte_idx = 0;
     while(max_bits_to_read > 0) {
-        if(in_bit_idx > last_bit) {
+        if(in_bit_idx > last_bit_idx) {
             //TODO ... rewind in_bit_idx ?
             break;
         }

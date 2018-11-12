@@ -19,13 +19,13 @@ int     compare_files(const char *original, const char *generated);
 #define MAX_FILE_NAME  80
 #define NUM_TEST_FILES  10  // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
-        "../../test/res/alice_small.txt",
-        "../../test/res/ABAB.txt",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
         "../../test/res/ABA.txt",
+        "../../test/res/ABAB.txt",
         "../../test/res/empty",
         "../../test/res/ff_ff_ff",
+        "../../test/res/alice_small.txt",
         "../../test/res/alice_small_small.txt",
         "../../test/res/alice.txt",
         "../../test/res/32k_ff",
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 }
 
 void test_all_files() {
-    log_info("test_all_files", "\n");
+    log_trace("test_all_files", "\n");
     char compressed[MAX_FILE_NAME];
     char uncompressed[MAX_FILE_NAME];
 
