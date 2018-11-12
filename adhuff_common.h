@@ -2,6 +2,7 @@
 #define ALGO_ADHUFF_COMMON_H
 
 #include "constants.h"
+#include "bin_io.h"
 
 /*
  * Header of compressed file
@@ -23,8 +24,8 @@ typedef union
 /*
  * A symbol in adh:
  * - BYTE     = [0..255]
- * - NYT      = 256        // Not Yet Transmitted
- * - OLD_NYT  = 257
+ * - NYT      = -1        // Not Yet Transmitted
+ * - OLD_NYT  = -2
  */
 typedef int16_t     adh_symbol_t;
 typedef uint16_t    adh_order_t;
@@ -48,10 +49,10 @@ static const adh_symbol_t   ADH_OLD_NYT_CODE = -2;
 int             adh_init_tree();
 void            adh_destroy_tree();
 void            adh_update_tree(adh_node_t *node, bool is_new_node);
-adh_node_t *    adh_search_encoding_in_tree(const byte_t bit_array[], int num_bits);
+adh_node_t *    adh_search_encoding_in_tree(const bit_array_t* bit_array);
 adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t symbol);
 adh_node_t *    adh_create_node_and_append(adh_symbol_t symbol);
-int             adh_get_NYT_encoding(byte_t bit_array[]);
-int             adh_get_symbol_encoding(adh_symbol_t symbol, byte_t bit_array[]);
+void            adh_get_NYT_encoding(bit_array_t * bit_array);
+void            adh_get_symbol_encoding(adh_symbol_t symbol, bit_array_t * bit_array);
 
 #endif //ALGO_ADHUFF_COMMON_H

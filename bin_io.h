@@ -4,6 +4,17 @@
 #include <stdio.h>
 #include "constants.h"
 
+/*
+ * bit_array_t 256 bit (64 * 4)
+ */
+typedef uint16_t bit_idx_t;
+typedef struct {
+    bit_idx_t   length;
+    byte_t      buffer[MAX_CODE_BITS];
+    //uint64_t     buffer[4];
+} bit_array_t;
+
+
 //
 // binary file helpers
 //
@@ -24,23 +35,11 @@ int         get_available_bits(int buffer_bit_idx);
 int         bit_to_change(int buffer_idx);
 int         bit_idx_to_byte_idx(int bit_idx);
 int         bits_to_bytes(int num_bits);
-bool        compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_array2, int size2);
+bool        compare_bit_arrays(const bit_array_t *bit_array1, const bit_array_t *bit_array2);
 bool        compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx,
-                                  const byte_t *node_bit_array, int size);
-void        symbol_to_bits(byte_t symbol, byte_t bit_array[]);
+                                  const bit_array_t *node_bit_array);
+void        symbol_to_bits(byte_t symbol, bit_array_t *bit_array);
 
 void        release_resources(FILE *output_file_ptr, FILE *input_file_ptr);
-
-
-/*
- * bit_array_t 256 bit (64 * 4)
- */
-typedef uint8_t bit_idx_t;
-typedef struct {
-    bit_idx_t    length;
-    uint64_t     buffer[4];
-} bit_array_t;
-
-
 
 #endif //ALGO_BIN_IO_H

@@ -49,11 +49,18 @@ void log_trace_char_bin(byte_t symbol) {
     if(get_log_level() < LOG_TRACE)
         return;
 
-    byte_t bit_array[SYMBOL_BITS] = { 0 };
-    symbol_to_bits(symbol, bit_array);
+    bit_array_t bit_array = { 0, 0 };
+    symbol_to_bits(symbol, &bit_array);
+
+    char bit_array_str[9] = {0};
+    fmt_bit_array(&bit_array, bit_array_str, sizeof(bit_array_str));
+    fprintf(stdout, "%s\n", bit_array_str);
 }
 
 void log_error(const char *method, const char *format, ...) {
+    if(get_log_level() < LOG_ERROR)
+        return;
+
     // sleep some milliseconds to let info finish printing
     sleep_ms(400);
 
@@ -70,6 +77,9 @@ void log_error(const char *method, const char *format, ...) {
  * log information on screen formatting method name and adding execution time
  */
 void log_info(const char *method, const char *format, ...) {
+    if(get_log_level() < LOG_INFO)
+        return;
+
     print_time(stdout);
     print_method(stdout, method);
 
@@ -112,17 +122,6 @@ void log_trace(const char *method, const char *format, ...) {
     va_end(args);
 }
 
-void log_trace_bit_array(const byte_t *bit_array, int num_bit) {
-    if(get_log_level() < LOG_TRACE)
-        return;
-
-    for(int i = num_bit-1; i>=0; i--) {
-        printf("%c", bit_array[i]);
-    }
-    printf("\n");
-
-}
-
 void sleep_ms(int milliseconds) // cross-platform sleep function
 {
 #ifdef WIN32
@@ -137,19 +136,18 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 #endif
 }
 
-char * fmt_symbol(adh_symbol_t symbol, char *buffer, size_t size) {
-    //snprintf(buffer, size, "char=%-3c code=%-4d hex=0x%02X", symbol, symbol, symbol);
-    snprintf(buffer, size, "char=%-3c code=%-4d", symbol, symbol);
-    return buffer;
+char * fmt_symbol(adh_symbol_t symbol, char *str, size_t str_size) {
+    snprintf(str, str_size, "char=%-3c code=%-4d", symbol, symbol);
+    return str;
 }
 
-char * fmt_bit_array(const byte_t *bit_array, int num_bit, char *buffer, size_t size) {
+char * fmt_bit_array(const bit_array_t *bit_array, char *str, size_t str_size) {
     int j = 0;
-    for(int i = num_bit-1; i>=0 && (j < size-2); i--) {
-        buffer[j] = bit_array[i];
+    for(int i = bit_array->length-1; i>=0 && (j < str_size-2); i--) {
+        str[j] = bit_array->buffer[i];
         j++;
     }
 
-    buffer[j] = 0;
-    return buffer;
+    str[j] = 0;
+    return str;
 }

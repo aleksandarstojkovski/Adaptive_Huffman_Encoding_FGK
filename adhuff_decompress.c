@@ -75,12 +75,12 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
 
             while(in_bit_idx <= last_bit_idx) {
 
-                byte_t nyt_encoding[MAX_CODE_BITS] = { 0 };
-                int nyt_size = adh_get_NYT_encoding(nyt_encoding);
+                bit_array_t bit_array_nyt = { 0, 0 };
+                adh_get_NYT_encoding(&bit_array_nyt);
 
-                bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, nyt_encoding, nyt_size);
+                bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, &bit_array_nyt);
                 if(is_nyt_code) {
-                    rc = skip_nyt_bits(nyt_size);
+                    rc = skip_nyt_bits(bit_array_nyt.length);
                     if(rc == RC_FAIL) {
                         release_resources(output_file_ptr, input_file_ptr);
                         return rc;
@@ -150,35 +150,34 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     log_debug("decode_existing_symbol", "\n");
 
     adh_node_t* node = NULL;
-    int     bit_array_size = 0;
-    byte_t  bit_array[MAX_CODE_BITS] = {0};
+    bit_array_t bit_array = { 0, 0 };
     byte_t  sub_buffer[MAX_CODE_BYTES] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, MAX_CODE_BITS, sub_buffer);
 
     for (int byte_idx = 0; byte_idx < num_bytes && node == NULL; ++byte_idx) {
         for (int bit_idx = 0; bit_idx < SYMBOL_BITS && node == NULL; ++bit_idx) {
-            if(bit_array_size > MAX_CODE_BITS) {
-                log_error("decode_existing_symbol", "bit_array_size (%d) >= MAX_CODE_BITS (%d)", bit_array_size, MAX_CODE_BITS);
+            if(bit_array.length > MAX_CODE_BITS) {
+                log_error("decode_existing_symbol", "bit_array_size (%d) >= MAX_CODE_BITS (%d)", bit_array.length, MAX_CODE_BITS);
                 return RC_FAIL;
             }
 
             // shift left previous bits
-            for (int i = bit_array_size; i > 0; --i) {
-                bit_array[i] = bit_array[i-1];
+            for (int i = bit_array.length; i > 0; --i) {
+                bit_array.buffer[i] = bit_array.buffer[i-1];
             }
 
-            bit_array[0] = bit_check(sub_buffer[byte_idx], SYMBOL_BITS - bit_idx -1);
-            bit_array_size++;
-            node = adh_search_encoding_in_tree(bit_array, bit_array_size);
+            bit_array.buffer[0] = bit_check(sub_buffer[byte_idx], SYMBOL_BITS - bit_idx -1);
+            bit_array.length++;
+            node = adh_search_encoding_in_tree(&bit_array);
         }
     }
 
     if(node == NULL) {
-        log_error("decode_existing_symbol", "cannot find node bit_array_size=%d", bit_array_size);
+        log_error("decode_existing_symbol", "cannot find node bit_array_size=%d", bit_array.length);
         return RC_FAIL;
     }
 
-    in_bit_idx = original_input_buffer_bit_idx + bit_array_size;
+    in_bit_idx = original_input_buffer_bit_idx + bit_array.length;
     output_symbol(node->symbol);
     adh_update_tree(node, false);
     return RC_OK;

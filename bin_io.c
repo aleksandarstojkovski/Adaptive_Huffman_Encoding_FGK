@@ -126,23 +126,23 @@ int get_available_bits(int buffer_bit_idx) {
     return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
 }
 
-bool compare_bit_arrays(const byte_t *bit_array1, int size1, const byte_t *bit_array2, int size2) {
-    if(size1 != size2)
+bool compare_bit_arrays(const bit_array_t *bit_array1, const bit_array_t *bit_array2) {
+    if(bit_array1->length != bit_array2->length)
         return false;
 
-    for (int i = 0; i < size1; ++i) {
-        if(bit_array1[i] != bit_array2[i])
+    for (int i = 0; i < bit_array1->length; ++i) {
+        if(bit_array1->buffer[i] != bit_array2->buffer[i])
             return false;
     }
     return true;
 }
 
-bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const byte_t *node_bit_array,
-                           int size) {
+bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const bit_array_t *node_bit_array) {
+    int size = node_bit_array->length;
     char bit_array_str[MAX_BIT_STR] = {0};
     log_info("compare_input_and_nyt", "size=%-3d bin=%-5s in_bit_idx=%d\n",
-              size,
-              fmt_bit_array(node_bit_array, size, bit_array_str, sizeof(bit_array_str)),
+             size,
+              fmt_bit_array(node_bit_array, bit_array_str, sizeof(bit_array_str)),
               in_bit_idx);
 
     bool have_same_bits = true;
@@ -152,7 +152,7 @@ bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const byt
 
         int input_byte_bit_idx = bit_to_change(in_bit_idx + offset);
         byte_t value = bit_check(input_byte, (unsigned int)input_byte_bit_idx);
-        if(value != node_bit_array[size-offset-1]) {
+        if(value != node_bit_array->buffer[size-offset-1]) {
             have_same_bits = false;
             break;
         }
@@ -160,10 +160,11 @@ bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const byt
     return have_same_bits;
 }
 
-void symbol_to_bits(byte_t symbol, byte_t bit_array[]) {
+void symbol_to_bits(byte_t symbol, bit_array_t *bit_array) {
+    bit_array->length = SYMBOL_BITS;
     for (int bit_pos = SYMBOL_BITS - 1; bit_pos >= 0; --bit_pos) {
         byte_t val = bit_check(symbol, (unsigned int)bit_pos);
-        bit_array[bit_pos] = val;
+        bit_array->buffer[bit_pos] = val;
     }
 }
 
