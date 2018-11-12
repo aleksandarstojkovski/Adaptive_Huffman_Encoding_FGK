@@ -24,7 +24,7 @@ enum adh_constants {
     MAX_CODE_BYTES      = 32,
     MAX_CODE_BITS       = 256,
     MAX_BIT_STR         = 257,
-    MAX_ORDER           = 513,  //100 for Applet
+    MAX_ORDER           = 513,
     BUFFER_SIZE         = 1024
 };
 

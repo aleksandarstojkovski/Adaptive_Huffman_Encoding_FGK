@@ -164,13 +164,20 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
 }
 
 adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
-    log_trace("  find_node_same_weight_hi_order", "weight=%-8d order=%-4d\n", weight, order);
+    //log_trace("  find_node_same_weight_hi_order", "weight=%-8d order=%-4d\n", weight, order);
     if(node == NULL)
         return NULL;
 
     // if current node has same weight and higher order of input node, return it
     if ((node->weight == weight) && (node->order > order) && node != adh_root_node){
-        return node;
+        if (node == find_node_same_weight_hi_order(adh_root_node,  node->weight, node->order))
+            return node;
+    }
+
+    if(node->right != NULL){
+        adh_node_t * rightRes = find_node_same_weight_hi_order(node->right, weight, order);
+        if(rightRes != NULL)
+            return rightRes;
     }
 
     if(node->left != NULL){
@@ -179,11 +186,6 @@ adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weigh
             return leftRes;
     }
 
-    if(node->right != NULL){
-        adh_node_t * rightRes = find_node_same_weight_hi_order(node->right, weight, order);
-        if(rightRes != NULL)
-            return rightRes;
-    }
     return NULL;
 }
 

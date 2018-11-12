@@ -95,7 +95,7 @@ void print_final_stats(FILE *output_file_ptr) {
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     char symbol_str[50] = {0};
-    log_info(" process_symbol", "%s out_bit_idx=%-8d\n",
+    log_debug(" process_symbol", "%s out_bit_idx=%-8d\n",
             fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
             out_bit_idx);
 
