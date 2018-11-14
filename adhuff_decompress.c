@@ -184,7 +184,7 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
 }
 
 void output_symbol(byte_t symbol) {
-    char symbol_str[50] = {0};
+    char symbol_str[MAX_SYMBOL_STR] = {0};
     log_info("  output_symbol", "%s in_bit_idx=%-8d\n",
             fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
               in_bit_idx);
