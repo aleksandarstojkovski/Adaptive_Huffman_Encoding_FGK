@@ -148,7 +148,7 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     // write NYT code
     bit_array_t bit_array = { 0, 0 };
     adh_get_NYT_encoding(&bit_array);
-    log_info("  output_nyt", "%8s out_bit_idx=%-8d bin=%s\n", "",
+    log_info("  output_nyt", "%3s out_bit_idx=%-8d NYT=%s\n", "",
              out_bit_idx,
              fmt_bit_array(&bit_array));
 

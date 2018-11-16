@@ -138,13 +138,13 @@ char * fmt_symbol(adh_symbol_t symbol) {
     static char str[MAX_SYMBOL_STR] = {0};
     switch(symbol) {
         case ADH_NYT_CODE:
-            snprintf(str, sizeof(str), "char=NYT");
+            snprintf(str, sizeof(str), "NYT");
             break;
         case ADH_OLD_NYT_CODE:
-            snprintf(str, sizeof(str), "char=OLD");
+            snprintf(str, sizeof(str), "ONY");
             break;
         default:
-            snprintf(str, sizeof(str), "char=%-3c", symbol);
+            snprintf(str, sizeof(str), "'%c'", symbol);
             break;
     }
 
@@ -195,10 +195,10 @@ void print_tree(adh_node_t *node, int depth)
             printf("NYT (%d,%d)\n", node->weight, node->order);
             break;
         case ADH_OLD_NYT_CODE:
-            printf("OLD (%d,%d)\n", node->weight, node->order);
+            printf("(%d,%d)\n", node->weight, node->order);
             break;
         default:
-            printf("%c (%d,%d)\n", node->symbol, node->weight, node->order);
+            printf("'%c' (%d,%d)\n", node->symbol, node->weight, node->order);
             break;
     }
 
