@@ -94,9 +94,8 @@ void print_final_stats(FILE *output_file_ptr) {
  * encode char
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
-    char symbol_str[MAX_SYMBOL_STR] = {0};
     log_info(" process_symbol", "%s out_bit_idx=%-8d\n",
-            fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
+            fmt_symbol(symbol),
             out_bit_idx);
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
@@ -120,12 +119,10 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buff
     bit_array_t bit_array = { 0, 0 };
     adh_get_symbol_encoding(symbol, &bit_array);
 
-    char bit_array_str[MAX_BIT_STR] = {0};
-    char symbol_str[MAX_SYMBOL_STR] = {0};
     log_info("  output_existing_symbol", "%s out_bit_idx=%-8d bin=%s\n",
-             fmt_symbol(symbol, symbol_str, sizeof(symbol_str)),
+             fmt_symbol(symbol),
              out_bit_idx,
-             fmt_bit_array(&bit_array, bit_array_str, sizeof(bit_array_str)));
+             fmt_bit_array(&bit_array));
 
 
     output_bit_array(&bit_array, output_buffer, output_file_ptr);
@@ -137,11 +134,9 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
     bit_array_t bit_array = { 0, 0 };
     symbol_to_bits(symbol, &bit_array);
 
-    char symbol_str[MAX_SYMBOL_STR] = {0};
-    char bit_array_str[9] = {0};
     log_debug("  output_new_symbol", "%s out_bit_idx=%-8d bin=%s\n",
-              fmt_symbol(symbol, symbol_str, sizeof(symbol_str)), out_bit_idx,
-              fmt_bit_array(&bit_array, bit_array_str, sizeof(bit_array_str)));
+              fmt_symbol(symbol), out_bit_idx,
+              fmt_bit_array(&bit_array));
 
     output_bit_array(&bit_array, output_buffer, output_file_ptr);
 
@@ -153,10 +148,9 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     // write NYT code
     bit_array_t bit_array = { 0, 0 };
     adh_get_NYT_encoding(&bit_array);
-    char bit_array_str[MAX_BIT_STR] = {0};
     log_info("  output_nyt", "%8s out_bit_idx=%-8d bin=%s\n", "",
              out_bit_idx,
-             fmt_bit_array(&bit_array, bit_array_str, sizeof(bit_array_str)));
+             fmt_bit_array(&bit_array));
 
     output_bit_array(&bit_array, output_buffer, output_file_ptr);
 }

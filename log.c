@@ -18,6 +18,7 @@ static log_level_t log_level = LOG_INFO;
 //
 // Diagnostic functions
 //
+void        print_tree(adh_node_t *node, int indent);
 void        print_time(FILE* fp);
 void        print_method(FILE* fp, const char *method);
 void        sleep_ms(int milliseconds);
@@ -51,10 +52,7 @@ void log_trace_char_bin(byte_t symbol) {
 
     bit_array_t bit_array = { 0, 0 };
     symbol_to_bits(symbol, &bit_array);
-
-    char bit_array_str[9] = {0};
-    fmt_bit_array(&bit_array, bit_array_str, sizeof(bit_array_str));
-    fprintf(stdout, "%s\n", bit_array_str);
+    fprintf(stdout, "%s\n", fmt_bit_array(&bit_array));
 }
 
 void log_error(const char *method, const char *format, ...) {
@@ -136,18 +134,54 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 #endif
 }
 
-char * fmt_symbol(adh_symbol_t symbol, char *str, size_t str_size) {
-    snprintf(str, str_size, "char=%-3c code=%-4d", symbol, symbol);
+char * fmt_symbol(adh_symbol_t symbol) {
+    static char str[MAX_SYMBOL_STR] = {0};
+    snprintf(str, sizeof(str), symbol >= 0 ? "char=%-3c" : "char=%-3d", symbol);
     return str;
 }
 
-char * fmt_bit_array(const bit_array_t *bit_array, char *str, size_t str_size) {
+char * fmt_bit_array(const bit_array_t *bit_array) {
+    static char str[MAX_BIT_STR] = {0};
+
     int j = 0;
-    for(int i = bit_array->length-1; i>=0 && (j < str_size-2); i--) {
+    for(int i = bit_array->length-1; i>=0 && (j < sizeof(str)-2); i--) {
         str[j] = bit_array->buffer[i];
         j++;
     }
 
     str[j] = 0;
     return str;
+}
+
+void log_tree(adh_node_t *node) {
+    if(get_log_level() < LOG_DEBUG)
+        return;
+
+    print_tree(node, 0);
+    fprintf(stdout, "\n");
+}
+
+void print_tree(adh_node_t *node, int depth)
+{
+    if(node==NULL)
+        return;
+
+    static int nodes[MAX_ORDER];
+    printf("\t");
+
+    // unicode chars for box drawing
+    // https://en.wikipedia.org/wiki/Box_Drawing
+    for(int i=0;i<depth;i++) {
+        if(i == depth-1)
+            printf("%s\u2501\u2501\u2501\u2501\u2501\u2501 ", nodes[depth-1] ? "\u2523" : "\u2517");
+        else
+            printf("%s       ", nodes[i] ? "\u2503" : " ");
+    }
+
+    printf(node->symbol >= 0 ? "%2c (%d,%d)\n" : "%d (%d,%d)\n", (char)node->symbol, node->weight, node->order);
+
+    nodes[depth]=1;
+    print_tree(node->left,depth+1);
+    nodes[depth]=0;
+    print_tree(node->right,depth+1);
 }

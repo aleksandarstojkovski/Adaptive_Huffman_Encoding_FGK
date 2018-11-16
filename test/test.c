@@ -17,11 +17,8 @@ void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, 
 int     compare_files(const char *original, const char *generated);
 
 #define MAX_FILE_NAME  80
-#define NUM_TEST_FILES  1  // skip immagine.tiff for the moment
+#define NUM_TEST_FILES  10  // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
-        "../../test/res/alice_small.txt",
-        "../../test/res/alice.txt",
-        "../../test/res/alice_small_small.txt",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
         "../../test/res/ABA.txt",
@@ -29,6 +26,9 @@ static const char * TEST_FILES[] = {
         "../../test/res/empty",
         "../../test/res/ff_ff_ff",
         "../../test/res/32k_ff",
+        "../../test/res/alice_small_small.txt",
+        "../../test/res/alice_small.txt",
+        "../../test/res/alice.txt",
         "../../test/res/32k_random",
         "../../test/res/immagine.tiff",
         "../../test/res/a-bad-filename"};
@@ -91,7 +91,7 @@ int compare_files(const char *original, const char *generated) {
     rewind (fp_generated);
 
     if (sz_original != sz_generated) {
-        log_error("compare_files", "different file size.  original: %ld != generated: %ld\n", sz_original, sz_generated);
+        log_error("compare_files", "different file size:  %s (%ld byte) != %s (%ld byte)\n", original, sz_original, generated, sz_generated);
         return RC_FAIL;
     }
 
