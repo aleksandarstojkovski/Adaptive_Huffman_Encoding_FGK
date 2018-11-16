@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "adhuff_common.h"
 #include "bin_io.h"
@@ -27,7 +28,7 @@ void            get_node_encoding(const adh_node_t *node, bit_array_t * bit_arra
  * Initialize the tree with a single NYT node
  */
 int adh_init_tree() {
-    log_debug("adh_init_tree", "\n");
+    log_trace("adh_init_tree", "\n");
 
     adh_next_order = MAX_ORDER;
     if(adh_root_node != NULL) {
@@ -77,7 +78,7 @@ void destroy_node(adh_node_t *node) {
  * Must be used only for new symbols (not present in the tree)
  */
 adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
-    log_debug("    adh_create_node_and_append", "%s order=%-4d\n", fmt_symbol(symbol), adh_next_order);
+    log_trace("    adh_create_node_and_append", "%s order=%-4d\n", fmt_symbol(symbol), adh_next_order);
 
     // IMPORTANT: right node must be created before left node because
     //            create_node() decrease adh_next_order each time it's called
@@ -106,7 +107,7 @@ adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
  * Create a new adh_node_t in the heap.
  */
 adh_node_t * create_nyt() {
-    log_debug("    create_nyt", "%s order=%-4d\n", fmt_symbol(ADH_NYT_CODE), adh_next_order);
+    log_trace("    create_nyt", "%s order=%-4d\n", fmt_symbol(ADH_NYT_CODE), adh_next_order);
 
     return create_node(ADH_NYT_CODE);
 }
@@ -188,7 +189,7 @@ adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weigh
  * Search symbol in tree
  */
 adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
-    log_debug("  adh_search_symbol_in_tree", "%s\n", fmt_symbol(symbol));
+    log_trace("  adh_search_symbol_in_tree", "%s\n", fmt_symbol(symbol));
 
     return find_node_by_symbol(adh_root_node, symbol);
 }
@@ -197,9 +198,11 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
  * Swap Nodes
  */
 void swap_nodes(adh_node_t *node1, adh_node_t *node2){
-    fmt_symbol(node2->symbol);
+    char str1[MAX_SYMBOL_STR];
+    strcpy (str1,fmt_symbol(node1->symbol));
+
     log_info("    swap_nodes", "%s order=%-4d weight=%d <-> %s order=%-4d weight=%d\n",
-             fmt_symbol(node1->symbol), node1->order, node1->weight,
+             str1, node1->order, node1->weight,
              fmt_symbol(node2->symbol), node2->order, node2->weight);
 
     bool is_node1_left = node1->parent->left == node1;
@@ -232,8 +235,6 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     adh_order_t temp_order = node1->order;
     node1->order = node2->order;
     node2->order = temp_order;
-
-    log_tree(adh_root_node);
 }
 
 /*
@@ -264,6 +265,8 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
         node_to_check->weight++;
         // continue ascending the tree
         node_to_check = node_to_check->parent;
+
+        log_tree(adh_root_node);
     }
 }
 
@@ -331,7 +334,7 @@ void adh_get_NYT_encoding(bit_array_t * bit_array) {
 }
 
 adh_node_t* adh_search_encoding_in_tree(const bit_array_t* bit_array) {
-    log_debug("  adh_search_encoding_in_tree", "encoding=%s\n",
+    log_trace("  adh_search_encoding_in_tree", "encoding=%s\n",
               fmt_bit_array(bit_array));
 
     return find_node_by_encoding(adh_root_node, bit_array);

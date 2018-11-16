@@ -136,7 +136,18 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 
 char * fmt_symbol(adh_symbol_t symbol) {
     static char str[MAX_SYMBOL_STR] = {0};
-    snprintf(str, sizeof(str), symbol >= 0 ? "char=%-3c" : "char=%-3d", symbol);
+    switch(symbol) {
+        case ADH_NYT_CODE:
+            snprintf(str, sizeof(str), "char=NYT");
+            break;
+        case ADH_OLD_NYT_CODE:
+            snprintf(str, sizeof(str), "char=OLD");
+            break;
+        default:
+            snprintf(str, sizeof(str), "char=%-3c", symbol);
+            break;
+    }
+
     return str;
 }
 
@@ -178,7 +189,19 @@ void print_tree(adh_node_t *node, int depth)
             printf("%s       ", nodes[i] ? "\u2503" : " ");
     }
 
-    printf(node->symbol >= 0 ? "%2c (%d,%d)\n" : "%d (%d,%d)\n", (char)node->symbol, node->weight, node->order);
+
+    switch(node->symbol) {
+        case ADH_NYT_CODE:
+            printf("NYT (%d,%d)\n", node->weight, node->order);
+            break;
+        case ADH_OLD_NYT_CODE:
+            printf("OLD (%d,%d)\n", node->weight, node->order);
+            break;
+        default:
+            printf("%c (%d,%d)\n", node->symbol, node->weight, node->order);
+            break;
+    }
+
 
     nodes[depth]=1;
     print_tree(node->left,depth+1);
