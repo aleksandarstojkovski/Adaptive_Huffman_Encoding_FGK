@@ -18,7 +18,7 @@ static log_level_t log_level = LOG_INFO;
 //
 // Diagnostic functions
 //
-void        print_tree(adh_node_t *node, int depth);
+void        print_tree(const adh_node_t *node, int depth);
 void        print_time(FILE* fp);
 void        print_method(FILE* fp, const char *method);
 void        sleep_ms(int milliseconds);
@@ -139,12 +139,19 @@ char * fmt_symbol(adh_symbol_t symbol) {
     if(symbol == ADH_NYT_CODE)
         snprintf(str, sizeof(str), "NYT");
     else if(symbol ==  ADH_OLD_NYT_CODE)
-        snprintf(str, sizeof(str), "ONY");
+        snprintf(str, sizeof(str), "");
     else
         snprintf(str, sizeof(str), "'%c'", symbol);
 
     return str;
 }
+
+char * fmt_node(const adh_node_t* node) {
+    static char str[MAX_SYMBOL_STR] = {0};
+    snprintf(str, sizeof(str), "%s (%d,%d)", fmt_symbol(node->symbol), node->weight, node->order);
+    return str;
+}
+
 
 char * fmt_bit_array(const bit_array_t *bit_array) {
     static char str[MAX_BIT_STR] = {0};
@@ -159,7 +166,7 @@ char * fmt_bit_array(const bit_array_t *bit_array) {
     return str;
 }
 
-void log_tree(adh_node_t *node) {
+void log_tree(const adh_node_t *node) {
     if(get_log_level() < LOG_DEBUG)
         return;
 
@@ -167,7 +174,7 @@ void log_tree(adh_node_t *node) {
     fprintf(stdout, "\n");
 }
 
-void print_tree(adh_node_t *node, int depth)
+void print_tree(const adh_node_t *node, int depth)
 {
     if(node==NULL)
         return;
@@ -175,7 +182,7 @@ void print_tree(adh_node_t *node, int depth)
     static int nodes[MAX_ORDER];
     printf("  ");
 
-    // unicode chars for box drawing
+    // unicode chars for box drawing (doesn't work well under windows CLion)
     // https://en.wikipedia.org/wiki/Box_Drawing
     for(int i=0;i<depth;i++) {
         if(i == depth-1)
@@ -184,12 +191,7 @@ void print_tree(adh_node_t *node, int depth)
             printf("%s       ", nodes[i] ? "|" : " ");
     }
 
-    if (node->symbol == ADH_NYT_CODE)
-        printf("NYT (%d,%d)\n", node->weight, node->order);
-    else if (node->symbol == ADH_OLD_NYT_CODE)
-        printf("(%d,%d)\n", node->weight, node->order);
-    else
-        printf("'%c' (%d,%d)\n", node->symbol, node->weight, node->order);
+    printf("%s\n", fmt_node(node));
 
     nodes[depth]=1;
     print_tree(node->left,depth+1);

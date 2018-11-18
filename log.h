@@ -25,11 +25,12 @@ void        log_info(const char *method, const char *format, ...);
 void        log_debug(const char *method, const char *format, ...);
 void        log_trace(const char *method, const char *format, ...);
 void        log_trace_char_bin(byte_t symbol);
-void        log_tree(adh_node_t *node);
+void        log_tree(const adh_node_t *node);
 
 void        set_log_level(log_level_t level);
 log_level_t get_log_level();
 
+char *      fmt_node(const adh_node_t* node);
 char *      fmt_symbol(adh_symbol_t symbol);
 char *      fmt_bit_array(const bit_array_t *bit_array);
 

@@ -199,11 +199,9 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
  */
 void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     char str1[MAX_SYMBOL_STR];
-    strcpy (str1,fmt_symbol(node1->symbol));
+    strcpy (str1,fmt_node(node1));
 
-    log_info("    swap_nodes", "%s (%d,%d) <-> %s (%d,%d)\n",
-             str1, node1->weight, node1->order,
-             fmt_symbol(node2->symbol), node2->weight, node2->order);
+    log_info("    swap_nodes", "%s <-> %s\n", str1, fmt_node(node2));
 
     bool is_node1_left = node1->parent->left == node1;
     bool is_node2_left = node2->parent->left == node2;
@@ -245,8 +243,8 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
 void adh_update_tree(adh_node_t *node, bool is_new_node) {
 
     // debug log
-    log_debug("  adh_update_tree", "%s (%d,%d) is_new=%d\n",
-              fmt_symbol(node->symbol), node->weight, node->order, is_new_node);
+    log_debug("  adh_update_tree", "%s is_new=%d\n",
+              fmt_node(node), is_new_node);
 
     // create node_to_check
     adh_node_t * node_to_check = node->parent;
@@ -304,8 +302,8 @@ void get_node_encoding(const adh_node_t *node, bit_array_t * bit_array) {
         }
         bit_array->length = bit_idx;
 
-        log_trace("  get_node_encoding", "%s (%d,%d) node_encoding=%s\n",
-                fmt_symbol(node->symbol), node->weight, node->order,
+        log_trace("  get_node_encoding", "%s node_encoding=%s\n",
+                fmt_node(node),
                 fmt_bit_array(bit_array));
     } else {
         log_error("get_node_encoding", "node == null");
@@ -314,7 +312,7 @@ void get_node_encoding(const adh_node_t *node, bit_array_t * bit_array) {
 }
 
 int get_node_level(const adh_node_t *node) {
-    log_trace("  get_node_level", "%s (%d,%d) \n", fmt_symbol(node->symbol), node->weight, node->order);
+    log_trace("  get_node_level", "%s \n", fmt_node(node));
 
     int level = 0;
     adh_node_t * parent = node->parent;
@@ -342,8 +340,8 @@ adh_node_t* adh_search_encoding_in_tree(const bit_array_t* bit_array) {
 }
 
 adh_node_t* find_node_by_encoding(adh_node_t *node, const bit_array_t* bit_array) {
-    log_trace("   find_node_by_encoding", "%s (%d,%d) encoding=%s\n",
-              fmt_symbol(node->symbol), node->weight, node->order,
+    log_trace("   find_node_by_encoding", "%s encoding=%s\n",
+              fmt_node(node),
               fmt_bit_array(bit_array));
 
 
