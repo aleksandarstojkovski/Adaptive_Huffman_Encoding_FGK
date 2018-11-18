@@ -18,7 +18,7 @@ static log_level_t log_level = LOG_INFO;
 //
 // Diagnostic functions
 //
-void        print_tree(adh_node_t *node, int indent);
+void        print_tree(adh_node_t *node, int depth);
 void        print_time(FILE* fp);
 void        print_method(FILE* fp, const char *method);
 void        sleep_ms(int milliseconds);
@@ -136,17 +136,12 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 
 char * fmt_symbol(adh_symbol_t symbol) {
     static char str[MAX_SYMBOL_STR] = {0};
-    switch(symbol) {
-        case ADH_NYT_CODE:
-            snprintf(str, sizeof(str), "NYT");
-            break;
-        case ADH_OLD_NYT_CODE:
-            snprintf(str, sizeof(str), "ONY");
-            break;
-        default:
-            snprintf(str, sizeof(str), "'%c'", symbol);
-            break;
-    }
+    if(symbol == ADH_NYT_CODE)
+        snprintf(str, sizeof(str), "NYT");
+    else if(symbol ==  ADH_OLD_NYT_CODE)
+        snprintf(str, sizeof(str), "ONY");
+    else
+        snprintf(str, sizeof(str), "'%c'", symbol);
 
     return str;
 }
@@ -178,30 +173,23 @@ void print_tree(adh_node_t *node, int depth)
         return;
 
     static int nodes[MAX_ORDER];
-    printf("\t");
+    printf("  ");
 
     // unicode chars for box drawing
     // https://en.wikipedia.org/wiki/Box_Drawing
     for(int i=0;i<depth;i++) {
         if(i == depth-1)
-            printf("%s\u2501\u2501\u2501\u2501\u2501\u2501 ", nodes[depth-1] ? "\u2523" : "\u2517");
+            printf("%s------ ", nodes[depth-1] ? "+" : "\\");
         else
-            printf("%s       ", nodes[i] ? "\u2503" : " ");
+            printf("%s       ", nodes[i] ? "|" : " ");
     }
 
-
-    switch(node->symbol) {
-        case ADH_NYT_CODE:
-            printf("NYT (%d,%d)\n", node->weight, node->order);
-            break;
-        case ADH_OLD_NYT_CODE:
-            printf("(%d,%d)\n", node->weight, node->order);
-            break;
-        default:
-            printf("'%c' (%d,%d)\n", node->symbol, node->weight, node->order);
-            break;
-    }
-
+    if (node->symbol == ADH_NYT_CODE)
+        printf("NYT (%d,%d)\n", node->weight, node->order);
+    else if (node->symbol == ADH_OLD_NYT_CODE)
+        printf("(%d,%d)\n", node->weight, node->order);
+    else
+        printf("'%c' (%d,%d)\n", node->symbol, node->weight, node->order);
 
     nodes[depth]=1;
     print_tree(node->left,depth+1);
