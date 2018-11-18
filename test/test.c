@@ -17,9 +17,9 @@ void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, 
 int     compare_files(const char *original, const char *generated);
 
 #define MAX_FILE_NAME  80
-#define NUM_TEST_FILES  10  // skip immagine.tiff for the moment
+#define NUM_TEST_FILES  1 // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
-        "../../test/res/alice_small.txt",
+        "../../test/res/alice.txt",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
         "../../test/res/ABA.txt",
@@ -28,7 +28,7 @@ static const char * TEST_FILES[] = {
         "../../test/res/ff_ff_ff",
         "../../test/res/32k_ff",
         "../../test/res/alice_small_small.txt",
-        "../../test/res/alice.txt",
+        "../../test/res/alice_small.txt",
         "../../test/res/32k_random",
         "../../test/res/immagine.tiff",
         "../../test/res/a-bad-filename"};
@@ -37,7 +37,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_log_level(LOG_DEBUG);
+    set_log_level(LOG_INFO);
     test_bit_helpers();
     test_all_files();
 }
@@ -48,7 +48,7 @@ void test_all_files() {
     char uncompressed[MAX_FILE_NAME];
 
     for(int i=0; i<NUM_TEST_FILES; i++) {
-        log_info("--------", "\n");
+        log_info("-------------------------------", "\n");
         char * filename = strrchr(TEST_FILES[i], '/') + 1;
 
         strcpy(compressed, filename);
@@ -61,12 +61,14 @@ void test_all_files() {
         if(rc == RC_FAIL)
             break;
 
-        log_info("", "\n");
+//getc(stdin);
+
+        log_info("-------------------------------", "\n");
         rc = adh_decompress_file(compressed, uncompressed);
         if(rc == RC_FAIL)
             break;
 
-        log_info("", "\n");
+        log_info("-------------------------------", "\n");
         rc = compare_files(TEST_FILES[i], uncompressed);
         if(rc == RC_FAIL)
             break;

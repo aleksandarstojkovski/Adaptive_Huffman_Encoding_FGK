@@ -201,7 +201,7 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     char str1[MAX_SYMBOL_STR];
     strcpy (str1,fmt_node(node1));
 
-    log_info("    swap_nodes", "%s <-> %s\n", str1, fmt_node(node2));
+    log_debug("    swap_nodes", "%s <-> %s\n", str1, fmt_node(node2));
 
     bool is_node1_left = node1->parent->left == node1;
     bool is_node2_left = node2->parent->left == node2;
@@ -247,7 +247,7 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
               fmt_node(node), is_new_node);
 
     // create node_to_check
-    adh_node_t * node_to_check = node->parent;
+    adh_node_t * node_to_check = is_new_node ? node->parent : node;
     while(node_to_check != NULL && node_to_check != adh_root_node) {
         // search in tree node with same weight and higher order
         adh_node_t * node_to_swap = find_node_same_weight_hi_order(adh_root_node,
@@ -257,6 +257,7 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
 
         // if node_to_swap == NULL, then no swap is needed
         if (node_to_swap != NULL) {
+            log_tree(adh_root_node);
             swap_nodes(node_to_check, node_to_swap);
         }
         // now we can safely update the weight of the node
@@ -292,13 +293,18 @@ void adh_get_symbol_encoding(adh_symbol_t symbol, bit_array_t * bit_array) {
 void get_node_encoding(const adh_node_t *node, bit_array_t * bit_array) {
     if(node != NULL) {
         bit_idx_t bit_idx = 0;
-        adh_node_t * parent= node->parent;
+        adh_node_t * parent = node->parent;
         while(parent != NULL) {
+            if(bit_idx == MAX_CODE_BITS) {
+                log_error("get_node_encoding", "bit_idx == MAX_CODE_BITS");
+                exit(1);
+            }
+
             // 0 = left node, 1 = right node
             bit_array->buffer[bit_idx] = (parent->right == node) ? BIT_1 : BIT_0;
             bit_idx++;
             node = parent;
-            parent = parent->parent;
+            parent = node->parent;
         }
         bit_array->length = bit_idx;
 
