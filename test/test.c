@@ -17,7 +17,7 @@ void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, 
 int     compare_files(const char *original, const char *generated);
 
 #define MAX_FILE_NAME  80
-#define NUM_TEST_FILES  1 // skip immagine.tiff for the moment
+#define NUM_TEST_FILES  11 // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
         "../../test/res/ALEX.txt",
         "../../test/res/alice_small.txt",
@@ -38,7 +38,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_log_level(LOG_DEBUG);
+    set_log_level(LOG_INFO);
     test_bit_helpers();
     test_all_files();
 }

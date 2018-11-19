@@ -198,6 +198,11 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
  * Swap Nodes
  */
 void swap_nodes(adh_node_t *node1, adh_node_t *node2){
+    if (node1->parent == node2 || node2->parent == node1) {
+        log_info("swap_nodes", " TRYING TO SWAP NODE WITH IT'S PARENT\n");
+        return;
+    }
+
     char str1[MAX_SYMBOL_STR];
     strcpy (str1,fmt_node(node1));
 

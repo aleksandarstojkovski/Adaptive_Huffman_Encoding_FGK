@@ -139,7 +139,7 @@ char * fmt_symbol(adh_symbol_t symbol) {
     if(symbol == ADH_NYT_CODE)
         snprintf(str, sizeof(str), "NYT");
     else if(symbol ==  ADH_OLD_NYT_CODE)
-        snprintf(str, sizeof(str), "_");
+        snprintf(str, sizeof(str), "^^");
     else
         snprintf(str, sizeof(str), "'%c'", symbol);
 
