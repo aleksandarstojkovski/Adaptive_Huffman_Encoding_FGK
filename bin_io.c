@@ -137,10 +137,10 @@ bool compare_bit_arrays(const bit_array_t *bit_array1, const bit_array_t *bit_ar
     return true;
 }
 
-bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const bit_array_t *node_bit_array) {
-    int size = node_bit_array->length;
-    log_debug("compare_input_and_nyt", "bin=%-5s in_bit_idx=%d\n",
-              fmt_bit_array(node_bit_array),
+bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const bit_array_t *bit_array_nyt) {
+    int size = bit_array_nyt->length;
+    log_debug("compare_input_and_nyt", "NYT=%s in_bit_idx=%d\n",
+              fmt_bit_array(bit_array_nyt),
               in_bit_idx);
 
     bool have_same_bits = true;
@@ -150,7 +150,7 @@ bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const bit
 
         int input_byte_bit_idx = bit_to_change(in_bit_idx + offset);
         byte_t value = bit_check(input_byte, (unsigned int)input_byte_bit_idx);
-        if(value != node_bit_array->buffer[size-offset-1]) {
+        if(value != bit_array_nyt->buffer[size-offset-1]) {
             have_same_bits = false;
             break;
         }

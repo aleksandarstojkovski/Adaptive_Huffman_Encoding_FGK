@@ -37,7 +37,7 @@ int         bit_idx_to_byte_idx(int bit_idx);
 int         bits_to_bytes(int num_bits);
 bool        compare_bit_arrays(const bit_array_t *bit_array1, const bit_array_t *bit_array2);
 bool        compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx,
-                                  const bit_array_t *node_bit_array);
+                                  const bit_array_t *bit_array_nyt);
 void        symbol_to_bits(byte_t symbol, bit_array_t *bit_array);
 
 void        release_resources(FILE *output_file_ptr, FILE *input_file_ptr);

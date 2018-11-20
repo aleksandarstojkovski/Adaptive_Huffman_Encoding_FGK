@@ -189,8 +189,9 @@ void output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE*
 int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
     if(out_bit_idx > 0) {
         int num_bytes_to_write = bit_idx_to_byte_idx(out_bit_idx);
-        if (get_available_bits(out_bit_idx) > 0)
-            num_bytes_to_write++;
+
+        if (get_available_bits(out_bit_idx) < SYMBOL_BITS)
+            num_bytes_to_write++;   // reserve the space for odd bits
 
         log_debug("flush_data", "out_bit_idx=%-8d num_bytes_to_write=%d\n", out_bit_idx, num_bytes_to_write);
 

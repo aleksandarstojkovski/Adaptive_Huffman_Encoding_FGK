@@ -17,12 +17,11 @@ void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, 
 int     compare_files(const char *original, const char *generated);
 
 #define MAX_FILE_NAME  80
-#define NUM_TEST_FILES  12 // skip immagine.tiff for the moment
+#define NUM_TEST_FILES  13 // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
         "../../test/res/all_printable_ascii.txt",
         "../../test/res/all_ascii",
         "../../test/res/ALEX.txt",
-        "../../test/res/alice_small.txt",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
         "../../test/res/ABA.txt",
@@ -30,6 +29,7 @@ static const char * TEST_FILES[] = {
         "../../test/res/empty",
         "../../test/res/ff_ff_ff",
         "../../test/res/32k_ff",
+        "../../test/res/alice_small.txt",
         "../../test/res/alice.txt",
         "../../test/res/32k_random",
         "../../test/res/immagine.tiff",
@@ -63,7 +63,14 @@ void test_all_files() {
         if(rc == RC_FAIL)
             break;
 
+        if(get_log_level() > LOG_INFO)
+            puts("\n\n\n\n");
+
         log_info("-------------------------------", "\n");
+
+        if(get_log_level() > LOG_INFO)
+            puts("\n\n\n\n");
+
         rc = adh_decompress_file(compressed, uncompressed);
         if(rc == RC_FAIL)
             break;

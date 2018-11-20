@@ -72,6 +72,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
             }
 
             last_bit_idx = (input_size * SYMBOL_BITS) - bits_to_ignore -1;
+            log_debug("adh_decompress_file", "last_bit_idx=%d\n", last_bit_idx);
 
             while(in_bit_idx <= last_bit_idx) {
 
@@ -147,8 +148,6 @@ int flush_uncompressed(FILE *output_file_ptr) {
 int decode_existing_symbol(const byte_t input_buffer[]) {
     unsigned short original_input_buffer_bit_idx = in_bit_idx;
 
-    log_debug("decode_existing_symbol", "\n");
-
     adh_node_t* node = NULL;
     bit_array_t bit_array = { 0, 0 };
     byte_t  sub_buffer[MAX_CODE_BYTES] = {0};
@@ -176,6 +175,8 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
         log_error("decode_existing_symbol", "cannot find node bit_array_size=%d", bit_array.length);
         return RC_FAIL;
     }
+
+    log_debug("decode_existing_symbol", "%s bin=%s\n", fmt_symbol(node->symbol), fmt_bit_array(&bit_array));
 
     in_bit_idx = original_input_buffer_bit_idx + bit_array.length;
     output_symbol(node->symbol);
@@ -250,8 +251,6 @@ long get_filesize(FILE *input_file_ptr) {
  * read header
  */
 void read_header(FILE *inputFilePtr) {
-    log_debug("read_header", "\n");
-
     byte_t header;
     fread(&header, sizeof(byte_t), 1, inputFilePtr);
 
@@ -261,4 +260,6 @@ void read_header(FILE *inputFilePtr) {
     bits_to_ignore = first_byte.split.header;
     in_bit_idx = HEADER_BITS;
     output_byte_idx = 0;
+
+    log_debug("read_header", "bits_to_ignore=%d\n", bits_to_ignore);
  }
