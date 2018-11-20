@@ -161,28 +161,31 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
 
 adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
     log_trace("  find_node_same_weight_hi_order", "(%d,%d)\n", weight, order);
-    if(node == NULL)
-        return NULL;
 
-    // if current node has same weight and higher order of input node, return it
-    if ((node->weight == weight) && (node->order > order) && node != adh_root_node){
-        if (NULL == find_node_same_weight_hi_order(adh_root_node,  node->weight, node->order))
-            return node;
+    // we need to traverse the entire tree to establish the highest node with same weight and higher order
+    adh_node_t * res = NULL;
+    if(node != NULL) {
+        if ((node->weight == weight) && (node->order > order) && node != adh_root_node)
+            res = node;
+
+        // find max in right tree
+        adh_node_t * rightRes = NULL;
+        if(node->right != NULL)
+            rightRes = find_node_same_weight_hi_order(node->right, weight, order);
+
+        // find max in left tree
+        adh_node_t * leftRes = NULL;
+        if(node->left != NULL)
+            leftRes = find_node_same_weight_hi_order(node->left, weight, order);
+
+        // compare results
+        if(res == NULL || (rightRes != NULL && rightRes->order > res->order))
+            res = rightRes;
+
+        if(res == NULL || (leftRes != NULL && leftRes->order > res->order))
+            res = leftRes;
     }
-
-    if(node->right != NULL){
-        adh_node_t * rightRes = find_node_same_weight_hi_order(node->right, weight, order);
-        if(rightRes != NULL)
-            return rightRes;
-    }
-
-    if(node->left != NULL){
-        adh_node_t * leftRes = find_node_same_weight_hi_order(node->left, weight, order);
-        if(leftRes != NULL)
-            return leftRes;
-    }
-
-    return NULL;
+    return res;
 }
 
 /*

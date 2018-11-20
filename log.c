@@ -167,7 +167,9 @@ char * fmt_bit_array(const bit_array_t *bit_array) {
 }
 
 void log_tree(const adh_node_t *node) {
-    if(get_log_level() < LOG_DEBUG)
+    return;
+
+    if(get_log_level() < LOG_TRACE)
         return;
 
     print_tree(node, 0);
