@@ -151,7 +151,13 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     adh_node_t* node = NULL;
     bit_array_t bit_array = { 0, 0 };
     byte_t  sub_buffer[MAX_CODE_BYTES] = {0};
-    int     num_bytes = read_data_cross_bytes(input_buffer, MAX_CODE_BITS, sub_buffer);
+    int missing = last_bit_idx - in_bit_idx + 1;
+
+    log_debug("decode_existing_symbol", "in_bit_idx=%-8d last_bit_idx=%d missing=%d\n",
+              in_bit_idx, last_bit_idx, missing);
+
+    int max_bits = MAX_CODE_BITS < missing ? MAX_CODE_BITS : missing;
+    int num_bytes = read_data_cross_bytes(input_buffer, max_bits, sub_buffer);
 
     for (int byte_idx = 0; byte_idx < num_bytes && node == NULL; ++byte_idx) {
         for (int bit_idx = 0; bit_idx < SYMBOL_BITS && node == NULL; ++bit_idx) {
@@ -172,7 +178,8 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     }
 
     if(node == NULL) {
-        log_error("decode_existing_symbol", "cannot find node bit_array_size=%d", bit_array.length);
+        log_error("decode_existing_symbol", "cannot find node: in_bit_idx=%d last_bit_idx=%d bin=%s",
+                in_bit_idx, last_bit_idx, fmt_bit_array(&bit_array) );
         return RC_FAIL;
     }
 
@@ -210,34 +217,37 @@ int decode_new_symbol(const byte_t input_buffer[]) {
 }
 
 int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byte_t sub_buffer[]) {
-    log_debug("  read_data_cross_bytes", "in_bit_idx=%-8d max_bits_to_read=%-8d\n", in_bit_idx, max_bits_to_read);
+    log_debug("  read_data_cross_bytes", "in_bit_idx=%-8d last_bit_idx=%d max_bits_to_read=%-8d\n",
+            in_bit_idx, last_bit_idx, max_bits_to_read);
 
-    int temp_buffer_bit_idx = 0;
-    int temp_byte_idx = 0;
+    int sub_buffer_bit_idx = 0;
     while(max_bits_to_read > 0) {
         if(in_bit_idx > last_bit_idx) {
+            log_debug("  read_data_cross_bytes",
+                    "in_bit_idx=%-8d last_bit_idx=%d max_bits_to_read=%-8d (in_bit_idx > last_bit_idx) break\n",
+                    in_bit_idx, last_bit_idx, max_bits_to_read);
             //TODO ... rewind in_bit_idx ?
             break;
         }
 
-        int available_bits = get_available_bits(in_bit_idx);
-        int bits_to_copy = available_bits > max_bits_to_read ? max_bits_to_read : available_bits;
+        int in_available_bits = get_available_bits(in_bit_idx);
+        int bits_to_copy = in_available_bits > max_bits_to_read ? max_bits_to_read : in_available_bits;
 
         int read_bit_idx = bit_to_change(in_bit_idx);
-        int write_bit_idx = bit_to_change(temp_buffer_bit_idx);
-
-        temp_byte_idx = bit_idx_to_byte_idx(temp_buffer_bit_idx);
+        int write_bit_idx = bit_to_change(sub_buffer_bit_idx);
+        int sub_byte_idx = bit_idx_to_byte_idx(sub_buffer_bit_idx);
 
         // copy bits from most significant bit to least significant
-        // e.g. from 5 and size 4 -> 5,4,3,2
+        // e.g. from 5th and size 4 -> 5,4,3,2
         int input_byte_idx = bit_idx_to_byte_idx(in_bit_idx);
-        bit_copy(input_buffer[input_byte_idx], &sub_buffer[temp_byte_idx], read_bit_idx, write_bit_idx, bits_to_copy);
+        bit_copy(input_buffer[input_byte_idx], &sub_buffer[sub_byte_idx], read_bit_idx, write_bit_idx, bits_to_copy);
 
         in_bit_idx += bits_to_copy;
-        temp_buffer_bit_idx += bits_to_copy;
+        sub_buffer_bit_idx += bits_to_copy;
         max_bits_to_read -= bits_to_copy;
     }
-    return temp_byte_idx + 1;
+
+    return bit_idx_to_byte_idx(sub_buffer_bit_idx-1) + 1;
 }
 
 long get_filesize(FILE *input_file_ptr) {

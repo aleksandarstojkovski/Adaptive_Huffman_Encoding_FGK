@@ -10,6 +10,7 @@
 
 
 #include <time.h>
+#include <ctype.h>
 
 #include "log.h"
 #include "bin_io.h"
@@ -18,7 +19,6 @@ static log_level_t log_level = LOG_INFO;
 //
 // Diagnostic functions
 //
-void        print_tree(const adh_node_t *node, int depth);
 void        print_time(FILE* fp);
 void        print_method(FILE* fp, const char *method);
 void        sleep_ms(int milliseconds);
@@ -140,6 +140,8 @@ char * fmt_symbol(adh_symbol_t symbol) {
         snprintf(str, sizeof(str), "NYT");
     else if(symbol ==  ADH_OLD_NYT_CODE)
         snprintf(str, sizeof(str), " ° ");
+    else if(iscntrl(symbol))
+        snprintf(str, sizeof(str), "0x%02X", symbol);
     else
         snprintf(str, sizeof(str), "'%c'", symbol);
 
@@ -148,7 +150,11 @@ char * fmt_symbol(adh_symbol_t symbol) {
 
 char * fmt_node(const adh_node_t* node) {
     static char str[MAX_SYMBOL_STR] = {0};
-    snprintf(str, sizeof(str), "%s (%d,%d)", fmt_symbol(node->symbol), node->weight, node->order);
+    if(node)
+        snprintf(str, sizeof(str), "%s (%3d,%3d)", fmt_symbol(node->symbol), node->order, node->weight);
+    else
+        snprintf(str, sizeof(str), "");
+
     return str;
 }
 
@@ -167,8 +173,6 @@ char * fmt_bit_array(const bit_array_t *bit_array) {
 }
 
 void log_tree(const adh_node_t *node) {
-    return;
-
     if(get_log_level() < LOG_TRACE)
         return;
 
@@ -176,27 +180,3 @@ void log_tree(const adh_node_t *node) {
     fprintf(stdout, "\n");
 }
 
-void print_tree(const adh_node_t *node, int depth)
-{
-    if(node==NULL)
-        return;
-
-    static int nodes[MAX_ORDER];
-    printf("  ");
-
-    // unicode chars for box drawing (doesn't work well under windows CLion)
-    // https://en.wikipedia.org/wiki/Box_Drawing
-    for(int i=0;i<depth;i++) {
-        if(i == depth-1)
-            printf("%s------ ", nodes[depth-1] ? "+" : "\\");
-        else
-            printf("%s       ", nodes[i] ? "|" : " ");
-    }
-
-    printf("%s\n", fmt_node(node));
-
-    nodes[depth]=1;
-    print_tree(node->left,depth+1);
-    nodes[depth]=0;
-    print_tree(node->right,depth+1);
-}

@@ -58,7 +58,7 @@ void destroy_node(adh_node_t *node) {
     if(node == NULL)
         return;
 
-    log_trace(" destroy_node", "%s\n", fmt_symbol(node->symbol));
+    log_trace(" destroy_node", "%s\n", fmt_node(node));
 
     if(node->left != NULL) {
         destroy_node(node->left);
@@ -159,8 +159,8 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
     return NULL;
 }
 
-adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
-    log_trace("  find_node_same_weight_hi_order", "(%d,%d)\n", weight, order);
+adh_node_t * find_higher_order_same_weight(adh_node_t *node, adh_weight_t weight, adh_order_t order) {
+    log_trace("  find_higher_order_same_weight", "(%3d,%3d) < %s\n", order, weight, fmt_node(node));
 
     // we need to traverse the entire tree to establish the highest node with same weight and higher order
     adh_node_t * res = NULL;
@@ -171,12 +171,12 @@ adh_node_t * find_node_same_weight_hi_order(adh_node_t *node, adh_weight_t weigh
         // find max in right tree
         adh_node_t * rightRes = NULL;
         if(node->right != NULL)
-            rightRes = find_node_same_weight_hi_order(node->right, weight, order);
+            rightRes = find_higher_order_same_weight(node->right, weight, order);
 
         // find max in left tree
         adh_node_t * leftRes = NULL;
         if(node->left != NULL)
-            leftRes = find_node_same_weight_hi_order(node->left, weight, order);
+            leftRes = find_higher_order_same_weight(node->left, weight, order);
 
         // compare results
         if(res == NULL || (rightRes != NULL && rightRes->order > res->order))
@@ -258,9 +258,9 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
     adh_node_t * node_to_check = is_new_node ? node->parent : node;
     while(node_to_check != NULL && node_to_check != adh_root_node) {
         // search in tree node with same weight and higher order
-        adh_node_t * node_to_swap = find_node_same_weight_hi_order(adh_root_node,
-                                                                   node_to_check->weight,
-                                                                   node_to_check->order);
+        adh_node_t * node_to_swap = find_higher_order_same_weight(adh_root_node,
+                                                                  node_to_check->weight,
+                                                                  node_to_check->order);
 
 
         // if node_to_swap == NULL, then no swap is needed
@@ -316,7 +316,7 @@ void get_node_encoding(const adh_node_t *node, bit_array_t * bit_array) {
         }
         bit_array->length = bit_idx;
 
-        log_trace("  get_node_encoding", "%s node_encoding=%s\n",
+        log_trace("  get_node_encoding", "%s bin=%s\n",
                 fmt_node(node),
                 fmt_bit_array(bit_array));
     } else {
@@ -347,23 +347,26 @@ void adh_get_NYT_encoding(bit_array_t * bit_array) {
 }
 
 adh_node_t* adh_search_encoding_in_tree(const bit_array_t* bit_array) {
-    log_trace("  adh_search_encoding_in_tree", "encoding=%s\n",
-              fmt_bit_array(bit_array));
+    adh_node_t* node = find_node_by_encoding(adh_root_node, bit_array);
 
-    return find_node_by_encoding(adh_root_node, bit_array);
+    log_debug("  adh_search_encoding_in_tree", "bin=%s found=%s\n",
+              fmt_bit_array(bit_array), fmt_node(node));
+
+    return node;
 }
 
 adh_node_t* find_node_by_encoding(adh_node_t *node, const bit_array_t* bit_array) {
-    log_trace("   find_node_by_encoding", "%s encoding=%s\n",
+    log_trace("   find_node_by_encoding", "%s bin=%s\n",
               fmt_node(node),
               fmt_bit_array(bit_array));
 
-
-    if (node->symbol > ADH_NYT_CODE){
+    // skip NYT and OLD NYT
+    if (node->symbol > ADH_NYT_CODE) {
         bit_array_t bit_array_node = { 0, 0 };
         get_node_encoding(node, &bit_array_node);
-        if(compare_bit_arrays(bit_array, &bit_array_node))
+        if(compare_bit_arrays(bit_array, &bit_array_node)) {
             return node;
+        }
     }
 
     if(node->left != NULL){
@@ -378,4 +381,31 @@ adh_node_t* find_node_by_encoding(adh_node_t *node, const bit_array_t* bit_array
             return rightRes;
     }
     return NULL;
+}
+
+void print_tree(const adh_node_t *node, int depth)
+{
+    if(node==NULL)
+        return;
+
+    static int nodes[MAX_ORDER];
+    printf("  ");
+
+    // unicode chars for box drawing (doesn't work well under windows CLion)
+    // https://en.wikipedia.org/wiki/Box_Drawing
+    for(int i=0;i<depth;i++) {
+        if(i == depth-1)
+            printf("%s------ ", nodes[depth-1] ? "+" : "\\");
+        else
+            printf("%s       ", nodes[i] ? "|" : " ");
+    }
+
+    bit_array_t bit_array_node = { 0, 0 };
+    get_node_encoding(node, &bit_array_node);
+    printf("%s  %s\n", fmt_node(node), fmt_bit_array(&bit_array_node));
+
+    nodes[depth]=1;
+    print_tree(node->left,depth+1);
+    nodes[depth]=0;
+    print_tree(node->right,depth+1);
 }
