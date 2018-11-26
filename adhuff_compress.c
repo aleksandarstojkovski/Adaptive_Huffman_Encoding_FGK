@@ -94,9 +94,11 @@ void print_final_stats(FILE *output_file_ptr) {
  * encode char
  */
 void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
+#ifdef _DEBUG
     log_debug(" process_symbol", "%s out_bit_idx=%-8d\n",
             fmt_symbol(symbol),
             out_bit_idx);
+#endif
 
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
@@ -116,11 +118,12 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buff
     bit_array_t bit_array = { 0, 0 };
     adh_get_symbol_encoding(symbol, &bit_array);
 
+#ifdef _DEBUG
     log_debug("  output_existing_symbol", "%s out_bit_idx=%-8d bin=%s\n",
              fmt_symbol(symbol),
              out_bit_idx,
              fmt_bit_array(&bit_array));
-
+#endif
 
     output_bit_array(&bit_array, output_buffer, output_file_ptr);
     adh_update_tree(node, false);
@@ -131,9 +134,11 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
     bit_array_t bit_array = { 0, 0 };
     symbol_to_bits(symbol, &bit_array);
 
+#ifdef _DEBUG
     log_debug("  output_new_symbol", "%s out_bit_idx=%-8d bin=%s\n",
               fmt_symbol(symbol), out_bit_idx,
               fmt_bit_array(&bit_array));
+#endif
 
     output_bit_array(&bit_array, output_buffer, output_file_ptr);
 
@@ -145,9 +150,12 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     // write NYT code
     bit_array_t bit_array = { 0, 0 };
     adh_get_NYT_encoding(&bit_array);
+
+#ifdef _DEBUG
     log_debug("  output_nyt", "%3s out_bit_idx=%-8d NYT=%s\n", "",
              out_bit_idx,
              fmt_bit_array(&bit_array));
+#endif
 
     output_bit_array(&bit_array, output_buffer, output_file_ptr);
 }
@@ -193,10 +201,12 @@ int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
         if (get_available_bits(out_bit_idx) < SYMBOL_BITS)
             num_bytes_to_write++;   // reserve the space for odd bits
 
+#ifdef _DEBUG
         log_debug("flush_data", "out_bit_idx=%-8d num_bytes_to_write=%d\n", out_bit_idx, num_bytes_to_write);
 
         for (int i = 0; i < num_bytes_to_write; i++)
             log_trace_char_bin(output_buffer[i]);
+#endif
 
         size_t bytesWritten = fwrite(output_buffer, sizeof(byte_t), num_bytes_to_write, output_file_ptr);
         if (bytesWritten != num_bytes_to_write) {
@@ -216,15 +226,19 @@ int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
  * flush header to file
  */
 int flush_header(FILE* output_file_ptr) {
+#ifdef _DEBUG
     log_trace("flush_header", "old_bits=");
     log_trace_char_bin(first_byte_written);
+#endif
 
     first_byte_union first_byte;
     first_byte.raw = first_byte_written;
     first_byte.split.header = (byte_t)get_available_bits(out_bit_idx);
 
+#ifdef _DEBUG
     log_trace("flush_header", "new_bits=");
     log_trace_char_bin(first_byte.raw);
+#endif
 
     fputc(first_byte.raw, output_file_ptr);
 

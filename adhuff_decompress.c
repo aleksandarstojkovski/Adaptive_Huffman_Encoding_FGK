@@ -72,7 +72,9 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
             }
 
             last_bit_idx = (input_size * SYMBOL_BITS) - bits_to_ignore -1;
+#ifdef _DEBUG
             log_debug("adh_decompress_file", "last_bit_idx=%d\n", last_bit_idx);
+#endif
 
             while(in_bit_idx <= last_bit_idx) {
 
@@ -122,7 +124,10 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
 }
 
 int skip_nyt_bits(int nyt_size) {
+#ifdef _DEBUG
     log_debug("skip_nyt_bits", "in_bit_idx=%-8d nyt_size=%d\n", in_bit_idx, nyt_size);
+#endif
+
     in_bit_idx += nyt_size;
 
     if(in_bit_idx > last_bit_idx) {
@@ -133,7 +138,10 @@ int skip_nyt_bits(int nyt_size) {
 }
 
 int flush_uncompressed(FILE *output_file_ptr) {
+#ifdef _DEBUG
     log_debug("flush_uncompressed", "in_bit_idx=%-8d output_byte_idx=%d\n", in_bit_idx, output_byte_idx);
+#endif
+
 
     size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_byte_idx, output_file_ptr);
     if(bytes_written != output_byte_idx) {
@@ -153,8 +161,10 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     byte_t  sub_buffer[MAX_CODE_BYTES] = {0};
     int missing = last_bit_idx - in_bit_idx + 1;
 
+#ifdef _DEBUG
     log_debug("decode_existing_symbol", "in_bit_idx=%-8d last_bit_idx=%d missing=%d\n",
               in_bit_idx, last_bit_idx, missing);
+#endif
 
     int max_bits = MAX_CODE_BITS < missing ? MAX_CODE_BITS : missing;
     int num_bytes = read_data_cross_bytes(input_buffer, max_bits, sub_buffer);
@@ -183,7 +193,9 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
         return RC_FAIL;
     }
 
+#ifdef _DEBUG
     log_debug("decode_existing_symbol", "%s bin=%s\n", fmt_symbol(node->symbol), fmt_bit_array(&bit_array));
+#endif
 
     in_bit_idx = original_input_buffer_bit_idx + bit_array.length;
     output_symbol(node->symbol);
@@ -192,16 +204,20 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
 }
 
 void output_symbol(byte_t symbol) {
+#ifdef _DEBUG
     log_debug("  output_symbol", "%s in_bit_idx=%-8d\n",
             fmt_symbol(symbol),
             in_bit_idx);
+#endif
 
     output_buffer[output_byte_idx] = symbol;
     output_byte_idx++;
 }
 
 int decode_new_symbol(const byte_t input_buffer[]) {
+#ifdef _DEBUG
     log_debug("decode_new_symbol", "in_bit_idx=%-8d\n", in_bit_idx);
+#endif
 
     byte_t  new_symbol[1] = {0};
     int     num_bytes = read_data_cross_bytes(input_buffer, SYMBOL_BITS, new_symbol);
@@ -217,15 +233,19 @@ int decode_new_symbol(const byte_t input_buffer[]) {
 }
 
 int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byte_t sub_buffer[]) {
+#ifdef _DEBUG
     log_debug("  read_data_cross_bytes", "in_bit_idx=%-8d last_bit_idx=%d max_bits_to_read=%-8d\n",
             in_bit_idx, last_bit_idx, max_bits_to_read);
+#endif
 
     int sub_buffer_bit_idx = 0;
     while(max_bits_to_read > 0) {
         if(in_bit_idx > last_bit_idx) {
+#ifdef _DEBUG
             log_debug("  read_data_cross_bytes",
                     "in_bit_idx=%-8d last_bit_idx=%d max_bits_to_read=%-8d (in_bit_idx > last_bit_idx) break\n",
                     in_bit_idx, last_bit_idx, max_bits_to_read);
+#endif
             //TODO ... rewind in_bit_idx ?
             break;
         }
@@ -271,5 +291,7 @@ void read_header(FILE *inputFilePtr) {
     in_bit_idx = HEADER_BITS;
     output_byte_idx = 0;
 
+#ifdef _DEBUG
     log_debug("read_header", "bits_to_ignore=%d\n", bits_to_ignore);
- }
+#endif
+}

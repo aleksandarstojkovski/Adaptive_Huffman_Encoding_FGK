@@ -145,9 +145,11 @@ bool compare_bit_arrays(const bit_array_t *bit_array1, const bit_array_t *bit_ar
 
 bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const bit_array_t *bit_array_nyt) {
     int size = bit_array_nyt->length;
+#ifdef _DEBUG
     log_debug("compare_input_and_nyt", "in_bit_idx=%-8d NYT=%s\n",
               in_bit_idx,
               fmt_bit_array(bit_array_nyt));
+#endif
 
     bool have_same_bits = true;
     for(int offset=0; offset<size; offset++) {
