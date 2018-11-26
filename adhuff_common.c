@@ -13,6 +13,8 @@
 static adh_order_t          adh_next_order;
 static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
+static adh_node_t *         adh_node_array[513];
+static int index_of_node_array;
 
 //
 // private methods
@@ -32,6 +34,7 @@ int adh_init_tree() {
     log_trace("adh_init_tree", "\n");
 #endif
 
+    index_of_node_array = 0;
     adh_next_order = MAX_ORDER;
     if(adh_root_node != NULL) {
         perror("adh_init_tree: root already initialized");
@@ -136,6 +139,11 @@ adh_node_t * create_node(adh_symbol_t symbol) {
 #endif
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
+
+    // add node to node array
+    adh_node_array[index_of_node_array] = node;
+    index_of_node_array++;
+
     node->left = NULL;
     node->right = NULL;
     node->parent = NULL;
@@ -155,20 +163,26 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
     log_trace("   find_node_by_symbol", "%s\n", fmt_symbol(symbol));
 #endif
 
-    if (node->symbol == symbol){
-        return node;
-    }
-
-    if(node->left != NULL){
-        adh_node_t * leftRes = find_node_by_symbol(node->left, symbol);
-        if(leftRes != NULL)
-            return leftRes;
-    }
-
-    if(node->right != NULL){
-        adh_node_t * rightRes = find_node_by_symbol(node->right, symbol);
-        if(rightRes != NULL)
-            return rightRes;
+//    if (node->symbol == symbol){
+//        return node;
+//    }
+//
+//    if(node->left != NULL){
+//        adh_node_t * leftRes = find_node_by_symbol(node->left, symbol);
+//        if(leftRes != NULL)
+//            return leftRes;
+//    }
+//
+//    if(node->right != NULL){
+//        adh_node_t * rightRes = find_node_by_symbol(node->right, symbol);
+//        if(rightRes != NULL)
+//            return rightRes;
+//    }
+//    return NULL;
+    for (int i=0; i<index_of_node_array;i++){
+        if (adh_node_array[i]->symbol == symbol){
+            return adh_node_array[i];
+        }
     }
     return NULL;
 }
@@ -178,7 +192,8 @@ adh_node_t * find_higher_order_same_weight(adh_node_t *node, adh_weight_t weight
     //log_trace("  find_higher_order_same_weight", "(%3d,%3d) < %s\n", order, weight, fmt_node(node));
 
     // we need to traverse the entire tree to establish the highest node with same weight and higher order
-    adh_node_t * res = NULL;
+
+    /*adh_node_t * res = NULL;
     if(node != NULL) {
         if ((node->weight == weight) && (node->order > order) && node != adh_root_node)
             res = node;
@@ -190,7 +205,7 @@ adh_node_t * find_higher_order_same_weight(adh_node_t *node, adh_weight_t weight
 
         // find max in left tree
         adh_node_t * leftRes = NULL;
-        if(node->left != NULL)
+        if(node->left != NULL)sw
             leftRes = find_higher_order_same_weight(node->left, weight, order);
 
         // compare results
@@ -201,6 +216,18 @@ adh_node_t * find_higher_order_same_weight(adh_node_t *node, adh_weight_t weight
             res = leftRes;
     }
     return res;
+    */
+    adh_node_t * node_to_be_returned=NULL;
+
+    for (int i=0; i<index_of_node_array;i++){
+        if ((adh_node_array[i]->weight == weight) && (adh_node_array[i]->order > order) && (adh_node_array[i] != adh_root_node)){
+            if (node_to_be_returned == NULL || adh_node_array[i]->order > node_to_be_returned->order  ){
+                node_to_be_returned = adh_node_array[i];
+            }
+        }
+    }
+
+    return node_to_be_returned;
 }
 
 /*
@@ -219,7 +246,7 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
  */
 void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     if (node1->parent == node2 || node2->parent == node1) {
-        log_info("swap_nodes", " TRYING TO SWAP NODE WITH IT'S PARENT\n");
+        //log_info("swap_nodes", " TRYING TO SWAP NODE WITH IT'S PARENT\n");
         return;
     }
 
