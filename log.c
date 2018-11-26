@@ -153,7 +153,7 @@ char * fmt_node(const adh_node_t* node) {
     if(node)
         snprintf(str, sizeof(str), "%s (%3d,%3d)", fmt_symbol(node->symbol), node->order, node->weight);
     else
-        snprintf(str, sizeof(str), "");
+        snprintf(str, sizeof(str), " ");
 
     return str;
 }
