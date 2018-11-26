@@ -223,10 +223,10 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
         return;
     }
 
+#ifdef _DEBUG
     char str1[MAX_SYMBOL_STR];
     strcpy (str1,fmt_node(node1));
 
-#ifdef _DEBUG
     log_debug("    swap_nodes", "%s <-> %s\n", str1, fmt_node(node2));
 #endif
 
