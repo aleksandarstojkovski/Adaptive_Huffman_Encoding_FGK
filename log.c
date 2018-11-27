@@ -141,7 +141,7 @@ char * fmt_symbol(adh_symbol_t symbol) {
     else if(symbol ==  ADH_OLD_NYT_CODE)
         snprintf(str, sizeof(str), " ° ");
     else if(iscntrl(symbol))
-        snprintf(str, sizeof(str), "0x%02X", symbol);
+        snprintf(str, sizeof(str), "x%02X", symbol);
     else
         snprintf(str, sizeof(str), "'%c'", symbol);
 
@@ -151,7 +151,7 @@ char * fmt_symbol(adh_symbol_t symbol) {
 char * fmt_node(const adh_node_t* node) {
     static char str[MAX_SYMBOL_STR] = {0};
     if(node)
-        snprintf(str, sizeof(str), "%s (%3d,%3d)", fmt_symbol(node->symbol), node->order, node->weight);
+        snprintf(str, sizeof(str), "%s (%3d,%6d)", fmt_symbol(node->symbol), node->order, node->weight);
     else
         snprintf(str, sizeof(str), " ");
 
@@ -172,11 +172,10 @@ char * fmt_bit_array(const bit_array_t *bit_array) {
     return str;
 }
 
-void log_tree(const adh_node_t *node) {
+void log_tree() {
     if(get_log_level() < LOG_TRACE)
         return;
 
-    print_tree(node, 0);
-    fprintf(stdout, "\n");
+    print_tree();
 }
 

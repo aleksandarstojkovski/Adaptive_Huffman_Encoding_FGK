@@ -28,6 +28,8 @@ int     flush_uncompressed(FILE *output_file_ptr);
 int     skip_nyt_bits(int nyt_size);
 void    output_symbol(byte_t symbol);
 
+//#define _DEBUG
+
 /*
  * decompress file
  */
@@ -81,7 +83,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
                 bit_array_t bit_array_nyt = { 0, 0 };
                 adh_get_NYT_encoding(&bit_array_nyt);
 
-                bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, &bit_array_nyt);
+                bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, last_bit_idx, &bit_array_nyt);
                 if(is_nyt_code) {
                     rc = skip_nyt_bits(bit_array_nyt.length);
                     if(rc == RC_FAIL) {
@@ -114,8 +116,6 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         }
 
         flush_uncompressed(output_file_ptr);
-
-        adh_destroy_tree();
     }
 
     release_resources(output_file_ptr, input_file_ptr);
@@ -154,7 +154,7 @@ int flush_uncompressed(FILE *output_file_ptr) {
 }
 
 int decode_existing_symbol(const byte_t input_buffer[]) {
-    unsigned short original_input_buffer_bit_idx = in_bit_idx;
+    unsigned int original_input_buffer_bit_idx = in_bit_idx;
 
     adh_node_t* node = NULL;
     bit_array_t bit_array = { 0, 0 };

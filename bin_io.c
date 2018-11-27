@@ -143,8 +143,11 @@ bool compare_bit_arrays(const bit_array_t *bit_array1, const bit_array_t *bit_ar
     return true;
 }
 
-bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, const bit_array_t *bit_array_nyt) {
+bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, int last_bit_idx, const bit_array_t *bit_array_nyt) {
     int size = bit_array_nyt->length;
+    if(last_bit_idx - in_bit_idx < size)
+        return false;
+
 #ifdef _DEBUG
     log_debug("compare_input_and_nyt", "in_bit_idx=%-8d NYT=%s\n",
               in_bit_idx,
@@ -175,6 +178,8 @@ void symbol_to_bits(byte_t symbol, bit_array_t *bit_array) {
 }
 
 void release_resources(FILE *output_file_ptr, FILE *input_file_ptr) {
+    //print_node_array();
+
     if(output_file_ptr) {
         fclose(output_file_ptr);
     }

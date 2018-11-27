@@ -54,6 +54,8 @@ adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t symbol);
 adh_node_t *    adh_create_node_and_append(adh_symbol_t symbol);
 void            adh_get_NYT_encoding(bit_array_t * bit_array);
 void            adh_get_symbol_encoding(adh_symbol_t symbol, bit_array_t * bit_array);
-void            print_tree(const adh_node_t *node, int depth);
+void            print_sub_tree(const adh_node_t *node, int depth);
+void            print_tree();
+void            print_node_array();
 
 #endif //ALGO_ADHUFF_COMMON_H

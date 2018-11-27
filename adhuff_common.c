@@ -13,8 +13,8 @@
 static adh_order_t          adh_next_order;
 static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
-static adh_node_t *         adh_node_array[513];
-static int index_of_node_array;
+static adh_node_t *         adh_node_array[MAX_ORDER];
+static int                  index_of_node_array;
 
 //
 // private methods
@@ -311,7 +311,7 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
 
         // if node_to_swap == NULL, then no swap is needed
         if (node_to_swap != NULL) {
-            log_tree(adh_root_node);
+            log_tree();
             swap_nodes(node_to_check, node_to_swap);
         }
         // now we can safely update the weight of the node
@@ -322,7 +322,7 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
     if(node_to_check != NULL)
         node_to_check->weight++;
 
-    log_tree(adh_root_node);
+    log_tree();
 }
 
 /*
@@ -443,7 +443,7 @@ adh_node_t* find_node_by_encoding(adh_node_t *node, const bit_array_t* bit_array
     return NULL;
 }
 
-void print_tree(const adh_node_t *node, int depth)
+void print_sub_tree(const adh_node_t *node, int depth)
 {
     if(node==NULL)
         return;
@@ -465,7 +465,19 @@ void print_tree(const adh_node_t *node, int depth)
     printf("%s  %s\n", fmt_node(node), fmt_bit_array(&bit_array_node));
 
     nodes[depth]=1;
-    print_tree(node->left,depth+1);
+    print_sub_tree(node->left, depth + 1);
     nodes[depth]=0;
-    print_tree(node->right,depth+1);
+    print_sub_tree(node->right, depth + 1);
+}
+
+void print_tree() {
+    print_sub_tree(adh_root_node, 0);
+    fprintf(stdout, "\n");
+}
+
+void print_node_array() {
+    log_debug("print_node_array", "\n");
+    for (int i=0; i<index_of_node_array;i++){
+        log_debug("", "%3i  %s \n", i, fmt_node(adh_node_array[i]));
+    }
 }
