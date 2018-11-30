@@ -434,8 +434,12 @@ adh_node_t* find_node_by_encoding(adh_node_t *node, const bit_array_t* bit_array
 
         // skip NYT and OLD NYT
         if (node->symbol > ADH_NYT_CODE) {
+
+            //TODO: get_node_encoding is executed much often than updateTree
+            //      consider to cache this information in the node
             bit_array_t bit_array_node = { 0, 0 };
             get_node_encoding(node, &bit_array_node);
+
             if(compare_bit_arrays(bit_array, &bit_array_node)) {
                 return node;
             }
