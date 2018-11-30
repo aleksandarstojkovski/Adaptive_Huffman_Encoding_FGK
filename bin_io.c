@@ -189,3 +189,11 @@ void release_resources(FILE *output_file_ptr, FILE *input_file_ptr) {
     }
     adh_destroy_tree();
 }
+
+
+void print_final_stats(FILE * input_file_ptr, FILE * output_file_ptr) {
+    long inSize = ftell(input_file_ptr);
+    long outSize = ftell(output_file_ptr);
+    double ratio = 100.0 - (100.0 * outSize / inSize);
+    log_info(" print_final_stats", "rate= %.1f%% [%ld -> %ld] (bytes)\n", ratio, inSize, outSize);
+}

@@ -118,6 +118,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         flush_uncompressed(output_file_ptr);
     }
 
+    print_final_stats(input_file_ptr, output_file_ptr);
     release_resources(output_file_ptr, input_file_ptr);
 
     return rc;

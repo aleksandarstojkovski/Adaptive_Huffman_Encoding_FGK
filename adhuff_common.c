@@ -361,6 +361,8 @@ void get_node_encoding(const adh_node_t *node, bit_array_t * bit_array) {
         while(parent != NULL) {
             if(bit_idx == MAX_CODE_BITS) {
                 log_error("get_node_encoding", "bit_idx == MAX_CODE_BITS");
+
+                //TODO: exit properly, need to release resources
                 exit(1);
             }
 
@@ -427,27 +429,41 @@ adh_node_t* find_node_by_encoding(adh_node_t *node, const bit_array_t* bit_array
               fmt_bit_array(bit_array));
 #endif
 
-    // skip NYT and OLD NYT
-    if (node->symbol > ADH_NYT_CODE) {
-        bit_array_t bit_array_node = { 0, 0 };
-        get_node_encoding(node, &bit_array_node);
-        if(compare_bit_arrays(bit_array, &bit_array_node)) {
-            return node;
+    for (int i=0; i<last_index_of_node_array;i++){
+        adh_node_t* node = adh_node_array[i];
+
+        // skip NYT and OLD NYT
+        if (node->symbol > ADH_NYT_CODE) {
+            bit_array_t bit_array_node = { 0, 0 };
+            get_node_encoding(node, &bit_array_node);
+            if(compare_bit_arrays(bit_array, &bit_array_node)) {
+                return node;
+            }
         }
     }
-
-    if(node->left != NULL){
-        adh_node_t * leftRes = find_node_by_encoding(node->left, bit_array);
-        if(leftRes != NULL)
-            return leftRes;
-    }
-
-    if(node->right != NULL){
-        adh_node_t * rightRes = find_node_by_encoding(node->right, bit_array);
-        if(rightRes != NULL)
-            return rightRes;
-    }
     return NULL;
+
+//    // skip NYT and OLD NYT
+//    if (node->symbol > ADH_NYT_CODE) {
+//        bit_array_t bit_array_node = { 0, 0 };
+//        get_node_encoding(node, &bit_array_node);
+//        if(compare_bit_arrays(bit_array, &bit_array_node)) {
+//            return node;
+//        }
+//    }
+//
+//    if(node->left != NULL){
+//        adh_node_t * leftRes = find_node_by_encoding(node->left, bit_array);
+//        if(leftRes != NULL)
+//            return leftRes;
+//    }
+//
+//    if(node->right != NULL){
+//        adh_node_t * rightRes = find_node_by_encoding(node->right, bit_array);
+//        if(rightRes != NULL)
+//            return rightRes;
+//    }
+//    return NULL;
 }
 
 void print_sub_tree(const adh_node_t *node, int depth)

@@ -22,7 +22,6 @@ int     flush_data(byte_t *output_buffer, FILE* output_file_ptr);
 int     flush_header(FILE* output_file_ptr);
 void    output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
 void    output_nyt(byte_t *output_buffer, FILE *output_file_ptr);
-void    print_final_stats(FILE * input_file_ptr, FILE *output_file_ptr);
 
 /*
  * Compress file
@@ -83,13 +82,6 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
     release_resources(output_file_ptr, input_file_ptr);
 
     return rc;
-}
-
-void print_final_stats(FILE * input_file_ptr, FILE * output_file_ptr) {
-    long inSize = ftell(input_file_ptr);
-    long outSize = ftell(output_file_ptr);
-    double ratio = 100.0 - (100.0 * outSize / inSize);
-    log_info(" print_final_stats", "compression= %.1f%% [%ld -> %ld] (bytes) out_bit_idx=%d\n", ratio, inSize, outSize, out_bit_idx);
 }
 
 /*
