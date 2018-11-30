@@ -14,7 +14,7 @@ static adh_order_t          adh_next_order;
 static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
 static adh_node_t *         adh_node_array[MAX_ORDER];
-static int                  index_of_node_array;
+static int                  last_index_of_node_array;
 
 //
 // private methods
@@ -34,7 +34,7 @@ int adh_init_tree() {
     log_trace("adh_init_tree", "\n");
 #endif
 
-    index_of_node_array = 0;
+    last_index_of_node_array = 0;
     adh_next_order = MAX_ORDER;
     if(adh_root_node != NULL) {
         perror("adh_init_tree: root already initialized");
@@ -141,8 +141,8 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     adh_node_t* node = malloc (sizeof(adh_node_t));
 
     // add node to node array
-    adh_node_array[index_of_node_array] = node;
-    index_of_node_array++;
+    adh_node_array[last_index_of_node_array] = node;
+    last_index_of_node_array++;
 
     node->left = NULL;
     node->right = NULL;
@@ -179,7 +179,7 @@ adh_node_t * find_node_by_symbol(adh_node_t *node, adh_symbol_t symbol) {
 //            return rightRes;
 //    }
 //    return NULL;
-    for (int i=0; i<index_of_node_array;i++){
+    for (int i=0; i<last_index_of_node_array;i++){
         if (adh_node_array[i]->symbol == symbol){
             return adh_node_array[i];
         }
@@ -217,13 +217,20 @@ adh_node_t * find_higher_order_same_weight(adh_node_t *node, adh_weight_t weight
     }
     return res;
     */
-    adh_node_t * node_to_be_returned=NULL;
 
-    for (int i=0; i<index_of_node_array;i++){
-        if ((adh_node_array[i]->weight == weight) && (adh_node_array[i]->order > order) && (adh_node_array[i] != adh_root_node)){
-            if (node_to_be_returned == NULL || adh_node_array[i]->order > node_to_be_returned->order  ){
-                node_to_be_returned = adh_node_array[i];
-            }
+    //TODO: ordinando adh_node_array saremmo piu' veloci nella ricerca.
+    //      da valutare il costo dell'ordinamento rispettto a una ricerca completa
+    //      83% del costo della compressione di immagine.tiff e' speso in questo metodo
+    adh_node_t *node_to_be_returned=NULL;
+    adh_node_t *current_node;
+
+    for (int i=0; i<last_index_of_node_array;i++){
+        current_node = adh_node_array[i];
+        if ((current_node->weight == weight) &&
+            (current_node->order > order) &&
+            (current_node != adh_root_node) &&
+            (node_to_be_returned == NULL || current_node->order > node_to_be_returned->order)) {
+                node_to_be_returned = current_node;
         }
     }
 
@@ -477,7 +484,7 @@ void print_tree() {
 
 void print_node_array() {
     log_debug("print_node_array", "\n");
-    for (int i=0; i<index_of_node_array;i++){
+    for (int i=0; i<last_index_of_node_array;i++){
         log_debug("", "%3i  %s \n", i, fmt_node(adh_node_array[i]));
     }
 }
