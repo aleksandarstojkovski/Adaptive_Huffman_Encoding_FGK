@@ -19,13 +19,12 @@ int     compare_files(const char *original, const char *generated);
 #define MAX_FILE_NAME  80
 #define NUM_TEST_FILES  14 // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
-        "../../test/res/alice_small.txt",
-        "../../test/res/empty",
         "../../test/res/A.txt",
         "../../test/res/AB.txt",
         "../../test/res/ABA.txt",
         "../../test/res/ABAB.txt",
         "../../test/res/ALEX.txt",
+        "../../test/res/alice_small.txt",
         "../../test/res/all_printable_ascii.txt",
         "../../test/res/all_ascii",
         "../../test/res/ff_ff_ff",
@@ -33,6 +32,7 @@ static const char * TEST_FILES[] = {
         "../../test/res/alice.txt",
         "../../test/res/32k_random",
         "../../test/res/immagine.tiff",
+        "../../test/res/empty",
         "../../test/res/a-bad-filename"};
 
 /*

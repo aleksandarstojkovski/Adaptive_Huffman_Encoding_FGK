@@ -80,12 +80,11 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
 
             while(in_bit_idx <= last_bit_idx) {
 
-                bit_array_t bit_array_nyt = { 0, 0 };
-                adh_get_NYT_encoding(&bit_array_nyt);
+                adh_node_t* nyt = get_nyt();
 
-                bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, last_bit_idx, &bit_array_nyt);
+                bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, last_bit_idx, &(nyt->bit_array));
                 if(is_nyt_code) {
-                    rc = skip_nyt_bits(bit_array_nyt.length);
+                    rc = skip_nyt_bits(nyt->bit_array.length);
                     if(rc == RC_FAIL) {
                         release_resources(output_file_ptr, input_file_ptr);
                         return rc;

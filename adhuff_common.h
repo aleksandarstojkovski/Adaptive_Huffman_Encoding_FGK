@@ -41,19 +41,19 @@ typedef struct adh_node {
     struct adh_node *   left;
     struct adh_node *   right;
     struct adh_node *   parent;
+    bit_array_t         bit_array;
 } adh_node_t;
 
 static const adh_symbol_t   ADH_NYT_CODE = -1;
 static const adh_symbol_t   ADH_OLD_NYT_CODE = -2;
 
+adh_node_t*     get_nyt();
 int             adh_init_tree();
 void            adh_destroy_tree();
 void            adh_update_tree(adh_node_t *node, bool is_new_node);
 adh_node_t *    adh_search_encoding_in_tree(const bit_array_t* bit_array);
 adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t symbol);
 adh_node_t *    adh_create_node_and_append(adh_symbol_t symbol);
-void            adh_get_NYT_encoding(bit_array_t * bit_array);
-void            adh_get_symbol_encoding(adh_symbol_t symbol, bit_array_t * bit_array);
 void            print_sub_tree(const adh_node_t *node, int depth);
 void            print_tree();
 void            print_node_array();

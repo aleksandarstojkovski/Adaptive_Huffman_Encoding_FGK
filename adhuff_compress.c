@@ -109,8 +109,7 @@ void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr)
 
 void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
     // write symbol code
-    bit_array_t bit_array = { 0, 0 };
-    adh_get_symbol_encoding(symbol, &bit_array);
+    adh_node_t* nodeSymbol = adh_search_symbol_in_tree(symbol);
 
 #ifdef _DEBUG
     log_debug("  output_existing_symbol", "%s out_bit_idx=%-8d bin=%s\n",
@@ -119,7 +118,7 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buff
              fmt_bit_array(&bit_array));
 #endif
 
-    output_bit_array(&bit_array, output_buffer, output_file_ptr);
+    output_bit_array(&(nodeSymbol->bit_array), output_buffer, output_file_ptr);
     adh_update_tree(node, false);
 }
 
@@ -142,8 +141,7 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
 
 void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     // write NYT code
-    bit_array_t bit_array = { 0, 0 };
-    adh_get_NYT_encoding(&bit_array);
+    adh_node_t* nyt = get_nyt();
 
 #ifdef _DEBUG
     log_debug("  output_nyt", "%3s out_bit_idx=%-8d NYT=%s\n", "",
@@ -151,7 +149,7 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
              fmt_bit_array(&bit_array));
 #endif
 
-    output_bit_array(&bit_array, output_buffer, output_file_ptr);
+    output_bit_array(&(nyt->bit_array), output_buffer, output_file_ptr);
 }
 
 /*
