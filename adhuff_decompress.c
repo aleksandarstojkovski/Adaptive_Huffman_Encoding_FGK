@@ -61,7 +61,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         int bytes_to_read = input_size;
 
         memset(output_buffer, 0, sizeof(output_buffer));
-        byte_t input_buffer[input_size];
+        byte_t* input_buffer = (byte_t*) malloc(input_size);
 
         // read up to sizeof(buffer) bytes
         size_t bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr);
@@ -69,6 +69,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
         {
             if(bytes_read != bytes_to_read) {
                 log_error("adh_decompress_file", "bytes_read (%zu) != bytes_to_read (%d)\n", bytes_read, bytes_to_read);
+                free(input_buffer);
                 release_resources(output_file_ptr, input_file_ptr);
                 return RC_FAIL;
             }
@@ -86,6 +87,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
                 if(is_nyt_code) {
                     rc = skip_nyt_bits(nyt->bit_array.length);
                     if(rc == RC_FAIL) {
+                        free(input_buffer);
                         release_resources(output_file_ptr, input_file_ptr);
                         return rc;
                     }
@@ -93,12 +95,14 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
                     // not coded byte
                     rc = decode_new_symbol(input_buffer);
                     if(rc == RC_FAIL) {
+                        free(input_buffer);
                         release_resources(output_file_ptr, input_file_ptr);
                         return rc;
                     }
                 } else {
                     rc = decode_existing_symbol(input_buffer);
                     if(rc == RC_FAIL) {
+                        free(input_buffer);
                         release_resources(output_file_ptr, input_file_ptr);
                         return rc;
                     }
@@ -107,6 +111,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
                 if(output_byte_idx == BUFFER_SIZE -1) {
                     rc = flush_uncompressed(output_file_ptr);
                     if(rc == RC_FAIL) {
+                        free(input_buffer);
                         release_resources(output_file_ptr, input_file_ptr);
                         return rc;
                     }
@@ -114,6 +119,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
             }
         }
 
+        free(input_buffer);
         flush_uncompressed(output_file_ptr);
     }
 
