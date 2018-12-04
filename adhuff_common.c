@@ -14,17 +14,17 @@ static adh_order_t          adh_next_order;
 static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
 static adh_node_t *         adh_node_array[MAX_ORDER];
+static adh_node_t *         adh_symbol_node_array[MAX_CODE_BITS];
 static int                  last_index_of_node_array;
-
+static int                  last_index_of_symbol_node_array;
 //
 // private methods
 //
 adh_node_t*     create_nyt();
 adh_node_t*     create_node(adh_symbol_t symbol);
 void            destroy_node(adh_node_t *node);
-adh_node_t*     find_node_by_symbol(adh_symbol_t symbol);
-adh_node_t*     find_node_by_encoding(const bit_array_t* bit_array);
 void            update_node_encoding(adh_node_t *node);
+void            sort_node_array();
 
 
 adh_node_t*     get_nyt() {
@@ -38,7 +38,7 @@ int adh_init_tree() {
 #ifdef _DEBUG
     log_trace("adh_init_tree", "\n");
 #endif
-
+    last_index_of_symbol_node_array = 0;
     last_index_of_node_array = 0;
     adh_next_order = MAX_ORDER;
     if(adh_root_node != NULL) {
@@ -149,8 +149,9 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     adh_node_t* node = malloc (sizeof(adh_node_t));
 
     // add node to node array
-    adh_node_array[last_index_of_node_array] = node;
-    last_index_of_node_array++;
+    adh_node_array[last_index_of_node_array++] = node;
+    if(symbol > ADH_NYT_CODE)
+        adh_symbol_node_array[last_index_of_symbol_node_array++] = node;
 
     node->left = NULL;
     node->right = NULL;
@@ -161,23 +162,25 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     memset(&(node->bit_array), 0, sizeof(bit_array_t));
 
     adh_next_order--;
+
+    sort_node_array();
+
     return node;
 }
 
-/*
- * Search Char in Tree
- */
-adh_node_t * find_node_by_symbol(adh_symbol_t symbol) {
-#ifdef _DEBUG
-    log_trace("   find_node_by_symbol", "%s\n", fmt_symbol(symbol));
-#endif
+void sort_node_array() {
+    for (int i = 1; i < last_index_of_node_array; i++) {
+        int j = i-1;
+        adh_node_t* node1 = adh_node_array[j];
+        adh_node_t* node2 = adh_node_array[i];
 
-    for (int i=0; i<last_index_of_node_array;i++){
-        if (adh_node_array[i]->symbol == symbol){
-            return adh_node_array[i];
+        // sort by weight so the find_higher_order_same_weight method will be faster
+        while (j >= 0 && node1->weight > node2->weight) {
+            adh_node_array[j+1] = adh_node_array[j];
+            j = j-1;
         }
+        adh_node_array[j+1] = node2;
     }
-    return NULL;
 }
 
 adh_node_t * find_higher_order_same_weight(adh_weight_t weight, adh_order_t order) {
@@ -208,7 +211,13 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
     log_trace("  adh_search_symbol_in_tree", "%s\n", fmt_symbol(symbol));
 #endif
 
-    return find_node_by_symbol(symbol);
+    // search only in adh_symbol_node_array
+    for (int i=0; i<last_index_of_symbol_node_array; i++){
+        if (adh_symbol_node_array[i]->symbol == symbol){
+            return adh_symbol_node_array[i];
+        }
+    }
+    return NULL;
 }
 
 /*
@@ -283,7 +292,9 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
 
         // if node_to_swap == NULL, then no swap is needed
         if (node_to_swap != NULL) {
+#ifdef _DEBUG
             log_tree();
+#endif
             swap_nodes(node_to_check, node_to_swap);
         }
         // now we can safely update the weight of the node
@@ -296,7 +307,9 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
         node_to_check->weight++;
     }
 
+#ifdef _DEBUG
     log_tree();
+#endif
 }
 
 /*
@@ -355,36 +368,23 @@ int get_node_level(const adh_node_t *node) {
 
 
 adh_node_t* adh_search_encoding_in_tree(const bit_array_t* bit_array) {
-    adh_node_t* node = find_node_by_encoding(bit_array);
-
-#ifdef _DEBUG
-    log_debug("  adh_search_encoding_in_tree", "bin=%s found=%s\n",
-              fmt_bit_array(bit_array), fmt_node(node));
-#endif
-
-    return node;
-}
-
-adh_node_t* find_node_by_encoding(const bit_array_t* bit_array) {
-#ifdef _DEBUG
-    log_trace("   find_node_by_encoding", "%s bin=%s\n",
-              fmt_node(node),
-              fmt_bit_array(bit_array));
-#endif
-
-    for (int i=0; i<last_index_of_node_array;i++){
-        adh_node_t* node = adh_node_array[i];
+    // search only in adh_symbol_node_array
+    for (int i=0; i<last_index_of_symbol_node_array; i++){
+        adh_node_t* node = adh_symbol_node_array[i];
 
         // skip NYT and OLD NYT
         if (node->symbol > ADH_NYT_CODE) {
-
-            //TODO: update_node_encoding is executed much often than updateTree
-            //      consider to cache this information in the node
             if(compare_bit_arrays(bit_array, &(node->bit_array))) {
+#ifdef _DEBUG
+                log_debug("  adh_search_encoding_in_tree", "bin=%s found=%s\n",
+              fmt_bit_array(bit_array), fmt_node(node));
+#endif
+
                 return node;
             }
         }
     }
+
     return NULL;
 }
 

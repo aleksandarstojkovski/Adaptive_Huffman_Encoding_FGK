@@ -79,16 +79,16 @@ int bin_read_file(const char *filename, void (*fn_process_char)(byte_t)) {
 /*
  * return '1' if the bit at bit_pos is 1, otherwise '0'
  */
-byte_t bit_check(byte_t symbol, unsigned int bit_pos) {
+inline byte_t bit_check(byte_t symbol, unsigned int bit_pos) {
     byte_t val = (symbol & (byte_t)(SINGLE_BIT_1 << bit_pos));
     return val ? BIT_1 : BIT_0;
 }
 
-void bit_set_one(byte_t * symbol, unsigned int bit_pos) {
+inline void bit_set_one(byte_t * symbol, unsigned int bit_pos) {
     *symbol |= (byte_t) (SINGLE_BIT_1 << bit_pos);
 }
 
-void bit_set_zero(byte_t * symbol, unsigned int bit_pos) {
+inline void bit_set_zero(byte_t * symbol, unsigned int bit_pos) {
     *symbol  &= ~((byte_t)(SINGLE_BIT_1 << bit_pos));
 }
 
@@ -114,21 +114,16 @@ void bit_copy(byte_t byte_from, byte_t * byte_to, unsigned int read_pos, unsigne
     }
 }
 
-int bits_to_bytes(int num_bits) {
-    // round up
-    return (int)ceil(1.0 * num_bits / SYMBOL_BITS);
-}
-
-int bit_idx_to_byte_idx(int bit_idx) {
+inline int bit_idx_to_byte_idx(int bit_idx) {
     // truncate
     return bit_idx / SYMBOL_BITS;
 }
 
-int bit_to_change(int buffer_idx) {
-    return get_available_bits(buffer_idx) - 1;
+inline int bit_to_change(int buffer_idx) {
+    return SYMBOL_BITS - (buffer_idx % SYMBOL_BITS) - 1;
 }
 
-int get_available_bits(int buffer_bit_idx) {
+inline int get_available_bits(int buffer_bit_idx) {
     return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
 }
 
@@ -194,6 +189,6 @@ void release_resources(FILE *output_file_ptr, FILE *input_file_ptr) {
 void print_final_stats(FILE * input_file_ptr, FILE * output_file_ptr) {
     long inSize = ftell(input_file_ptr);
     long outSize = ftell(output_file_ptr);
-    double ratio = 100.0 - (100.0 * outSize / inSize);
-    log_info(" print_final_stats", "rate= %.1f%% [%ld -> %ld] (bytes)\n", ratio, inSize, outSize);
+    double ratio = 100.0 * (inSize - outSize) / inSize;
+    log_info(" print_final_stats", "rate= %.2f%% [%ld -> %ld] (bytes)\n", ratio, inSize, outSize);
 }
