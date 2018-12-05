@@ -16,7 +16,7 @@ static adh_node_t *         adh_nyt_node = NULL;
 static adh_node_t *         adh_node_array[MAX_ORDER];
 static adh_node_t *         adh_symbol_node_array[MAX_CODE_BITS];
 static int                  last_index_of_node_array;
-static int                  last_index_of_symbol_node_array;
+
 //
 // private methods
 //
@@ -38,8 +38,16 @@ int adh_init_tree() {
 #ifdef _DEBUG
     log_trace("adh_init_tree", "\n");
 #endif
-    last_index_of_symbol_node_array = 0;
+
+    for (int i = 0; i < MAX_CODE_BITS; ++i) {
+        adh_symbol_node_array[i] = NULL;
+    }
+
     last_index_of_node_array = 0;
+    for (int i = 0; i < MAX_ORDER; ++i) {
+        adh_node_array[i] = NULL;
+    }
+
     adh_next_order = MAX_ORDER;
     if(adh_root_node != NULL) {
         perror("adh_init_tree: root already initialized");
@@ -151,7 +159,7 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     // add node to node array
     adh_node_array[last_index_of_node_array++] = node;
     if(symbol > ADH_NYT_CODE)
-        adh_symbol_node_array[last_index_of_symbol_node_array++] = node;
+        adh_symbol_node_array[symbol] = node;
 
     node->left = NULL;
     node->right = NULL;
@@ -210,14 +218,7 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
 #ifdef _DEBUG
     log_trace("  adh_search_symbol_in_tree", "%s\n", fmt_symbol(symbol));
 #endif
-
-    // search only in adh_symbol_node_array
-    for (int i=0; i<last_index_of_symbol_node_array; i++){
-        if (adh_symbol_node_array[i]->symbol == symbol){
-            return adh_symbol_node_array[i];
-        }
-    }
-    return NULL;
+    return adh_symbol_node_array[symbol];
 }
 
 /*
@@ -369,11 +370,9 @@ int get_node_level(const adh_node_t *node) {
 
 adh_node_t* adh_search_encoding_in_tree(const bit_array_t* bit_array) {
     // search only in adh_symbol_node_array
-    for (int i=0; i<last_index_of_symbol_node_array; i++){
+    for (int i=0; i<MAX_CODE_BITS; i++){
         adh_node_t* node = adh_symbol_node_array[i];
-
-        // skip NYT and OLD NYT
-        if (node->symbol > ADH_NYT_CODE) {
+        if (node) {
             if(compare_bit_arrays(bit_array, &(node->bit_array))) {
 #ifdef _DEBUG
                 log_debug("  adh_search_encoding_in_tree", "bin=%s found=%s\n",
