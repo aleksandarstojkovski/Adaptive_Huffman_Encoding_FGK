@@ -5,11 +5,9 @@
 #include "bin_io.h"
 #include "log.h"
 
-
 //
 // module variables
 //
-
 static adh_order_t          adh_next_order;
 static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
@@ -20,6 +18,7 @@ static int                  last_index_of_node_array;
 //
 // private methods
 //
+int             adh_init_tree();
 adh_node_t*     create_nyt();
 adh_node_t*     create_node(adh_symbol_t symbol);
 void            destroy_node(adh_node_t *node);
@@ -27,8 +26,34 @@ void            update_node_encoding(adh_node_t *node);
 void            sort_node_array();
 
 
+/*
+ * get NYT node
+ */
 adh_node_t*     get_nyt() {
     return adh_nyt_node;
+}
+
+/*
+ * Initialize the structure for Adaptive Huffman algorithm
+ */
+int adh_init(const char input_file_name[], const char output_file_name[],
+             FILE **output_file_ptr, FILE **input_file_ptr) {
+    int rc = RC_OK;
+    *input_file_ptr = bin_open_read(input_file_name);
+    if ((*input_file_ptr) == NULL) {
+        rc = RC_FAIL;
+    }
+
+    if(rc == RC_OK) {
+        (*output_file_ptr) = bin_open_create(output_file_name);
+        if ((*output_file_ptr) == NULL) {
+            rc = RC_FAIL;
+        }
+    }
+
+    adh_init_tree();
+
+    return rc;
 }
 
 /*
@@ -96,7 +121,7 @@ void destroy_node(adh_node_t *node) {
 }
 
 /*
- * Append a new node to the NYT
+ * Append a new node to the NYT (Not Yet Transmitted)
  * Must be used only for new symbols (not present in the tree)
  */
 adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
@@ -156,8 +181,11 @@ adh_node_t * create_node(adh_symbol_t symbol) {
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
 
-    // add node to node array
+    // add node to node array and increase the last index
     adh_node_array[last_index_of_node_array++] = node;
+
+    // if the new node is a symbol node
+    // save its reference in the adh_symbol_node_array to improve searches
     if(symbol > ADH_NYT_CODE)
         adh_symbol_node_array[symbol] = node;
 

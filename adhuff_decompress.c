@@ -28,30 +28,15 @@ int     flush_uncompressed(FILE *output_file_ptr);
 int     skip_nyt_bits(int nyt_size);
 void    output_symbol(byte_t symbol);
 
-//#define _DEBUG
-
 /*
  * decompress file
  */
 int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
     log_info("adh_decompress_file", "%-40s %s\n", input_file_name, output_file_name);
 
-    int rc = RC_OK;
-    FILE * output_file_ptr = NULL;
-    FILE * input_file_ptr = bin_open_read(input_file_name);
-    if (input_file_ptr == NULL) {
-        rc = RC_FAIL;
-    }
-
-    if(rc == RC_OK) {
-        output_file_ptr = bin_open_create(output_file_name);
-        if (output_file_ptr == NULL) {
-            rc = RC_FAIL;
-        }
-    }
-
-    if (rc == RC_OK)
-        rc = adh_init_tree();
+    FILE *output_file_ptr;
+    FILE *input_file_ptr;
+    int rc = adh_init(input_file_name, output_file_name, &output_file_ptr, &input_file_ptr);
 
     if (rc == RC_OK) {
         read_header(input_file_ptr);

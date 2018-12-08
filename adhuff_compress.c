@@ -15,13 +15,13 @@ static bool     is_first_byte = true;
 //
 // private methods
 //
-void    process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
-void    output_bit_array(const bit_array_t * bit_array, byte_t *output_buffer, FILE* output_file_ptr);
-void    output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
+int     process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
+int     output_bit_array(const bit_array_t * bit_array, byte_t *output_buffer, FILE* output_file_ptr);
+int     output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr);
 int     flush_data(byte_t *output_buffer, FILE* output_file_ptr);
 int     flush_header(FILE* output_file_ptr);
-void    output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
-void    output_nyt(byte_t *output_buffer, FILE *output_file_ptr);
+int     output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
+int     output_nyt(byte_t *output_buffer, FILE *output_file_ptr);
 
 /*
  * Compress file
@@ -29,55 +29,50 @@ void    output_nyt(byte_t *output_buffer, FILE *output_file_ptr);
 int adh_compress_file(const char input_file_name[], const char output_file_name[]) {
     log_info("adh_compress_file", "%-40s %s\n", input_file_name, output_file_name);
 
-    int rc = RC_OK;
-    FILE* input_file_ptr = bin_open_read(input_file_name);
-    if (input_file_ptr == NULL) {
-        rc = RC_FAIL;
+    FILE *output_file_ptr, *input_file_ptr;
+    int rc = adh_init(input_file_name, output_file_name, &output_file_ptr, &input_file_ptr);
+    if (rc != RC_OK) {
+        release_resources(output_file_ptr, input_file_ptr);
+        return rc;
     }
 
-    FILE* output_file_ptr = bin_open_create(output_file_name);
+    byte_t output_buffer[BUFFER_SIZE] = {0};
+    byte_t input_buffer[BUFFER_SIZE] = {0};
+
+    // reserve first 3 bits for header
+    out_bit_idx = HEADER_BITS;
+    is_first_byte = true;
+
+    size_t bytesRead = 0;
+    while ((bytesRead = fread(input_buffer, sizeof(byte_t), BUFFER_SIZE, input_file_ptr)) > 0)
+    {
+        for(int i=0;i<bytesRead;i++) {
+            rc = process_symbol(input_buffer[i], output_buffer, output_file_ptr);
+            if (rc != RC_OK) {
+                release_resources(output_file_ptr, input_file_ptr);
+                return rc;
+            }
+        }
+    }
+
+    // flush remaining data to file
+    rc = flush_data(output_buffer, output_file_ptr);
+    if (rc != RC_OK) {
+        release_resources(output_file_ptr, input_file_ptr);
+        return rc;
+    }
+
+    print_final_stats(input_file_ptr, output_file_ptr);
+
+    // close and reopen in update mode
+    fclose(output_file_ptr);
+    output_file_ptr = bin_open_update(output_file_name);
     if (output_file_ptr == NULL) {
-        rc = RC_FAIL;
+        release_resources(output_file_ptr, input_file_ptr);
+        return RC_FAIL;
     }
 
-    if(rc == RC_OK)
-        rc = adh_init_tree();
-
-    if(rc == RC_OK) {
-
-        byte_t output_buffer[BUFFER_SIZE] = {0};
-        byte_t input_buffer[BUFFER_SIZE] = {0};
-
-        // reserve first 3 bits for header
-        out_bit_idx = HEADER_BITS;
-        is_first_byte = true;
-
-        size_t bytesRead = 0;
-        while ((bytesRead = fread(input_buffer, sizeof(byte_t), BUFFER_SIZE, input_file_ptr)) > 0)
-        {
-            for(int i=0;i<bytesRead;i++)
-                process_symbol(input_buffer[i], output_buffer, output_file_ptr);
-        }
-
-        // flush remaining data to file
-        rc = flush_data(output_buffer, output_file_ptr);
-        if (rc == RC_FAIL) {
-            release_resources(output_file_ptr, input_file_ptr);
-            return rc;
-        }
-
-        print_final_stats(input_file_ptr, output_file_ptr);
-
-        // close and reopen in update mode
-        fclose(output_file_ptr);
-
-        output_file_ptr = bin_open_update(output_file_name);
-        if (output_file_ptr == NULL) {
-            release_resources(output_file_ptr, input_file_ptr);
-            return RC_FAIL;
-        }
-        rc = flush_header(output_file_ptr);
-    }
+    rc = flush_header(output_file_ptr);
 
     release_resources(output_file_ptr, input_file_ptr);
 
@@ -87,27 +82,28 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
 /*
  * encode char
  */
-void process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
+int process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
 #ifdef _DEBUG
     log_debug(" process_symbol", "%s out_bit_idx=%-8d\n",
             fmt_symbol(symbol),
             out_bit_idx);
 #endif
-
+    int rc = RC_OK;
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
 
     if(node == NULL) {
         // symbol not present in tree
-        output_nyt(output_buffer, output_file_ptr);
-        output_new_symbol(symbol, output_buffer, output_file_ptr);
+        rc = output_nyt(output_buffer, output_file_ptr);
+        if(rc == RC_OK)
+            rc = output_new_symbol(symbol, output_buffer, output_file_ptr);
     } else {
         // char already present in tree
-        output_existing_symbol(symbol, node, output_buffer, output_file_ptr);
+        rc = output_existing_symbol(symbol, node, output_buffer, output_file_ptr);
     }
-
+    return rc;
 }
 
-void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
+int output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
     // write symbol code
     adh_node_t* nodeSymbol = adh_search_symbol_in_tree(symbol);
 
@@ -118,11 +114,15 @@ void output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buff
              fmt_bit_array(&bit_array));
 #endif
 
-    output_bit_array(&(nodeSymbol->bit_array), output_buffer, output_file_ptr);
+    int rc = output_bit_array(&(nodeSymbol->bit_array), output_buffer, output_file_ptr);
+    if(rc != RC_OK)
+        return rc;
+
     adh_update_tree(node, false);
+    return RC_OK;
 }
 
-void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
+int output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     // write symbol code
     bit_array_t bit_array = { 0, 0 };
     symbol_to_bits(symbol, &bit_array);
@@ -132,14 +132,16 @@ void output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_p
               fmt_symbol(symbol), out_bit_idx,
               fmt_bit_array(&bit_array));
 #endif
-
-    output_bit_array(&bit_array, output_buffer, output_file_ptr);
+    int rc = output_bit_array(&bit_array, output_buffer, output_file_ptr);
+    if(rc != RC_OK)
+        return rc;
 
     adh_node_t* new_node = adh_create_node_and_append(symbol);
     adh_update_tree(new_node, true);
+    return rc;
 }
 
-void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
+int output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     // write NYT code
     adh_node_t* nyt = get_nyt();
 
@@ -149,13 +151,13 @@ void output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
              fmt_bit_array(&bit_array));
 #endif
 
-    output_bit_array(&(nyt->bit_array), output_buffer, output_file_ptr);
+    return output_bit_array(&(nyt->bit_array), output_buffer, output_file_ptr);
 }
 
 /*
  * copy data to output buffer as bit array
  */
-void output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE* output_file_ptr) {
+int output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE* output_file_ptr) {
     for(int i = bit_array->length-1; i>=0; i--) {
         // calculate the current position (in byte) of the output_buffer
         int buffer_byte_idx = bit_idx_to_byte_idx(out_bit_idx);
@@ -170,7 +172,9 @@ void output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE*
 
         // buffer full, flush data to file
         if(out_bit_idx+1 == BUFFER_SIZE * SYMBOL_BITS) {
-            flush_data(output_buffer, output_file_ptr);
+            int rc = flush_data(output_buffer, output_file_ptr);
+            if(rc != RC_OK)
+                return rc;
 
             // reset buffer index
             out_bit_idx = 0;
@@ -178,8 +182,9 @@ void output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE*
         } else {
             out_bit_idx++;
         }
-
     }
+
+    return RC_OK;
 }
 
 
