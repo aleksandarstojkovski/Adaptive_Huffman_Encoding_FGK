@@ -31,5 +31,7 @@ enum adh_constants {
 
 static const char BIT_1 = '1';
 static const char BIT_0 = '0';
+#define _DEBUG
+
 
 #endif //ALGO_CONSTANTS_H

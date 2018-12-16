@@ -16,6 +16,7 @@ void    test_bit_set_one(byte_t source, unsigned int bit_pos, byte_t expected);
 void    test_bit_copy(byte_t source, byte_t destination, unsigned int read_pos, unsigned int write_pos, int size, byte_t expected);
 int     compare_files(const char *original, const char *generated);
 
+
 #define MAX_FILE_NAME  80
 #define NUM_TEST_FILES  14 // skip immagine.tiff for the moment
 static const char * TEST_FILES[] = {
@@ -39,7 +40,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_log_level(LOG_INFO);
+    set_log_level(LOG_TRACE);
     test_bit_helpers();
     test_all_files();
 }
