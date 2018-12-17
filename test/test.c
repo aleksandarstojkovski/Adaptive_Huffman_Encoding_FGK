@@ -40,7 +40,7 @@ static const char * TEST_FILES[] = {
  * Main function
  */
 int main(int argc, char* argv[]) {
-    set_log_level(LOG_TRACE);
+    set_log_level(LOG_INFO);
     test_bit_helpers();
     test_all_files();
 }
