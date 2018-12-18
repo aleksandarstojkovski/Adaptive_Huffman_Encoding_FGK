@@ -111,7 +111,7 @@ int output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffe
     log_debug("  output_existing_symbol", "%s out_bit_idx=%-8d bin=%s\n",
              fmt_symbol(symbol),
              out_bit_idx,
-             fmt_bit_array(&bit_array));
+             fmt_bit_array(&nodeSymbol->bit_array));
 #endif
 
     int rc = output_bit_array(&(nodeSymbol->bit_array), output_buffer, output_file_ptr);
@@ -148,7 +148,7 @@ int output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
 #ifdef _DEBUG
     log_debug("  output_nyt", "%3s out_bit_idx=%-8d NYT=%s\n", "",
              out_bit_idx,
-             fmt_bit_array(&bit_array));
+             fmt_bit_array(&nyt->bit_array));
 #endif
 
     return output_bit_array(&(nyt->bit_array), output_buffer, output_file_ptr);

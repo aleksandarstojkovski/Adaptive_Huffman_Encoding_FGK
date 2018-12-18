@@ -10,6 +10,8 @@
 #include <limits.h>
 #include <stdbool.h>
 
+//#define _DEBUG
+
 typedef uint8_t     byte_t;
 
 enum return_code {
