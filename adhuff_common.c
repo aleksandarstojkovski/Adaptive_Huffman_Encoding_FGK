@@ -151,6 +151,7 @@ adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
 
         update_node_encoding(newNode);  // update bit_array
         update_node_encoding(newNYT);    // update bit_array
+        //sort_node_array();
     }
     return newNode;
 }
@@ -199,40 +200,51 @@ adh_node_t * create_node(adh_symbol_t symbol) {
 
     adh_next_order--;
 
-    sort_node_array();
-
     return node;
 }
 
 void sort_node_array() {
+    int holePos;
     for (int i = 1; i < last_index_of_node_array; i++) {
-        int j = i-1;
-        adh_node_t* node1 = adh_node_array[j];
-        adh_node_t* node2 = adh_node_array[i];
+        adh_node_t* nodeToInsert = adh_node_array[i];
+        holePos = i;
 
         // sort by weight so the find_higher_order_same_weight method will be faster
-        while (j >= 0 && node1->weight > node2->weight) {
-            adh_node_array[j+1] = adh_node_array[j];
-            j = j-1;
+        while (holePos > 0 && adh_node_array[holePos-1]->weight > nodeToInsert->weight) {
+            adh_node_array[holePos] = adh_node_array[holePos-1];
+            holePos--;
         }
-        adh_node_array[j+1] = node2;
+
+        if(holePos != i)
+            adh_node_array[holePos] = nodeToInsert;
     }
 }
 
 adh_node_t * find_higher_order_same_weight(adh_weight_t weight, adh_order_t order) {
-    //TODO: ordinando adh_node_array saremmo piu' veloci nella ricerca.
-    //      da valutare il costo dell'ordinamento rispettto a una ricerca completa
-    //      83% del costo della compressione di immagine.tiff e' speso in questo metodo
+    // small optimization: only NYT and new nodes have weight 0
+    // so they are already ordered, don't swap
+    if(weight == 0)
+        return NULL;
+
     adh_node_t *node_to_be_returned=NULL;
     adh_node_t *current_node;
-
-    for (int i=0; i<last_index_of_node_array;i++){
+    for (int i=0; i<last_index_of_node_array ;i++){
         current_node = adh_node_array[i];
+
+        //TODO: ordinando adh_node_array saremmo piu' veloci nella ricerca.
+        //      da valutare il costo dell'ordinamento rispettto a una ricerca completa
+        //      83% del costo della compressione di immagine.tiff e' speso in questo metodo
+
+        // tested with an insertion sort. the cost of sorting is higher than the benefits of search
+        // I've disabled the sort for the moment
+//        if(current_node->weight > weight)
+//            break;
+
         if ((current_node->weight == weight) &&
             (current_node->order > order) &&
             (current_node != adh_root_node) &&
             (node_to_be_returned == NULL || current_node->order > node_to_be_returned->order)) {
-                node_to_be_returned = current_node;
+            node_to_be_returned = current_node;
         }
     }
 
@@ -328,6 +340,7 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
         }
         // now we can safely update the weight of the node
         node_to_check->weight++;
+        //sort_node_array();
 
         // continue ascending the tree
         node_to_check = node_to_check->parent;
