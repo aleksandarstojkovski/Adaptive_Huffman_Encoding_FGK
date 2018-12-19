@@ -54,7 +54,7 @@ int             adh_init(const char input_file_name[],
 adh_node_t*     get_nyt();
 void            adh_destroy_tree();
 void            adh_update_tree(adh_node_t *node, bool is_new_node);
-adh_node_t *    adh_search_encoding_in_tree(const bit_array_t* bit_array);
+adh_node_t *    adh_search_leaf_by_encoding(const bit_array_t *bit_array);
 adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t symbol);
 adh_node_t *    adh_create_node_and_append(adh_symbol_t symbol);
 

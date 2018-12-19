@@ -174,7 +174,7 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
 
             bit_array.buffer[0] = bit_check(sub_buffer[byte_idx], SYMBOL_BITS - bit_idx -1);
             bit_array.length++;
-            node = adh_search_encoding_in_tree(&bit_array);
+            node = adh_search_leaf_by_encoding(&bit_array);
         }
     }
 

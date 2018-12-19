@@ -355,10 +355,9 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
 }
 
 /*
- * calculate the encoded symbol of passed node
+ * calculate the encoded symbol of passed node and its children
  * fill bit_array from left (MSB) to right (LSB)
  * 0 = left node, 1 = right node
- * return the length of the array
  */
 void update_node_encoding(adh_node_t *node) {
     if(node != NULL) {
@@ -409,21 +408,18 @@ int get_node_level(const adh_node_t *node) {
 }
 
 
-adh_node_t* adh_search_encoding_in_tree(const bit_array_t* bit_array) {
-    // search only in adh_symbol_node_array
-    for (int i=0; i<MAX_CODE_BITS; i++){
-        adh_node_t* node = adh_symbol_node_array[i];
-        if (node) {
-            if(compare_bit_arrays(bit_array, &(node->bit_array))) {
-#ifdef _DEBUG
-                log_debug("  adh_search_encoding_in_tree", "bin=%s found=%s\n",
-              fmt_bit_array(bit_array), fmt_node(node));
-#endif
-
-                return node;
-            }
-        }
+adh_node_t* adh_search_leaf_by_encoding(const bit_array_t *bit_array) {
+    adh_node_t* nextNode = adh_root_node;
+    for(int i = bit_array->length-1; i >= 0 && nextNode; i--) {
+        if(bit_array->buffer[i] == BIT_1) {
+            nextNode = nextNode->right;
+        } else
+            nextNode = nextNode->left;
     }
+
+    // if it's a leaf return it
+    if(nextNode && nextNode->right == NULL && nextNode->left == NULL)
+        return nextNode;
 
     return NULL;
 }
