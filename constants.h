@@ -25,7 +25,7 @@ enum adh_constants {
     SYMBOL_BITS         = 8,
     MAX_CODE_BYTES      = 32,
     MAX_CODE_BITS       = 256,
-    MAX_SYMBOL_STR      = 50,
+    MAX_SYMBOL_STR      = 100,
     MAX_BIT_STR         = 257,
     MAX_ORDER           = 513, //100,  //
     BUFFER_SIZE         = 1024

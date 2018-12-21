@@ -151,7 +151,7 @@ char * fmt_symbol(adh_symbol_t symbol) {
 char * fmt_node(const adh_node_t* node) {
     static char str[MAX_SYMBOL_STR] = {0};
     if(node)
-        snprintf(str, sizeof(str), "%s (%3d,%6d)", fmt_symbol(node->symbol), node->order, node->weight);
+        snprintf(str, sizeof(str), "%s (%3u,%6u)", fmt_symbol(node->symbol), node->order, node->weight);
     else
         snprintf(str, sizeof(str), " ");
 
