@@ -1,7 +1,7 @@
 #Manual compille: gcc -lm *.c -o adaptive_huffman
 
 CC=gcc
-CFLAGS= -O3 -lm -I.
+CFLAGS= -std=c99 -O3 -lm -I.
 DEPS = *.h
 OBJ = *.c
 
