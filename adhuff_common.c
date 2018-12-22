@@ -6,14 +6,32 @@
 #include "log.h"
 
 //
+// hash table structures
+//
+enum {
+    HASH_SIZE = 256 //TODO: tune it. prime number or power of 2 ? see https://en.wikipedia.org/wiki/Hash_table
+};
+
+typedef struct hash_entry {
+    adh_node_t*             value;
+    struct hash_entry*      next;
+    struct hash_entry*      prev;
+} hash_entry_t;
+
+typedef struct {
+    int             length;
+    hash_entry_t    **buckets;
+} hash_table_t;
+
+
+//
 // module variables
 //
 static adh_order_t          adh_next_order;
 static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
-static adh_node_t *         adh_node_array[MAX_ORDER];
-static adh_node_t *         adh_symbol_node_array[MAX_CODE_BITS];
-static int                  last_index_of_node_array;
+static adh_node_t *         symbol_node_array[MAX_CODE_BITS];
+static hash_table_t         map_weight_nodes;
 
 //
 // private methods
@@ -23,8 +41,15 @@ adh_node_t*     create_nyt();
 adh_node_t*     create_node(adh_symbol_t symbol);
 void            destroy_node(adh_node_t *node);
 void            update_node_encoding(adh_node_t *node);
-void            sort_node_array();
+void            increase_weight(adh_node_t *node);
 
+void            hash_init();
+void            hash_release();
+void            hash_add(adh_node_t* node);
+void            hash_remove(adh_node_t* node);
+unsigned int    hash_code(adh_weight_t weight);
+adh_node_t*     hash_get(adh_weight_t weight, adh_order_t order);
+void            hash_check_collision(adh_weight_t weight, int hash_index, const adh_node_t *node);
 
 /*
  * get NYT node
@@ -52,6 +77,7 @@ int adh_init(const char input_file_name[], const char output_file_name[],
     }
 
     adh_init_tree();
+    hash_init();
 
     return rc;
 }
@@ -65,12 +91,7 @@ int adh_init_tree() {
 #endif
 
     for (int i = 0; i < MAX_CODE_BITS; ++i) {
-        adh_symbol_node_array[i] = NULL;
-    }
-
-    last_index_of_node_array = 0;
-    for (int i = 0; i < MAX_ORDER; ++i) {
-        adh_node_array[i] = NULL;
+        symbol_node_array[i] = NULL;
     }
 
     adh_next_order = MAX_ORDER;
@@ -92,6 +113,7 @@ void adh_destroy_tree() {
 #endif
 
     destroy_node(adh_root_node);
+    hash_release();
     adh_root_node = NULL;
     adh_nyt_node = NULL;
 }
@@ -135,7 +157,7 @@ adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
     // create right leaf node with passed symbol (and weight 1)
     adh_node_t * newNode = create_node(symbol);
     if(newNode) {
-        newNode->weight = 1;
+        increase_weight(newNode);
         newNode->parent = adh_nyt_node;
         adh_nyt_node->right = newNode;
 
@@ -151,7 +173,6 @@ adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
 
         update_node_encoding(newNode);  // update bit_array
         update_node_encoding(newNYT);    // update bit_array
-        //sort_node_array();
     }
     return newNode;
 }
@@ -182,13 +203,10 @@ adh_node_t * create_node(adh_symbol_t symbol) {
 
     adh_node_t* node = malloc (sizeof(adh_node_t));
 
-    // add node to node array and increase the last index
-    adh_node_array[last_index_of_node_array++] = node;
-
     // if the new node is a symbol node
-    // save its reference in the adh_symbol_node_array to improve searches
+    // save its reference in the symbol_node_array to improve searches
     if(symbol > ADH_NYT_CODE)
-        adh_symbol_node_array[symbol] = node;
+        symbol_node_array[symbol] = node;
 
     node->left = NULL;
     node->right = NULL;
@@ -203,52 +221,13 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     return node;
 }
 
-void sort_node_array() {
-    int holePos;
-    for (int i = 1; i < last_index_of_node_array; i++) {
-        adh_node_t* nodeToInsert = adh_node_array[i];
-        holePos = i;
-
-        // sort by weight so the find_higher_order_same_weight method will be faster
-        while (holePos > 0 && adh_node_array[holePos-1]->weight > nodeToInsert->weight) {
-            adh_node_array[holePos] = adh_node_array[holePos-1];
-            holePos--;
-        }
-
-        if(holePos != i)
-            adh_node_array[holePos] = nodeToInsert;
-    }
-}
-
 adh_node_t * find_higher_order_same_weight(adh_weight_t weight, adh_order_t order) {
     // small optimization: only NYT and new nodes have weight 0
     // so they are already ordered, don't swap
     if(weight == 0)
         return NULL;
 
-    adh_node_t *node_to_be_returned=NULL;
-    adh_node_t *current_node;
-    for (int i=0; i<last_index_of_node_array ;i++){
-        current_node = adh_node_array[i];
-
-        //TODO: ordinando adh_node_array saremmo piu' veloci nella ricerca.
-        //      da valutare il costo dell'ordinamento rispettto a una ricerca completa
-        //      83% del costo della compressione di immagine.tiff e' speso in questo metodo
-
-        // tested with an insertion sort. the cost of sorting is higher than the benefits of search
-        // I've disabled the sort for the moment
-//        if(current_node->weight > weight)
-//            break;
-
-        if ((current_node->weight == weight) &&
-            (current_node->order > order) &&
-            (current_node != adh_root_node) &&
-            (node_to_be_returned == NULL || current_node->order > node_to_be_returned->order)) {
-            node_to_be_returned = current_node;
-        }
-    }
-
-    return node_to_be_returned;
+    return hash_get(weight, order);
 }
 
 /*
@@ -258,7 +237,7 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
 #ifdef _DEBUG
     log_trace("  adh_search_symbol_in_tree", "%s\n", fmt_symbol(symbol));
 #endif
-    return adh_symbol_node_array[symbol];
+    return symbol_node_array[symbol];
 }
 
 /*
@@ -339,15 +318,13 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
             swap_nodes(node_to_check, node_to_swap);
         }
         // now we can safely update the weight of the node
-        node_to_check->weight++;
-        //sort_node_array();
+        increase_weight(node_to_check);
 
         // continue ascending the tree
         node_to_check = node_to_check->parent;
     }
-    if(node_to_check != NULL) {
-        node_to_check->weight++;
-    }
+
+    increase_weight(node_to_check);
 
 #ifdef _DEBUG
     log_tree();
@@ -424,6 +401,16 @@ adh_node_t* adh_search_leaf_by_encoding(const bit_array_t *bit_array) {
     return NULL;
 }
 
+void increase_weight(adh_node_t *node) {
+    if(node == NULL)
+        return;
+
+    hash_remove(node);
+    node->weight++;
+    hash_add(node);
+}
+
+
 void print_sub_tree(const adh_node_t *node, int depth)
 {
     if(node==NULL)
@@ -454,9 +441,98 @@ void print_tree() {
     fprintf(stdout, "\n");
 }
 
-void print_node_array() {
-    log_debug("print_node_array", "\n");
-    for (int i=0; i<last_index_of_node_array;i++){
-        log_debug("", "%3i  %s \n", i, fmt_node(adh_node_array[i]));
+inline unsigned int hash_code(adh_weight_t weight) {
+    return weight % HASH_SIZE;
+}
+
+void hash_init() {
+    map_weight_nodes.length = HASH_SIZE;
+    map_weight_nodes.buckets = calloc(HASH_SIZE, HASH_SIZE * sizeof(map_weight_nodes.buckets));
+}
+
+void hash_release() {
+    for (int i = 0; i < map_weight_nodes.length; ++i) {
+        hash_entry_t  *entry = map_weight_nodes.buckets[i];
+        while(entry) {
+            hash_entry_t  *next = entry->next;
+            free(entry);
+            entry = next;
+        }
+    }
+    free(map_weight_nodes.buckets);
+}
+
+void hash_remove(adh_node_t* node){
+    int hash_index = hash_code(node->weight);
+
+    hash_entry_t  *entry = map_weight_nodes.buckets[hash_index];
+    while(entry) {
+        if(entry->value == node) {
+            if(entry->prev == NULL) {
+                map_weight_nodes.buckets[hash_index] = entry->next;
+            }
+            else {
+                entry->prev->next = entry->next;
+            }
+
+            if(entry->next)
+                entry->next->prev = entry->prev;
+
+            free(entry);
+            break;
+        }
+        entry = entry->next;
+    }
+}
+
+void hash_add(adh_node_t* node){
+    int hash_index = hash_code(node->weight);
+
+    hash_entry_t  *new_entry = calloc(1, sizeof(hash_entry_t));
+    new_entry->value = node;
+
+    hash_entry_t  *last = map_weight_nodes.buckets[hash_index];
+    if(last == NULL) {
+        map_weight_nodes.buckets[hash_index] = new_entry;
+    }
+    else {
+        while(last && last->next) {
+            last = last->next;
+        }
+
+        last->next = new_entry;
+        new_entry->prev = last;
+    }
+}
+
+adh_node_t* hash_get(adh_weight_t weight, adh_order_t order) {
+    adh_node_t* node_result = NULL;
+    int hash_index = hash_code(weight);
+    hash_entry_t* entry = map_weight_nodes.buckets[hash_index];
+    while(entry) {
+        adh_node_t* current_node = entry->value;
+
+#ifdef _DEBUG
+        hash_check_collision(weight, hash_index, current_node);
+#endif
+
+        if(current_node->weight == weight && current_node->order > order && current_node != adh_root_node) {
+            node_result = current_node;
+            order = node_result->order;
+        }
+        entry = entry->next;
+    }
+    return node_result;
+}
+
+void hash_check_collision(adh_weight_t weight, int hash_index, const adh_node_t *node) {
+    if(node->weight != weight) {
+        int size = 0;
+        hash_entry_t* he = map_weight_nodes.buckets[hash_index];
+        while(he != NULL) {
+            size++;
+            he = he->next;
+        }
+        log_info("hash_get", "collision, size:%d w1:%d w2:%d\n", size, weight, node->weight);
     }
 }

@@ -50,7 +50,7 @@ void log_trace_char_bin(byte_t symbol) {
     if(get_log_level() < LOG_TRACE)
         return;
 
-    bit_array_t bit_array = { 0, 0 };
+    bit_array_t bit_array = {0};
     symbol_to_bits(symbol, &bit_array);
     fprintf(stdout, "%s\n", fmt_bit_array(&bit_array));
 }

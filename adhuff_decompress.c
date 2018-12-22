@@ -148,7 +148,7 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     unsigned int original_input_buffer_bit_idx = in_bit_idx;
 
     adh_node_t* node = NULL;
-    bit_array_t bit_array = { 0, 0 };
+    bit_array_t bit_array = {0};
     byte_t  sub_buffer[MAX_CODE_BYTES] = {0};
     int missing = last_bit_idx - in_bit_idx + 1;
 

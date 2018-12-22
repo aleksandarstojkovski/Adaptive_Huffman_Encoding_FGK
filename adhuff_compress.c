@@ -124,7 +124,7 @@ int output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffe
 
 int output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     // write symbol code
-    bit_array_t bit_array = { 0, 0 };
+    bit_array_t bit_array = {0};
     symbol_to_bits(symbol, &bit_array);
 
 #ifdef _DEBUG
