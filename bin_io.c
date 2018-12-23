@@ -50,27 +50,6 @@ FILE* bin_open_file(const char *filename, const char *mode) {
     return file_ptr;
 }
 
-/*
- *  Read a binary file in chunk of BUFFER_SIZE.
- *  for each byte read it calls fn_process_char callback
- */
-int bin_read_file(const char *filename, void (*fn_process_char)(byte_t)) {
-    FILE * file_ptr = bin_open_read(filename);
-    if(file_ptr == NULL)
-        return RC_FAIL;
-
-    byte_t buffer[BUFFER_SIZE] = { 0 };
-    size_t bytes_read = 0;
-    while ((bytes_read = fread(buffer, sizeof(byte_t), sizeof(buffer), file_ptr)) > 0)
-    {
-        for(int i=0;i<bytes_read;i++)
-            fn_process_char(buffer[i]);
-    }
-    fclose(file_ptr);
-    return RC_OK;
-}
-
-
 
 //
 // bit manipulation functions
@@ -127,17 +106,6 @@ inline int get_available_bits(int buffer_bit_idx) {
     return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
 }
 
-bool compare_bit_arrays(const bit_array_t *bit_array1, const bit_array_t *bit_array2) {
-    if(bit_array1->length != bit_array2->length)
-        return false;
-
-    for (int i = 0; i < bit_array1->length; ++i) {
-        if(bit_array1->buffer[i] != bit_array2->buffer[i])
-            return false;
-    }
-    return true;
-}
-
 bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, int last_bit_idx, const bit_array_t *bit_array_nyt) {
     int size = bit_array_nyt->length;
     if(last_bit_idx - in_bit_idx < size)
@@ -173,8 +141,6 @@ void symbol_to_bits(byte_t symbol, bit_array_t *bit_array) {
 }
 
 void release_resources(FILE *output_file_ptr, FILE *input_file_ptr) {
-    //print_node_array();
-
     if(output_file_ptr) {
         fclose(output_file_ptr);
     }

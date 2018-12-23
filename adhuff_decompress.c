@@ -10,7 +10,7 @@
 /*
  * modules variables
  */
-static byte_t           output_buffer[BUFFER_SIZE] = {0};
+static byte_t           output_buffer[BUFFER_SIZE];
 static unsigned int     output_byte_idx;
 static unsigned int     in_bit_idx;
 static unsigned int     bits_to_ignore;

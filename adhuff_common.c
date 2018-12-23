@@ -496,7 +496,7 @@ void hash_add(adh_node_t* node){
         map_weight_nodes.buckets[hash_index] = new_entry;
     }
     else {
-        while(last && last->next) {
+        while(last->next) {
             last = last->next;
         }
 
