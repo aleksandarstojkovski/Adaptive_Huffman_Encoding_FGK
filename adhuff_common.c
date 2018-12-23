@@ -45,10 +45,10 @@ void            increase_weight(adh_node_t *node);
 
 void            hash_init();
 void            hash_release();
-void            hash_add(adh_node_t* node);
-void            hash_remove(adh_node_t* node);
-unsigned int    hash_code(adh_weight_t weight);
-adh_node_t*     hash_get(adh_weight_t weight, adh_order_t order);
+void            hash_add(adh_node_t* node, hash_entry_t* entry);
+hash_entry_t*   hash_detach_entry(adh_node_t *node);
+unsigned int    hash_get_index(adh_weight_t weight);
+adh_node_t*     hash_get_value(adh_weight_t weight, adh_order_t order);
 void            hash_check_collision(adh_weight_t weight, int hash_index, const adh_node_t *node);
 
 /*
@@ -227,7 +227,7 @@ adh_node_t * find_higher_order_same_weight(adh_weight_t weight, adh_order_t orde
     if(weight == 0)
         return NULL;
 
-    return hash_get(weight, order);
+    return hash_get_value(weight, order);
 }
 
 /*
@@ -405,9 +405,9 @@ void increase_weight(adh_node_t *node) {
     if(node == NULL)
         return;
 
-    hash_remove(node);
+    hash_entry_t* entry = hash_detach_entry(node);
     node->weight++;
-    hash_add(node);
+    hash_add(node, entry);
 }
 
 
@@ -441,7 +441,7 @@ void print_tree() {
     fprintf(stdout, "\n");
 }
 
-inline unsigned int hash_code(adh_weight_t weight) {
+inline unsigned int hash_get_index(adh_weight_t weight) {
     return weight % HASH_SIZE;
 }
 
@@ -462,8 +462,8 @@ void hash_release() {
     free(map_weight_nodes.buckets);
 }
 
-void hash_remove(adh_node_t* node){
-    int hash_index = hash_code(node->weight);
+hash_entry_t* hash_detach_entry(adh_node_t *node) {
+    int hash_index = hash_get_index(node->weight);
 
     hash_entry_t  *entry = map_weight_nodes.buckets[hash_index];
     while(entry) {
@@ -478,17 +478,19 @@ void hash_remove(adh_node_t* node){
             if(entry->next)
                 entry->next->prev = entry->prev;
 
-            free(entry);
-            break;
+            entry->prev = NULL;
+            entry->next = NULL;
+            return entry;
         }
         entry = entry->next;
     }
+    return NULL;
 }
 
-void hash_add(adh_node_t* node){
-    int hash_index = hash_code(node->weight);
+void hash_add(adh_node_t* node, hash_entry_t *old_entry){
+    int hash_index = hash_get_index(node->weight);
 
-    hash_entry_t  *new_entry = calloc(1, sizeof(hash_entry_t));
+    hash_entry_t  *new_entry = old_entry != NULL ? old_entry : calloc(1, sizeof(hash_entry_t));
     new_entry->value = node;
 
     hash_entry_t  *last = map_weight_nodes.buckets[hash_index];
@@ -505,9 +507,9 @@ void hash_add(adh_node_t* node){
     }
 }
 
-adh_node_t* hash_get(adh_weight_t weight, adh_order_t order) {
+adh_node_t* hash_get_value(adh_weight_t weight, adh_order_t order) {
     adh_node_t* node_result = NULL;
-    int hash_index = hash_code(weight);
+    int hash_index = hash_get_index(weight);
     hash_entry_t* entry = map_weight_nodes.buckets[hash_index];
     while(entry) {
         adh_node_t* current_node = entry->value;
@@ -533,6 +535,6 @@ void hash_check_collision(adh_weight_t weight, int hash_index, const adh_node_t 
             size++;
             he = he->next;
         }
-        log_info("hash_get", "collision, size:%d w1:%d w2:%d\n", size, weight, node->weight);
+        log_info("hash_check_collision", "collision, size:%d w1:%d w2:%d\n", size, weight, node->weight);
     }
 }
