@@ -140,17 +140,6 @@ void symbol_to_bits(byte_t symbol, bit_array_t *bit_array) {
     }
 }
 
-void release_resources(FILE *output_file_ptr, FILE *input_file_ptr) {
-    if(output_file_ptr) {
-        fclose(output_file_ptr);
-    }
-
-    if(input_file_ptr) {
-        fclose(input_file_ptr);
-    }
-    adh_destroy_tree();
-}
-
 
 void print_final_stats(FILE * input_file_ptr, FILE * output_file_ptr) {
     long inSize = ftell(input_file_ptr);

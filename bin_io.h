@@ -37,7 +37,6 @@ bool        compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, in
                                   const bit_array_t *bit_array_nyt);
 void        symbol_to_bits(byte_t symbol, bit_array_t *bit_array);
 
-void        release_resources(FILE *output_file_ptr, FILE *input_file_ptr);
 void        print_final_stats(FILE *input_file_ptr, FILE *output_file_ptr);
 
 

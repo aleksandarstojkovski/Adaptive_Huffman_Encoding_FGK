@@ -30,13 +30,15 @@ typedef struct {
 static adh_order_t          adh_next_order;
 static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
-static adh_node_t *         symbol_node_array[MAX_CODE_BITS];
-static hash_table_t         map_weight_nodes;
+static adh_node_t *         symbol_node_array[MAX_CODE_BITS] = {0};
+static hash_table_t         map_weight_nodes = {0};
 
 //
 // private methods
 //
-int             adh_init_tree();
+int             init_tree();
+void            destroy_tree();
+
 adh_node_t*     create_nyt();
 adh_node_t*     create_node(adh_symbol_t symbol);
 void            destroy_node(adh_node_t *node);
@@ -63,7 +65,11 @@ adh_node_t*     get_nyt() {
  */
 int adh_init(const char input_file_name[], const char output_file_name[],
              FILE **output_file_ptr, FILE **input_file_ptr) {
-    int rc = RC_OK;
+    int rc = init_tree();
+    if(rc == RC_OK) {
+        hash_init();
+    }
+
     *input_file_ptr = bin_open_read(input_file_name);
     if ((*input_file_ptr) == NULL) {
         rc = RC_FAIL;
@@ -76,16 +82,30 @@ int adh_init(const char input_file_name[], const char output_file_name[],
         }
     }
 
-    adh_init_tree();
-    hash_init();
-
     return rc;
+}
+
+/**
+ * Release allocated resources
+ * @param output_file_ptr
+ * @param input_file_ptr
+ */
+void adh_release(FILE *output_file_ptr, FILE *input_file_ptr) {
+    if(output_file_ptr) {
+        fclose(output_file_ptr);
+    }
+
+    if(input_file_ptr) {
+        fclose(input_file_ptr);
+    }
+
+    destroy_tree();
 }
 
 /*
  * Initialize the tree with a single NYT node
  */
-int adh_init_tree() {
+int init_tree() {
 #ifdef _DEBUG
     log_trace("adh_init_tree", "\n");
 #endif
@@ -96,7 +116,7 @@ int adh_init_tree() {
 
     adh_next_order = MAX_ORDER;
     if(adh_root_node != NULL) {
-        perror("adh_init_tree: root already initialized");
+        perror("init_tree: root already initialized");
         return RC_FAIL;
     }
 
@@ -107,7 +127,7 @@ int adh_init_tree() {
 /*
  * Destroy Tree and reset pointers
  */
-void adh_destroy_tree() {
+void destroy_tree() {
 #ifdef _DEBUG
     log_trace("adh_destroy_tree", "\n");
 #endif
@@ -441,6 +461,11 @@ void print_tree() {
     fprintf(stdout, "\n");
 }
 
+/**
+ * calculate the index of associative array
+ * @param weight
+ * @return
+ */
 inline unsigned int hash_get_index(adh_weight_t weight) {
     return weight % HASH_SIZE;
 }
@@ -487,10 +512,10 @@ hash_entry_t* hash_detach_entry(adh_node_t *node) {
     return NULL;
 }
 
-void hash_add(adh_node_t* node, hash_entry_t *old_entry){
+void hash_add(adh_node_t* node, hash_entry_t *entry){
     int hash_index = hash_get_index(node->weight);
 
-    hash_entry_t  *new_entry = old_entry != NULL ? old_entry : calloc(1, sizeof(hash_entry_t));
+    hash_entry_t  *new_entry = entry != NULL ? entry : calloc(1, sizeof(hash_entry_t));
     new_entry->value = node;
 
     hash_entry_t  *last = map_weight_nodes.buckets[hash_index];

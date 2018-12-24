@@ -31,10 +31,7 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
 
     FILE *output_file_ptr, *input_file_ptr;
     int rc = adh_init(input_file_name, output_file_name, &output_file_ptr, &input_file_ptr);
-    if (rc != RC_OK) {
-        release_resources(output_file_ptr, input_file_ptr);
-        return rc;
-    }
+    if (rc != RC_OK) goto error_handling;
 
     byte_t output_buffer[BUFFER_SIZE] = {0};
     byte_t input_buffer[BUFFER_SIZE] = {0};
@@ -48,33 +45,25 @@ int adh_compress_file(const char input_file_name[], const char output_file_name[
     {
         for(int i=0;i<bytesRead;i++) {
             rc = process_symbol(input_buffer[i], output_buffer, output_file_ptr);
-            if (rc != RC_OK) {
-                release_resources(output_file_ptr, input_file_ptr);
-                return rc;
-            }
+            if (rc != RC_OK) goto error_handling;
         }
     }
 
     // flush remaining data to file
     rc = flush_data(output_buffer, output_file_ptr);
-    if (rc != RC_OK) {
-        release_resources(output_file_ptr, input_file_ptr);
-        return rc;
-    }
+    if (rc != RC_OK) goto error_handling;
 
     print_final_stats(input_file_ptr, output_file_ptr);
 
     // close and reopen in update mode
     fclose(output_file_ptr);
     output_file_ptr = bin_open_update(output_file_name);
-    if (output_file_ptr == NULL) {
-        release_resources(output_file_ptr, input_file_ptr);
-        return RC_FAIL;
-    }
+    if (output_file_ptr == NULL) goto error_handling;
 
     rc = flush_header(output_file_ptr);
 
-    release_resources(output_file_ptr, input_file_ptr);
+error_handling:
+    adh_release(output_file_ptr, input_file_ptr);
 
     return rc;
 }

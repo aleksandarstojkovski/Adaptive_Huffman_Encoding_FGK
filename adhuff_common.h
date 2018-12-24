@@ -47,12 +47,12 @@ typedef struct adh_node {
 static const adh_symbol_t   ADH_NYT_CODE = -1;
 static const adh_symbol_t   ADH_OLD_NYT_CODE = -2;
 
+void            adh_release(FILE *output_file_ptr, FILE *input_file_ptr);
 int             adh_init(const char input_file_name[],
                          const char output_file_name[],
                          FILE **output_file_ptr,
                          FILE **input_file_ptr);
 adh_node_t*     get_nyt();
-void            adh_destroy_tree();
 void            adh_update_tree(adh_node_t *node, bool is_new_node);
 adh_node_t *    adh_search_leaf_by_encoding(const bit_array_t *bit_array);
 adh_node_t *    adh_search_symbol_in_tree(adh_symbol_t symbol);

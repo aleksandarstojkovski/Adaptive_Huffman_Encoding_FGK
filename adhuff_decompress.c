@@ -27,6 +27,7 @@ int     decode_existing_symbol(const byte_t input_buffer[]);
 int     flush_uncompressed(FILE *output_file_ptr);
 int     skip_nyt_bits(int nyt_size);
 void    output_symbol(byte_t symbol);
+int     process_bits(const byte_t *input_buffer, FILE *output_file_ptr);
 
 /*
  * decompress file
@@ -34,84 +35,73 @@ void    output_symbol(byte_t symbol);
 int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
     log_info("adh_decompress_file", "%-40s %s\n", input_file_name, output_file_name);
 
-    FILE *output_file_ptr;
-    FILE *input_file_ptr;
+    byte_t* input_buffer = NULL;
+    FILE *output_file_ptr = NULL;
+    FILE *input_file_ptr = NULL;
+
     int rc = adh_init(input_file_name, output_file_name, &output_file_ptr, &input_file_ptr);
+    if (rc == RC_FAIL) goto error_handling;
 
-    if (rc == RC_OK) {
-        read_header(input_file_ptr);
+    read_header(input_file_ptr);
 
-        // TODO: handle big files, don't read entire file in memory
-        int input_size = get_filesize(input_file_ptr);
-        int bytes_to_read = input_size;
+    // TODO: handle big files, don't read entire file in memory
+    int input_size = get_filesize(input_file_ptr);
+    int bytes_to_read = input_size;
 
-        memset(output_buffer, 0, sizeof(output_buffer));
-        byte_t* input_buffer = (byte_t*) malloc(input_size);
+    memset(output_buffer, 0, sizeof(output_buffer));
+    input_buffer = (byte_t*) malloc(input_size);
 
-        // read up to sizeof(buffer) bytes
-        size_t bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr);
-        //while ((bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr)) > 0)
-        {
-            if(bytes_read != bytes_to_read) {
-                log_error("adh_decompress_file", "bytes_read (%zu) != bytes_to_read (%d)\n", bytes_read, bytes_to_read);
-                free(input_buffer);
-                release_resources(output_file_ptr, input_file_ptr);
-                return RC_FAIL;
-            }
-
-            last_bit_idx = (input_size * SYMBOL_BITS) - bits_to_ignore -1;
-#ifdef _DEBUG
-            log_debug("adh_decompress_file", "last_bit_idx=%d\n", last_bit_idx);
-#endif
-
-            while(in_bit_idx <= last_bit_idx) {
-
-                adh_node_t* nyt = get_nyt();
-
-                bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, last_bit_idx, &(nyt->bit_array));
-                if(is_nyt_code) {
-                    rc = skip_nyt_bits(nyt->bit_array.length);
-                    if(rc == RC_FAIL) {
-                        free(input_buffer);
-                        release_resources(output_file_ptr, input_file_ptr);
-                        return rc;
-                    }
-
-                    // not coded byte
-                    rc = decode_new_symbol(input_buffer);
-                    if(rc == RC_FAIL) {
-                        free(input_buffer);
-                        release_resources(output_file_ptr, input_file_ptr);
-                        return rc;
-                    }
-                } else {
-                    rc = decode_existing_symbol(input_buffer);
-                    if(rc == RC_FAIL) {
-                        free(input_buffer);
-                        release_resources(output_file_ptr, input_file_ptr);
-                        return rc;
-                    }
-                }
-
-                if(output_byte_idx == BUFFER_SIZE -1) {
-                    rc = flush_uncompressed(output_file_ptr);
-                    if(rc == RC_FAIL) {
-                        free(input_buffer);
-                        release_resources(output_file_ptr, input_file_ptr);
-                        return rc;
-                    }
-                }
-            }
+    // read up to sizeof(buffer) bytes
+    size_t bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr);
+    //while ((bytes_read = fread(input_buffer, sizeof(byte_t), bytes_to_read, input_file_ptr)) > 0)
+    {
+        if(bytes_read != bytes_to_read) {
+            rc = RC_FAIL;
+            log_error("adh_decompress_file", "bytes_read (%zu) != bytes_to_read (%d)\n", bytes_read, bytes_to_read);
+            goto error_handling;
         }
 
-        free(input_buffer);
-        flush_uncompressed(output_file_ptr);
+        last_bit_idx = (input_size * SYMBOL_BITS) - bits_to_ignore -1;
+#ifdef _DEBUG
+        log_debug("adh_decompress_file", "last_bit_idx=%d\n", last_bit_idx);
+#endif
+
+        while(in_bit_idx <= last_bit_idx) {
+            rc = process_bits(input_buffer, output_file_ptr);
+            if(rc == RC_FAIL) goto error_handling;
+        }
     }
 
+    flush_uncompressed(output_file_ptr);
     print_final_stats(input_file_ptr, output_file_ptr);
-    release_resources(output_file_ptr, input_file_ptr);
+
+error_handling:
+    free(input_buffer);
+    adh_release(output_file_ptr, input_file_ptr);
 
     return rc;
+}
+
+int process_bits(const byte_t *input_buffer, FILE *output_file_ptr) {
+    int rc;
+    adh_node_t* nyt = get_nyt();
+    bool is_nyt_code = compare_input_and_nyt(input_buffer, in_bit_idx, last_bit_idx, &(nyt->bit_array));
+    if(is_nyt_code) {
+        rc = skip_nyt_bits(nyt->bit_array.length);
+        if(rc == RC_FAIL) return rc;
+
+        rc = decode_new_symbol(input_buffer);
+        if(rc == RC_FAIL) return rc;
+    } else {
+        rc = decode_existing_symbol(input_buffer);
+        if(rc == RC_FAIL) return rc;
+    }
+
+    if(output_byte_idx == BUFFER_SIZE -1) {
+        rc = flush_uncompressed(output_file_ptr);
+        if(rc == RC_FAIL) return rc;
+    }
+    return RC_OK;
 }
 
 int skip_nyt_bits(int nyt_size) {
