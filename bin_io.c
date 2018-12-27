@@ -17,30 +17,38 @@ static const byte_t     SINGLE_BIT_1 = 0x01u;
 //
 FILE* bin_open_file(const char *filename, const char *mode);
 
-/*
- *  open file in read binary mode.
+/**
+ * open file in read binary mode.
+ * @param filename
+ * @return the FILE pointer
  */
 FILE* bin_open_read(const char *filename) {
     return bin_open_file(filename, "rb");
 }
 
-/*
- *  create a file in write binary mode. overwrite if existing
+/**
+ * create a file in write binary mode. overwrite if existing
+ * @param filename
+ * @return the FILE pointer
  */
 FILE* bin_open_create(const char *filename) {
     return bin_open_file(filename, "wb");
 }
 
-/*
- *  open a file in read and update mode.
+/**
+ * open a file in read and update mode.
+ * @param filename
+ * @return the FILE pointer
  */
 FILE* bin_open_update(const char *filename) {
     return bin_open_file(filename, "rb+");
 }
 
-/*
- *  wrapper function to open a file.
- *  in case of error return NULL
+/**
+ * wrapper function to open a file.
+ * @param filename
+ * @param mode
+ * @return the FILE pointer, NULL in case of error
  */
 FILE* bin_open_file(const char *filename, const char *mode) {
     FILE* file_ptr = fopen(filename, mode);
@@ -55,25 +63,42 @@ FILE* bin_open_file(const char *filename, const char *mode) {
 // bit manipulation functions
 //
 
-/*
- * return '1' if the bit at bit_pos is 1, otherwise '0'
+/**
+ * @param symbol
+ * @param bit_pos
+ * @return the char '1' if the bit at bit_pos is 1, otherwise '0'
  */
 inline byte_t bit_check(byte_t symbol, unsigned int bit_pos) {
     byte_t val = (symbol & (byte_t)(SINGLE_BIT_1 << bit_pos));
     return val ? BIT_1 : BIT_0;
 }
 
+/**
+ * set to 1 the bit at given position
+ * @param symbol
+ * @param bit_pos
+ */
 inline void bit_set_one(byte_t * symbol, unsigned int bit_pos) {
     *symbol |= (byte_t) (SINGLE_BIT_1 << bit_pos);
 }
 
+/**
+ * set to 0 the bit at given position
+ * @param symbol
+ * @param bit_pos
+ */
 inline void bit_set_zero(byte_t * symbol, unsigned int bit_pos) {
     *symbol  &= ~((byte_t)(SINGLE_BIT_1 << bit_pos));
 }
 
-/*
+/**
  * copy bits from most significant bit to least significant
  * e.g. from 5, size 4 -> 5,4,3,2
+ * @param byte_from: the source
+ * @param byte_to: the destination (may use 2 bytes)
+ * @param read_pos: bit position in input
+ * @param write_pos: bit position in output
+ * @param size: number of bits to copy
  */
 void bit_copy(byte_t byte_from, byte_t * byte_to, unsigned int read_pos, unsigned int write_pos, int size) {
     for(int offset=0; offset < size; offset++) {
@@ -93,44 +118,35 @@ void bit_copy(byte_t byte_from, byte_t * byte_to, unsigned int read_pos, unsigne
     }
 }
 
+/**
+ * @param bit_idx
+ * @return the byte index from the bit index
+ */
 inline long bit_idx_to_byte_idx(long bit_idx) {
     return (bit_idx / SYMBOL_BITS);
 }
 
-inline int bit_to_change(long buffer_idx) {
+/**
+ * @param buffer_idx
+ * @return bit position in current byte
+ */
+inline int bit_pos_in_current_byte(long buffer_idx) {
     return SYMBOL_BITS - (buffer_idx % SYMBOL_BITS) - 1;
 }
 
+/**
+ * @param buffer_bit_idx
+ * @return number of remaining bits for the current byte
+ */
 inline int get_available_bits(long buffer_bit_idx) {
     return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
 }
 
-bool compare_input_and_nyt(const byte_t *input_buffer, long in_bit_idx, long last_bit_idx, const bit_array_t *bit_array_nyt) {
-    int size = bit_array_nyt->length;
-    if(last_bit_idx - in_bit_idx < size)
-        return false;
-
-#ifdef _DEBUG
-    log_debug("compare_input_and_nyt", "in_bit_idx=%-8d NYT=%s\n",
-              in_bit_idx,
-              fmt_bit_array(bit_array_nyt));
-#endif
-
-    bool have_same_bits = true;
-    for(int offset=0; offset<size; offset++) {
-        long byte_idx = bit_idx_to_byte_idx(in_bit_idx + offset);
-        byte_t input_byte = input_buffer[byte_idx];
-
-        int input_byte_bit_idx = bit_to_change(in_bit_idx + offset);
-        byte_t value = bit_check(input_byte, (unsigned int)input_byte_bit_idx);
-        if(value != bit_array_nyt->buffer[size-offset-1]) {
-            have_same_bits = false;
-            break;
-        }
-    }
-    return have_same_bits;
-}
-
+/**
+ * fill the bit_array with the binary representation of the symbol
+ * @param symbol
+ * @param bit_array
+ */
 void symbol_to_bits(byte_t symbol, bit_array_t *bit_array) {
     bit_array->length = SYMBOL_BITS;
     for (int bit_pos = SYMBOL_BITS - 1; bit_pos >= 0; --bit_pos) {
@@ -139,7 +155,11 @@ void symbol_to_bits(byte_t symbol, bit_array_t *bit_array) {
     }
 }
 
-
+/**
+ * print the compression ratio between the input and output
+ * @param input_file_ptr
+ * @param output_file_ptr
+ */
 void print_final_stats(FILE * input_file_ptr, FILE * output_file_ptr) {
     long inSize = ftell(input_file_ptr);
     long outSize = ftell(output_file_ptr);

@@ -6,7 +6,7 @@
 #include "adhuff_decompress.h"
 #include "log.h"
 
-/*
+/**
  * Print usage
  */
 void printUsage() {
@@ -15,8 +15,11 @@ void printUsage() {
     puts("\tto decompress a file: algo -d <filename_to_decompress>");
 }
 
-/*
- * Main function
+/**
+ * Main function of the application
+ * @param argc
+ * @param argv
+ * @return 0 OK, otherwise FAILURE
  */
 int main(int argc, char* argv[])
 {

@@ -23,29 +23,25 @@ void        print_time(FILE* fp);
 void        print_method(FILE* fp, const char *method);
 void        sleep_ms(int milliseconds);
 
+/**
+ * set the log level
+ * @param level
+ */
 void set_log_level(log_level_t level) {
     log_level = level;
 }
 
+/**
+ * @return the log level
+ */
 log_level_t get_log_level() {
     return log_level;
 }
 
-void print_time(FILE* fp) {
-    time_t raw_time;
-    time (&raw_time);
-    struct tm * time_info = localtime(&raw_time);
-
-    char time_string[9] = {0};
-    strftime(time_string, 9, "%H:%M:%S", time_info);
-
-    fprintf(fp, "%s  ", time_string);
-}
-
-void print_method(FILE* fp, const char *method) {
-    fprintf(fp, "%-35s ", method);
-}
-
+/**
+ * print the binary representation of a symbol (TRACE level)
+ * @param symbol
+ */
 void log_trace_char_bin(byte_t symbol) {
     if(get_log_level() < LOG_TRACE)
         return;
@@ -55,6 +51,12 @@ void log_trace_char_bin(byte_t symbol) {
     fprintf(stdout, "%s\n", fmt_bit_array(&bit_array));
 }
 
+/**
+ * log ERROR messages on screen formatting method name and adding execution time
+ * @param method
+ * @param format
+ * @param ...
+ */
 void log_error(const char *method, const char *format, ...) {
     if(get_log_level() < LOG_ERROR)
         return;
@@ -71,8 +73,11 @@ void log_error(const char *method, const char *format, ...) {
     va_end(args);
 }
 
-/*
- * log information on screen formatting method name and adding execution time
+/**
+ * log INFO messages on screen formatting method name and adding execution time
+ * @param method
+ * @param format
+ * @param ...
  */
 void log_info(const char *method, const char *format, ...) {
     if(get_log_level() < LOG_INFO)
@@ -87,8 +92,11 @@ void log_info(const char *method, const char *format, ...) {
     va_end(args);
 }
 
-/*
- * same as log_info, but only if debug level is active
+/**
+ * log DEBUG messages on screen formatting method name and adding execution time
+ * @param method
+ * @param format
+ * @param ...
  */
 void log_debug(const char *method, const char *format, ...) {
     if(get_log_level() < LOG_DEBUG)
@@ -104,8 +112,11 @@ void log_debug(const char *method, const char *format, ...) {
 }
 
 
-/*
- * same as log_info, but only if trace level is active
+/**
+ * log TRACE messages on screen formatting method name and adding execution time
+ * @param method
+ * @param format
+ * @param ...
  */
 void log_trace(const char *method, const char *format, ...) {
     if(get_log_level() < LOG_TRACE)
@@ -120,6 +131,10 @@ void log_trace(const char *method, const char *format, ...) {
     va_end(args);
 }
 
+/**
+ * sleep utility to delay the print of error messages
+ * @param milliseconds
+ */
 void sleep_ms(int milliseconds) // cross-platform sleep function
 {
 #ifdef WIN32
@@ -134,6 +149,12 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 #endif
 }
 
+/**
+ * set an internal log buffer with the string representation of a symbol
+ * (dirty trick to not reallocate the memory, a bit dangerous... it could be done better)
+ * @param symbol
+ * @return a pointer to the internal buffer
+ */
 char * fmt_symbol(adh_symbol_t symbol) {
     static char str[MAX_SYMBOL_STR] = {0};
     if(symbol == ADH_NYT_CODE)
@@ -148,6 +169,12 @@ char * fmt_symbol(adh_symbol_t symbol) {
     return str;
 }
 
+/**
+ * set an internal log buffer with the string representation of a node
+ * (dirty trick to not reallocate the memory, a bit dangerous... it could be done better)
+ * @param node
+ * @return a pointer to the internal buffer
+ */
 char * fmt_node(const adh_node_t* node) {
     static char str[MAX_SYMBOL_STR] = {0};
     if(node)
@@ -158,7 +185,12 @@ char * fmt_node(const adh_node_t* node) {
     return str;
 }
 
-
+/**
+ * set an internal log buffer with the string representation of a bit array
+ * (dirty trick to not reallocate the memory, a bit dangerous... it could be done better)
+ * @param bit_array
+ * @return a pointer to the internal buffer
+ */
 char * fmt_bit_array(const bit_array_t *bit_array) {
     static char str[MAX_BIT_STR] = {0};
 
@@ -172,6 +204,9 @@ char * fmt_bit_array(const bit_array_t *bit_array) {
     return str;
 }
 
+/**
+ * TRACE level, print the tree
+ */
 void log_tree() {
     if(get_log_level() < LOG_TRACE)
         return;
@@ -179,3 +214,27 @@ void log_tree() {
     print_tree();
 }
 
+
+/**
+ * print the time information formatted to fixed size
+ * @param fp
+ */
+void print_time(FILE* fp) {
+    time_t raw_time;
+    time (&raw_time);
+    struct tm * time_info = localtime(&raw_time);
+
+    char time_string[9] = {0};
+    strftime(time_string, 9, "%H:%M:%S", time_info);
+
+    fprintf(fp, "%s  ", time_string);
+}
+
+/**
+ * print the method name formatted to fixed size
+ * @param fp
+ * @param method
+ */
+void print_method(FILE* fp, const char *method) {
+    fprintf(fp, "%-35s ", method);
+}

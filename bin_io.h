@@ -31,10 +31,8 @@ void        bit_set_zero(byte_t * symbol, unsigned int bit_pos);
 void        bit_copy(byte_t byte_from, byte_t *byte_to, unsigned int read_pos, unsigned int write_pos, int size);
 
 int         get_available_bits(long buffer_bit_idx);
-int         bit_to_change(long buffer_idx);
+int         bit_pos_in_current_byte(long buffer_idx);
 long        bit_idx_to_byte_idx(long bit_idx);
-bool        compare_input_and_nyt(const byte_t *input_buffer, long in_bit_idx, long last_bit_idx,
-                                  const bit_array_t *bit_array_nyt);
 void        symbol_to_bits(byte_t symbol, bit_array_t *bit_array);
 
 void        print_final_stats(FILE *input_file_ptr, FILE *output_file_ptr);

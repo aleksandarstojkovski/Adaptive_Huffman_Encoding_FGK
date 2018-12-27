@@ -61,6 +61,11 @@ adh_node_t*     get_nyt() {
 
 /**
  * Initialize the structure for Adaptive Huffman algorithm
+ * @param input_file_name
+ * @param output_file_name
+ * @param output_file_ptr
+ * @param input_file_ptr
+ * @return RC_OK / RC_FAIL
  */
 int adh_init(const char input_file_name[], const char output_file_name[],
              FILE **output_file_ptr, FILE **input_file_ptr) {
@@ -139,7 +144,7 @@ void destroy_tree() {
 
 /**
  * release resources for the passed node and its children
- * @param node
+ * @param node: should start from the root
  */
 void destroy_node(adh_node_t *node) {
     if(node == NULL)
@@ -166,7 +171,7 @@ void destroy_node(adh_node_t *node) {
  * Create a new node and append it to the NYT (Not Yet Transmitted)
  * NB: this method must be used only for new symbols (not present in the tree)
  * @param symbol
- * @return
+ * @return the new node, NULL in case of error
  */
 adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
 #ifdef _DEBUG

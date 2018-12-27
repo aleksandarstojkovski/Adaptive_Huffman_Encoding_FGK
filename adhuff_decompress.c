@@ -28,9 +28,13 @@ int     flush_uncompressed(FILE *output_file_ptr);
 int     skip_nyt_bits(int nyt_size);
 void    output_symbol(byte_t symbol);
 int     process_bits(const byte_t *input_buffer, FILE *output_file_ptr);
-
-/*
- * decompress file
+bool    compare_input_and_nyt(const byte_t *input_buffer, long in_bit_idx, long last_bit_idx,
+                              const bit_array_t *bit_array_nyt);
+/**
+ * the main method for decompression
+ * @param input_file_name
+ * @param output_file_name
+ * @return RC_OK / RC_FAIL
  */
 int adh_decompress_file(const char input_file_name[], const char output_file_name[]) {
     log_info("adh_decompress_file", "%-40s %s\n", input_file_name, output_file_name);
@@ -82,6 +86,12 @@ error_handling:
     return rc;
 }
 
+/**
+ * process the input buffer bit per bit
+ * @param input_buffer
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
+ */
 int process_bits(const byte_t *input_buffer, FILE *output_file_ptr) {
     int rc;
     adh_node_t* nyt = get_nyt();
@@ -104,6 +114,11 @@ int process_bits(const byte_t *input_buffer, FILE *output_file_ptr) {
     return RC_OK;
 }
 
+/**
+ * forward the input bit index by the given NYT size
+ * @param nyt_size
+ * @return RC_OK / RC_FAIL
+ */
 int skip_nyt_bits(int nyt_size) {
 #ifdef _DEBUG
     log_debug("skip_nyt_bits", "in_bit_idx=%-8u nyt_size=%d\n", in_bit_idx, nyt_size);
@@ -118,11 +133,15 @@ int skip_nyt_bits(int nyt_size) {
     return RC_OK;
 }
 
+/**
+ * flush output buffer to file
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
+ */
 int flush_uncompressed(FILE *output_file_ptr) {
 #ifdef _DEBUG
     log_debug("flush_uncompressed", "in_bit_idx=%-8u output_byte_idx=%d\n", in_bit_idx, output_byte_idx);
 #endif
-
 
     size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_byte_idx, output_file_ptr);
     if(bytes_written != output_byte_idx) {
@@ -134,6 +153,11 @@ int flush_uncompressed(FILE *output_file_ptr) {
     return RC_OK;
 }
 
+/**
+ * interpret the input as existing symbol, then update the tree
+ * @param input_buffer
+ * @return RC_OK / RC_FAIL
+ */
 int decode_existing_symbol(const byte_t input_buffer[]) {
     long original_input_buffer_bit_idx = in_bit_idx;
 
@@ -184,6 +208,10 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     return RC_OK;
 }
 
+/**
+ * write to output buffer the symbol
+ * @param symbol
+ */
 void output_symbol(byte_t symbol) {
 #ifdef _DEBUG
     log_debug("  output_symbol", "%s in_bit_idx=%-8u\n",
@@ -195,6 +223,11 @@ void output_symbol(byte_t symbol) {
     output_byte_idx++;
 }
 
+/**
+ * interpret the input as a new symbol, then update the tree
+ * @param input_buffer
+ * @return RC_OK / RC_FAIL
+ */
 int decode_new_symbol(const byte_t input_buffer[]) {
 #ifdef _DEBUG
     log_debug("decode_new_symbol", "in_bit_idx=%-8u\n", in_bit_idx);
@@ -213,6 +246,15 @@ int decode_new_symbol(const byte_t input_buffer[]) {
     return RC_OK;
 }
 
+/**
+ * copy the input to an auxiliary buffer (sub_buffer)
+ * since the input could start in the middle of a byte
+ * it will be easier to process the aux buffer
+ * @param input_buffer
+ * @param max_bits_to_read
+ * @param sub_buffer
+ * @return RC_OK / RC_FAIL
+ */
 int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byte_t sub_buffer[]) {
 #ifdef _DEBUG
     log_debug("  read_data_cross_bytes", "in_bit_idx=%-8u last_bit_idx=%u max_bits_to_read=%-8d\n",
@@ -227,15 +269,14 @@ int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byt
                     "in_bit_idx=%-8u last_bit_idx=%u max_bits_to_read=%-8d (in_bit_idx > last_bit_idx) break\n",
                     in_bit_idx, last_bit_idx, max_bits_to_read);
 #endif
-            //TODO ... rewind in_bit_idx ?
             break;
         }
 
         int in_available_bits = get_available_bits(in_bit_idx);
         int bits_to_copy = in_available_bits > max_bits_to_read ? max_bits_to_read : in_available_bits;
 
-        int read_bit_idx = bit_to_change(in_bit_idx);
-        int write_bit_idx = bit_to_change(sub_buffer_bit_idx);
+        int read_bit_idx = bit_pos_in_current_byte(in_bit_idx);
+        int write_bit_idx = bit_pos_in_current_byte(sub_buffer_bit_idx);
         long sub_byte_idx = bit_idx_to_byte_idx(sub_buffer_bit_idx);
 
         // copy bits from most significant bit to least significant
@@ -251,6 +292,11 @@ int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byt
     return bit_idx_to_byte_idx(sub_buffer_bit_idx-1) + 1;
 }
 
+/**
+ * get the file size (in bytes)
+ * @param input_file_ptr
+ * @return the file size
+ */
 long get_file_size(FILE *input_file_ptr) {
     fseek(input_file_ptr, 0 , SEEK_END);
     long file_size = ftell(input_file_ptr);
@@ -258,8 +304,9 @@ long get_file_size(FILE *input_file_ptr) {
     return file_size;
 }
 
-/*
- * read header
+/**
+ * read the compressed file header
+ * @param inputFilePtr
  */
 void read_header(FILE *inputFilePtr) {
     byte_t header;
@@ -275,4 +322,41 @@ void read_header(FILE *inputFilePtr) {
 #ifdef _DEBUG
     log_debug("read_header", "bits_to_ignore=%d\n", bits_to_ignore);
 #endif
+}
+
+/**
+ * compare bit by bit, the input and nyt coding
+ * @param input_buffer
+ * @param in_bit_idx
+ * @param last_bit_idx
+ * @param bit_array_nyt
+ * @return true if they are equals, otherwise false
+ */
+bool compare_input_and_nyt(const byte_t *input_buffer,
+        long in_bit_idx,
+        long last_bit_idx,
+        const bit_array_t *bit_array_nyt) {
+    int size = bit_array_nyt->length;
+    if(last_bit_idx - in_bit_idx < size)
+        return false;
+
+#ifdef _DEBUG
+        log_debug("compare_input_and_nyt", "in_bit_idx=%-8d NYT=%s\n",
+              in_bit_idx,
+              fmt_bit_array(bit_array_nyt));
+#endif
+
+    bool have_same_bits = true;
+    for(int offset=0; offset<size; offset++) {
+        long byte_idx = bit_idx_to_byte_idx(in_bit_idx + offset);
+        byte_t input_byte = input_buffer[byte_idx];
+
+        int input_byte_bit_idx = bit_pos_in_current_byte(in_bit_idx + offset);
+        byte_t value = bit_check(input_byte, (unsigned int)input_byte_bit_idx);
+        if(value != bit_array_nyt->buffer[size-offset-1]) {
+            have_same_bits = false;
+            break;
+        }
+    }
+    return have_same_bits;
 }

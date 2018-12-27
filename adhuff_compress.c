@@ -23,8 +23,11 @@ int     flush_header(FILE* output_file_ptr);
 int     output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr);
 int     output_nyt(byte_t *output_buffer, FILE *output_file_ptr);
 
-/*
- * Compress file
+/**
+ * the main method for compression
+ * @param input_file_name
+ * @param output_file_name
+ * @return RC_OK / RC_FAIL
  */
 int adh_compress_file(const char input_file_name[], const char output_file_name[]) {
     log_info("adh_compress_file", "%-40s %s\n", input_file_name, output_file_name);
@@ -68,8 +71,12 @@ error_handling:
     return rc;
 }
 
-/*
- * encode char
+/**
+ * process the given symbol
+ * @param symbol
+ * @param output_buffer
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
  */
 int process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
 #ifdef _DEBUG
@@ -92,6 +99,14 @@ int process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) 
     return rc;
 }
 
+/**
+ * write to output the encoding of an existing symbol. then update tree
+ * @param symbol
+ * @param node
+ * @param output_buffer
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
+ */
 int output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffer, FILE* output_file_ptr) {
     // write symbol code
     adh_node_t* nodeSymbol = adh_search_symbol_in_tree(symbol);
@@ -111,6 +126,13 @@ int output_existing_symbol(byte_t symbol, adh_node_t *node, byte_t *output_buffe
     return RC_OK;
 }
 
+/**
+ * write to output the binary version of the symbol. then update tree
+ * @param symbol
+ * @param output_buffer
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
+ */
 int output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) {
     // write symbol code
     bit_array_t bit_array = {0};
@@ -130,6 +152,12 @@ int output_new_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_pt
     return rc;
 }
 
+/**
+ * write to output the encoding of the NYT node
+ * @param output_buffer
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
+ */
 int output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     // write NYT code
     adh_node_t* nyt = get_nyt();
@@ -143,8 +171,12 @@ int output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
     return output_bit_array(&(nyt->bit_array), output_buffer, output_file_ptr);
 }
 
-/*
- * copy data to output buffer as bit array
+/**
+ * write to output buffer the bit array. if the buffer is full, flush data to file
+ * @param bit_array
+ * @param output_buffer
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
  */
 int output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE* output_file_ptr) {
     for(int i = bit_array->length-1; i>=0; i--) {
@@ -152,7 +184,7 @@ int output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE* 
         long buffer_byte_idx = bit_idx_to_byte_idx(out_bit_idx);
 
         // calculate which bit to change in the byte 11100000
-        int bit_pos = bit_to_change(out_bit_idx);
+        int bit_pos = bit_pos_in_current_byte(out_bit_idx);
 
         if(bit_array->buffer[i] == BIT_1)
             bit_set_one(&output_buffer[buffer_byte_idx], bit_pos);
@@ -176,9 +208,11 @@ int output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE* 
     return RC_OK;
 }
 
-
-/*
+/**
  * flush data to file
+ * @param output_buffer
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
  */
 int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
     if(out_bit_idx > 0) {
@@ -208,8 +242,10 @@ int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
     return RC_OK;
 }
 
-/*
+/*!
  * flush header to file
+ * @param output_file_ptr
+ * @return RC_OK / RC_FAIL
  */
 int flush_header(FILE* output_file_ptr) {
 #ifdef _DEBUG
