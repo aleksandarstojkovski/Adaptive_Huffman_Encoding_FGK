@@ -1,8 +1,13 @@
 #ifndef ALGO_ADHUFF_COMMON_H
 #define ALGO_ADHUFF_COMMON_H
 
-#include "constants.h"
 #include "bin_io.h"
+
+enum {
+    HEADER_BITS         = 3,
+    HEADER_DATA_BITS    = 5
+};
+
 
 /*
  * Header of compressed file

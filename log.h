@@ -7,7 +7,6 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "constants.h"
 #include "adhuff_common.h"
 
 typedef enum {

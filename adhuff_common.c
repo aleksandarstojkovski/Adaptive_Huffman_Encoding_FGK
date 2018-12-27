@@ -5,19 +5,26 @@
 #include "bin_io.h"
 #include "log.h"
 
-//
-// hash table structures
-//
+/**
+ * constants
+ */
 enum {
+    MAX_ORDER = MAX_CODE_BITS*2+1, //513
     HASH_SIZE = 256 //TODO: tune it. prime number or power of 2 ? see https://en.wikipedia.org/wiki/Hash_table
 };
 
+/**
+ * hash entry for hash table
+ */
 typedef struct hash_entry {
     adh_node_t*             value;
     struct hash_entry*      next;
     struct hash_entry*      prev;
 } hash_entry_t;
 
+/**
+ * hash table for quick search of nodes
+ */
 typedef struct {
     int             length;
     hash_entry_t    **buckets;

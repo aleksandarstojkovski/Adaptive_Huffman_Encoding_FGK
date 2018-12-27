@@ -3,9 +3,16 @@
 
 #include "adhuff_decompress.h"
 #include "adhuff_common.h"
-#include "constants.h"
 #include "bin_io.h"
 #include "log.h"
+
+/**
+ * constants
+ */
+enum {
+    MAX_CODE_BYTES  = MAX_CODE_BITS / SYMBOL_BITS,  //32
+    BUFFER_SIZE     = 1024
+};
 
 /*
  * modules variables

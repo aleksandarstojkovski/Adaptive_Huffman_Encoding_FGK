@@ -2,16 +2,38 @@
 #define ALGO_BIN_IO_H
 
 #include <stdio.h>
-#include "constants.h"
 
+#include <stdlib.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <stdbool.h>
+
+/**
+ * uncomment line below to turn on LOGGING
+ */
+//#define _DEBUG
+
+/**
+ * constants
+ */
+enum {
+    RC_OK               = 0,
+    RC_FAIL             = 1,
+    SYMBOL_BITS         = 8,
+    MAX_SYMBOL_STR      = 100,
+    MAX_CODE_BITS       = 256
+};
+
+static const char BIT_1 = '1';
+static const char BIT_0 = '0';
+
+typedef uint8_t     byte_t;
 /*
  * bit_array_t 256 bit (64 * 4)
  */
-typedef uint16_t bit_idx_t;
 typedef struct {
-    bit_idx_t   length;
-    byte_t      buffer[MAX_CODE_BITS];
-    //uint64_t     buffer[4];
+    uint16_t    length;  // 256 should be enough, let's use larger number for error handling
+    byte_t      buffer[MAX_CODE_BITS]; //TODO: transform to -> uint64_t     buffer[4];
 } bit_array_t;
 
 

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../constants.h"
 #include "../log.h"
 #include "../bin_io.h"
 #include "../adhuff_compress.h"

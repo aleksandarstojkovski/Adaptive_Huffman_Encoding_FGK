@@ -1,9 +1,15 @@
 #include <string.h>
 #include "adhuff_compress.h"
 #include "adhuff_common.h"
-#include "constants.h"
 #include "bin_io.h"
 #include "log.h"
+
+/**
+ * constants
+ */
+enum {
+    BUFFER_SIZE  = 1024
+};
 
 //
 // modules variables

@@ -8,14 +8,24 @@
 #include <unistd.h> // for usleep
 #endif
 
-
 #include <time.h>
 #include <ctype.h>
 
 #include "log.h"
 #include "bin_io.h"
 
+/**
+ * constants
+ */
+enum {
+    MAX_BIT_STR         = MAX_CODE_BITS + 1 //257
+};
+
+//
+// module variables
+//
 static log_level_t log_level = LOG_INFO;
+
 //
 // Diagnostic functions
 //
