@@ -94,26 +94,30 @@ inline void bit_set_zero(byte_t * symbol, unsigned int bit_pos) {
 /**
  * copy bits from most significant bit to least significant
  * e.g. from 5, size 4 -> 5,4,3,2
- * @param byte_from: the source
- * @param byte_to: the destination (may use 2 bytes)
+ * @param source
+ * @param destination: may use 2 bytes
  * @param read_pos: bit position in input
  * @param write_pos: bit position in output
  * @param size: number of bits to copy
  */
-void bit_copy(byte_t byte_from, byte_t * byte_to, unsigned int read_pos, unsigned int write_pos, int size) {
+void bit_copy(byte_t source, byte_t * destination, int read_pos, int write_pos, int size) {
+    //TODO: need to improve, actually it's copying bit x bit...
     for(int offset=0; offset < size; offset++) {
-        unsigned int from = read_pos - offset;
-        int to = write_pos - offset;
-        if(to < 0) {
-            to += SYMBOL_BITS;
+        int source_idx = read_pos - offset;
+        int dest_idx = write_pos - offset;
+        if(dest_idx < 0) {
+            // we have already moved to the next dest byte
+            // add 8 bits to the dest_idx since it's negative now
+            dest_idx += SYMBOL_BITS;
         }
 
-        byte_t bit = (byte_t) (byte_from >> from) & SINGLE_BIT_1;            /* Get the source bit as 0/1 symbol */
-        *byte_to &= ~((byte_t)(SINGLE_BIT_1 << to));                  /* clear destination bit */
-        *byte_to |= (byte_t) (bit << to);  /* set destination bit */
+        byte_t bit_val = (source >> source_idx) & SINGLE_BIT_1;  /* get bit_val from source. it will be ..00 or ..01 */
+        *destination &= ~(SINGLE_BIT_1 << dest_idx);             /* set to 0 the destination bit */
+        *destination |= (bit_val << dest_idx);                   /* set to bit_val the destination bit */
 
-        if(to == 0) {
-            byte_to++;
+        if(dest_idx == 0) {
+            // we have used all bits from destination, move to the next byte
+            destination++;
         }
     }
 }

@@ -50,7 +50,7 @@ FILE*       bin_open_update(const char *filename);
 byte_t      bit_check(byte_t symbol, unsigned int bit_pos);
 void        bit_set_one(byte_t * symbol, unsigned int bit_pos);
 void        bit_set_zero(byte_t * symbol, unsigned int bit_pos);
-void        bit_copy(byte_t byte_from, byte_t *byte_to, unsigned int read_pos, unsigned int write_pos, int size);
+void        bit_copy(byte_t source, byte_t *destination, int read_pos, int write_pos, int size);
 
 int         get_available_bits(long buffer_bit_idx);
 int         bit_pos_in_current_byte(long buffer_idx);
