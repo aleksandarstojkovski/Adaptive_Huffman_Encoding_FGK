@@ -93,20 +93,19 @@ void bit_copy(byte_t byte_from, byte_t * byte_to, unsigned int read_pos, unsigne
     }
 }
 
-inline int bit_idx_to_byte_idx(int bit_idx) {
-    // truncate
-    return bit_idx / SYMBOL_BITS;
+inline long bit_idx_to_byte_idx(long bit_idx) {
+    return (bit_idx / SYMBOL_BITS);
 }
 
-inline int bit_to_change(int buffer_idx) {
+inline int bit_to_change(long buffer_idx) {
     return SYMBOL_BITS - (buffer_idx % SYMBOL_BITS) - 1;
 }
 
-inline int get_available_bits(int buffer_bit_idx) {
+inline int get_available_bits(long buffer_bit_idx) {
     return SYMBOL_BITS - (buffer_bit_idx % SYMBOL_BITS);
 }
 
-bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, int last_bit_idx, const bit_array_t *bit_array_nyt) {
+bool compare_input_and_nyt(const byte_t *input_buffer, long in_bit_idx, long last_bit_idx, const bit_array_t *bit_array_nyt) {
     int size = bit_array_nyt->length;
     if(last_bit_idx - in_bit_idx < size)
         return false;
@@ -119,7 +118,7 @@ bool compare_input_and_nyt(const byte_t *input_buffer, int in_bit_idx, int last_
 
     bool have_same_bits = true;
     for(int offset=0; offset<size; offset++) {
-        int byte_idx = bit_idx_to_byte_idx(in_bit_idx + offset);
+        long byte_idx = bit_idx_to_byte_idx(in_bit_idx + offset);
         byte_t input_byte = input_buffer[byte_idx];
 
         int input_byte_bit_idx = bit_to_change(in_bit_idx + offset);

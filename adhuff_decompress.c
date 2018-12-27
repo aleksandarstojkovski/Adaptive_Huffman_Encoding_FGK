@@ -12,15 +12,15 @@
  */
 static byte_t           output_buffer[BUFFER_SIZE];
 static unsigned int     output_byte_idx;
-static unsigned int     in_bit_idx;
+static long             in_bit_idx;
 static unsigned int     bits_to_ignore;
-static unsigned int     last_bit_idx;
+static long             last_bit_idx;
 
 /*
  * Private methods
  */
 void    read_header(FILE *inputFilePtr);
-long    get_filesize(FILE *input_file_ptr);
+long    get_file_size(FILE *input_file_ptr);
 int     read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byte_t sub_buffer[]);
 int     decode_new_symbol(const byte_t input_buffer[]);
 int     decode_existing_symbol(const byte_t input_buffer[]);
@@ -45,7 +45,7 @@ int adh_decompress_file(const char input_file_name[], const char output_file_nam
     read_header(input_file_ptr);
 
     // TODO: handle big files, don't read entire file in memory
-    int input_size = get_filesize(input_file_ptr);
+    long input_size = get_file_size(input_file_ptr);
     int bytes_to_read = input_size;
 
     memset(output_buffer, 0, sizeof(output_buffer));
@@ -106,13 +106,13 @@ int process_bits(const byte_t *input_buffer, FILE *output_file_ptr) {
 
 int skip_nyt_bits(int nyt_size) {
 #ifdef _DEBUG
-    log_debug("skip_nyt_bits", "in_bit_idx=%-8d nyt_size=%d\n", in_bit_idx, nyt_size);
+    log_debug("skip_nyt_bits", "in_bit_idx=%-8u nyt_size=%d\n", in_bit_idx, nyt_size);
 #endif
 
     in_bit_idx += nyt_size;
 
     if(in_bit_idx > last_bit_idx) {
-        log_error("adh_decompress_file", "too many bits read: in_bit_idx (%d) > last_bit_idx (%d)", in_bit_idx, last_bit_idx);
+        log_error("adh_decompress_file", "too many bits read: in_bit_idx (%u) > last_bit_idx (%u)", in_bit_idx, last_bit_idx);
         return RC_FAIL;
     }
     return RC_OK;
@@ -120,13 +120,13 @@ int skip_nyt_bits(int nyt_size) {
 
 int flush_uncompressed(FILE *output_file_ptr) {
 #ifdef _DEBUG
-    log_debug("flush_uncompressed", "in_bit_idx=%-8d output_byte_idx=%d\n", in_bit_idx, output_byte_idx);
+    log_debug("flush_uncompressed", "in_bit_idx=%-8u output_byte_idx=%d\n", in_bit_idx, output_byte_idx);
 #endif
 
 
     size_t bytes_written = fwrite(output_buffer, sizeof(byte_t), output_byte_idx, output_file_ptr);
     if(bytes_written != output_byte_idx) {
-        log_error("flush_uncompressed", "bytes_written (%zu) != out_byte_idx (%d)\n", bytes_written, output_byte_idx);
+        log_error("flush_uncompressed", "bytes_written (%zu) != out_byte_idx (%u)\n", bytes_written, output_byte_idx);
         return RC_FAIL;
     }
 
@@ -135,15 +135,15 @@ int flush_uncompressed(FILE *output_file_ptr) {
 }
 
 int decode_existing_symbol(const byte_t input_buffer[]) {
-    unsigned int original_input_buffer_bit_idx = in_bit_idx;
+    long original_input_buffer_bit_idx = in_bit_idx;
 
     adh_node_t* node = NULL;
     bit_array_t bit_array = {0};
     byte_t  sub_buffer[MAX_CODE_BYTES] = {0};
-    int missing = last_bit_idx - in_bit_idx + 1;
+    long missing = last_bit_idx - in_bit_idx + 1;
 
 #ifdef _DEBUG
-    log_debug("decode_existing_symbol", "in_bit_idx=%-8d last_bit_idx=%d missing=%d\n",
+    log_debug("decode_existing_symbol", "in_bit_idx=%-8u last_bit_idx=%u missing=%d\n",
               in_bit_idx, last_bit_idx, missing);
 #endif
 
@@ -169,7 +169,7 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
     }
 
     if(node == NULL) {
-        log_error("decode_existing_symbol", "cannot find node: in_bit_idx=%d last_bit_idx=%d bin=%s",
+        log_error("decode_existing_symbol", "cannot find node: in_bit_idx=%u last_bit_idx=%u bin=%s\n",
                 in_bit_idx, last_bit_idx, fmt_bit_array(&bit_array) );
         return RC_FAIL;
     }
@@ -179,14 +179,14 @@ int decode_existing_symbol(const byte_t input_buffer[]) {
 #endif
 
     in_bit_idx = original_input_buffer_bit_idx + bit_array.length;
-    output_symbol(node->symbol);
+    output_symbol((byte_t)node->symbol);
     adh_update_tree(node, false);
     return RC_OK;
 }
 
 void output_symbol(byte_t symbol) {
 #ifdef _DEBUG
-    log_debug("  output_symbol", "%s in_bit_idx=%-8d\n",
+    log_debug("  output_symbol", "%s in_bit_idx=%-8u\n",
             fmt_symbol(symbol),
             in_bit_idx);
 #endif
@@ -197,7 +197,7 @@ void output_symbol(byte_t symbol) {
 
 int decode_new_symbol(const byte_t input_buffer[]) {
 #ifdef _DEBUG
-    log_debug("decode_new_symbol", "in_bit_idx=%-8d\n", in_bit_idx);
+    log_debug("decode_new_symbol", "in_bit_idx=%-8u\n", in_bit_idx);
 #endif
 
     byte_t  new_symbol[1] = {0};
@@ -215,7 +215,7 @@ int decode_new_symbol(const byte_t input_buffer[]) {
 
 int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byte_t sub_buffer[]) {
 #ifdef _DEBUG
-    log_debug("  read_data_cross_bytes", "in_bit_idx=%-8d last_bit_idx=%d max_bits_to_read=%-8d\n",
+    log_debug("  read_data_cross_bytes", "in_bit_idx=%-8u last_bit_idx=%u max_bits_to_read=%-8d\n",
             in_bit_idx, last_bit_idx, max_bits_to_read);
 #endif
 
@@ -224,7 +224,7 @@ int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byt
         if(in_bit_idx > last_bit_idx) {
 #ifdef _DEBUG
             log_debug("  read_data_cross_bytes",
-                    "in_bit_idx=%-8d last_bit_idx=%d max_bits_to_read=%-8d (in_bit_idx > last_bit_idx) break\n",
+                    "in_bit_idx=%-8u last_bit_idx=%u max_bits_to_read=%-8d (in_bit_idx > last_bit_idx) break\n",
                     in_bit_idx, last_bit_idx, max_bits_to_read);
 #endif
             //TODO ... rewind in_bit_idx ?
@@ -236,11 +236,11 @@ int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byt
 
         int read_bit_idx = bit_to_change(in_bit_idx);
         int write_bit_idx = bit_to_change(sub_buffer_bit_idx);
-        int sub_byte_idx = bit_idx_to_byte_idx(sub_buffer_bit_idx);
+        long sub_byte_idx = bit_idx_to_byte_idx(sub_buffer_bit_idx);
 
         // copy bits from most significant bit to least significant
         // e.g. from 5th and size 4 -> 5,4,3,2
-        int input_byte_idx = bit_idx_to_byte_idx(in_bit_idx);
+        long input_byte_idx = bit_idx_to_byte_idx(in_bit_idx);
         bit_copy(input_buffer[input_byte_idx], &sub_buffer[sub_byte_idx], read_bit_idx, write_bit_idx, bits_to_copy);
 
         in_bit_idx += bits_to_copy;
@@ -251,7 +251,7 @@ int read_data_cross_bytes(const byte_t input_buffer[], int max_bits_to_read, byt
     return bit_idx_to_byte_idx(sub_buffer_bit_idx-1) + 1;
 }
 
-long get_filesize(FILE *input_file_ptr) {
+long get_file_size(FILE *input_file_ptr) {
     fseek(input_file_ptr, 0 , SEEK_END);
     long file_size = ftell(input_file_ptr);
     fseek(input_file_ptr, 0 , SEEK_SET);

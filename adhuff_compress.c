@@ -77,16 +77,16 @@ int process_symbol(byte_t symbol, byte_t *output_buffer, FILE* output_file_ptr) 
             fmt_symbol(symbol),
             out_bit_idx);
 #endif
-    int rc = RC_OK;
+    int rc;
     adh_node_t* node = adh_search_symbol_in_tree(symbol);
-
     if(node == NULL) {
         // symbol not present in tree
         rc = output_nyt(output_buffer, output_file_ptr);
-        if(rc == RC_OK)
+        if(rc == RC_OK) {
             rc = output_new_symbol(symbol, output_buffer, output_file_ptr);
+        }
     } else {
-        // char already present in tree
+        // symbol already present in tree
         rc = output_existing_symbol(symbol, node, output_buffer, output_file_ptr);
     }
     return rc;
@@ -149,7 +149,7 @@ int output_nyt(byte_t *output_buffer, FILE *output_file_ptr) {
 int output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE* output_file_ptr) {
     for(int i = bit_array->length-1; i>=0; i--) {
         // calculate the current position (in byte) of the output_buffer
-        int buffer_byte_idx = bit_idx_to_byte_idx(out_bit_idx);
+        long buffer_byte_idx = bit_idx_to_byte_idx(out_bit_idx);
 
         // calculate which bit to change in the byte 11100000
         int bit_pos = bit_to_change(out_bit_idx);
@@ -182,7 +182,7 @@ int output_bit_array(const bit_array_t* bit_array, byte_t *output_buffer, FILE* 
  */
 int flush_data(byte_t *output_buffer, FILE* output_file_ptr) {
     if(out_bit_idx > 0) {
-        int num_bytes_to_write = bit_idx_to_byte_idx(out_bit_idx);
+        long num_bytes_to_write = bit_idx_to_byte_idx(out_bit_idx);
 
         if (get_available_bits(out_bit_idx) < SYMBOL_BITS)
             num_bytes_to_write++;   // reserve the space for odd bits

@@ -38,7 +38,6 @@ static hash_table_t         map_weight_nodes = {0};
 //
 int             init_tree();
 void            destroy_tree();
-
 adh_node_t*     create_nyt();
 adh_node_t*     create_node(adh_symbol_t symbol);
 void            destroy_node(adh_node_t *node);
@@ -53,14 +52,14 @@ unsigned int    hash_get_index(adh_weight_t weight);
 adh_node_t*     hash_get_value(adh_weight_t weight, adh_order_t order);
 void            hash_check_collision(adh_weight_t weight, int hash_index, const adh_node_t *node);
 
-/*
+/**
  * get NYT node
  */
 adh_node_t*     get_nyt() {
     return adh_nyt_node;
 }
 
-/*
+/**
  * Initialize the structure for Adaptive Huffman algorithm
  */
 int adh_init(const char input_file_name[], const char output_file_name[],
@@ -100,10 +99,11 @@ void adh_release(FILE *output_file_ptr, FILE *input_file_ptr) {
     }
 
     destroy_tree();
+    hash_release();
 }
 
-/*
- * Initialize the tree with a single NYT node
+/**
+ * Initialize the tree with a single node: the NYT
  */
 int init_tree() {
 #ifdef _DEBUG
@@ -124,7 +124,7 @@ int init_tree() {
     return RC_OK;
 }
 
-/*
+/**
  * Destroy Tree and reset pointers
  */
 void destroy_tree() {
@@ -133,13 +133,13 @@ void destroy_tree() {
 #endif
 
     destroy_node(adh_root_node);
-    hash_release();
     adh_root_node = NULL;
     adh_nyt_node = NULL;
 }
 
-/*
- * Recursively destroy nodes
+/**
+ * release resources for the passed node and its children
+ * @param node
  */
 void destroy_node(adh_node_t *node) {
     if(node == NULL)
@@ -162,9 +162,11 @@ void destroy_node(adh_node_t *node) {
     free(node);
 }
 
-/*
- * Append a new node to the NYT (Not Yet Transmitted)
- * Must be used only for new symbols (not present in the tree)
+/**
+ * Create a new node and append it to the NYT (Not Yet Transmitted)
+ * NB: this method must be used only for new symbols (not present in the tree)
+ * @param symbol
+ * @return
  */
 adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
 #ifdef _DEBUG
@@ -197,8 +199,9 @@ adh_node_t * adh_create_node_and_append(adh_symbol_t symbol) {
     return newNode;
 }
 
-/*
- * Create a new adh_node_t in the heap.
+/**
+ * create a new node with the NYT code
+ * @return the new node
  */
 adh_node_t * create_nyt() {
 #ifdef _DEBUG
@@ -208,8 +211,10 @@ adh_node_t * create_nyt() {
     return create_node(ADH_NYT_CODE);
 }
 
-/*
- * Create a new adh_node_t in the heap.
+/**
+ * create a new node and initialize it
+ * @param symbol: the symbol that the node will store
+ * @return the new node, NULL in case of error
  */
 adh_node_t * create_node(adh_symbol_t symbol) {
     if(adh_next_order == 0) {
@@ -241,6 +246,12 @@ adh_node_t * create_node(adh_symbol_t symbol) {
     return node;
 }
 
+/**
+ * search for a node with the given weight and an higher order
+ * @param weight
+ * @param order
+ * @return a node that respect the given criteria. NULL if not found
+ */
 adh_node_t * find_higher_order_same_weight(adh_weight_t weight, adh_order_t order) {
     // small optimization: only NYT and new nodes have weight 0
     // so they are already ordered, don't swap
@@ -250,8 +261,10 @@ adh_node_t * find_higher_order_same_weight(adh_weight_t weight, adh_order_t orde
     return hash_get_value(weight, order);
 }
 
-/*
- * Search symbol in tree
+/**
+ * search a node that contains the given symbol
+ * @param symbol
+ * @return the node that respect the given criteria. NULL if not found
  */
 adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
 #ifdef _DEBUG
@@ -260,12 +273,14 @@ adh_node_t * adh_search_symbol_in_tree(adh_symbol_t symbol) {
     return symbol_node_array[symbol];
 }
 
-/*
- * Swap Nodes
+/**
+ * swap the two nodes, original order attribute is preserved
+ * @param node1
+ * @param node2
  */
 void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     if (node1->parent == node2 || node2->parent == node1) {
-        //log_info("swap_nodes", " TRYING TO SWAP NODE WITH IT'S PARENT\n");
+        //log_info("swap_nodes", " TRYING TO SWAP NODE WITH ITS PARENT\n");
         return;
     }
 
@@ -311,10 +326,10 @@ void swap_nodes(adh_node_t *node1, adh_node_t *node2){
     update_node_encoding(node2);  // update bit_array
 }
 
-/*
+/**
  * Update Tree, fix sibling property
- * @param1: node to be updated.
- * @param2: true if node is new, false if node is not new.
+ * @param node: the node that has been updated
+ * @param is_new_node: true if node is new, false if node is not new.
  */
 void adh_update_tree(adh_node_t *node, bool is_new_node) {
 #ifdef _DEBUG
@@ -351,10 +366,11 @@ void adh_update_tree(adh_node_t *node, bool is_new_node) {
 #endif
 }
 
-/*
+/**
  * calculate the encoded symbol of passed node and its children
  * fill bit_array from left (MSB) to right (LSB)
  * 0 = left node, 1 = right node
+ * @param node
  */
 void update_node_encoding(adh_node_t *node) {
     if(node != NULL) {
@@ -390,6 +406,11 @@ void update_node_encoding(adh_node_t *node) {
     }
 }
 
+/**
+ * calculate the node level (DEBUG purpose)
+ * @param node
+ * @return the level
+ */
 int get_node_level(const adh_node_t *node) {
 #ifdef _DEBUG
     log_trace("  get_node_level", "%s \n", fmt_node(node));
@@ -404,7 +425,11 @@ int get_node_level(const adh_node_t *node) {
     return level;
 }
 
-
+/**
+ * search for a leaf node that is represented by the given bit array
+ * @param bit_array
+ * @return the node if found, NULL otherwise
+ */
 adh_node_t* adh_search_leaf_by_encoding(const bit_array_t *bit_array) {
     adh_node_t* nextNode = adh_root_node;
     for(int i = bit_array->length-1; i >= 0 && nextNode; i--) {
@@ -421,6 +446,10 @@ adh_node_t* adh_search_leaf_by_encoding(const bit_array_t *bit_array) {
     return NULL;
 }
 
+/**
+ * increase the weight of the given node and update the hashing table
+ * @param node
+ */
 void increase_weight(adh_node_t *node) {
     if(node == NULL)
         return;
@@ -431,6 +460,19 @@ void increase_weight(adh_node_t *node) {
 }
 
 
+/**
+ * print in a nice way the current status of the tree (DEBUG purpose)
+ */
+void print_tree() {
+    print_sub_tree(adh_root_node, 0);
+    fprintf(stdout, "\n");
+}
+
+/**
+ * recursively print the node and its children (DEBUG purpose)
+ * @param node
+ * @param depth
+ */
 void print_sub_tree(const adh_node_t *node, int depth)
 {
     if(node==NULL)
@@ -456,25 +498,26 @@ void print_sub_tree(const adh_node_t *node, int depth)
     print_sub_tree(node->right, depth + 1);
 }
 
-void print_tree() {
-    print_sub_tree(adh_root_node, 0);
-    fprintf(stdout, "\n");
-}
-
 /**
- * calculate the index of associative array
+ * calculate the index of hash table associative array
  * @param weight
- * @return
+ * @return the index
  */
 inline unsigned int hash_get_index(adh_weight_t weight) {
     return weight % HASH_SIZE;
 }
 
+/**
+ * initialize the hash table
+ */
 void hash_init() {
     map_weight_nodes.length = HASH_SIZE;
     map_weight_nodes.buckets = calloc(HASH_SIZE, HASH_SIZE * sizeof(map_weight_nodes.buckets));
 }
 
+/**
+ * release resources used by the hash table
+ */
 void hash_release() {
     for (int i = 0; i < map_weight_nodes.length; ++i) {
         hash_entry_t  *entry = map_weight_nodes.buckets[i];
@@ -487,6 +530,11 @@ void hash_release() {
     free(map_weight_nodes.buckets);
 }
 
+/**
+ * detach the entry storing the given node, so we can reuse it in the next hash_add
+ * @param node: a node that was previously added to the hash table
+ * @return the entry or NULL if the node is not stored in the hash table.
+ */
 hash_entry_t* hash_detach_entry(adh_node_t *node) {
     int hash_index = hash_get_index(node->weight);
 
@@ -512,6 +560,12 @@ hash_entry_t* hash_detach_entry(adh_node_t *node) {
     return NULL;
 }
 
+/**
+ * add the node in the hash table.
+ * the key will be the node weight, the value will be the node
+ * @param node: the value of the hash table
+ * @param entry: if NULL a new entry wil be created. if provided it will reuse it
+ */
 void hash_add(adh_node_t* node, hash_entry_t *entry){
     int hash_index = hash_get_index(node->weight);
 
@@ -532,6 +586,12 @@ void hash_add(adh_node_t* node, hash_entry_t *entry){
     }
 }
 
+/**
+ * search in the hash table, a node with given weight and a higher order (skip root)
+ * @param weight
+ * @param order
+ * @return the node that respects the criteria. otherwise NULL
+ */
 adh_node_t* hash_get_value(adh_weight_t weight, adh_order_t order) {
     adh_node_t* node_result = NULL;
     int hash_index = hash_get_index(weight);
@@ -552,6 +612,12 @@ adh_node_t* hash_get_value(adh_weight_t weight, adh_order_t order) {
     return node_result;
 }
 
+/**
+ * utility function to log number of collisions (only DEBUG purpose)
+ * @param weight
+ * @param hash_index
+ * @param node
+ */
 void hash_check_collision(adh_weight_t weight, int hash_index, const adh_node_t *node) {
     if(node->weight != weight) {
         int size = 0;
