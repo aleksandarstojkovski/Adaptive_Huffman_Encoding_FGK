@@ -10,7 +10,7 @@
  */
 enum {
     MAX_ORDER = MAX_CODE_BITS*2+1, //513
-    HASH_SIZE = 256 //TODO: tune it. prime number or power of 2 ? see https://en.wikipedia.org/wiki/Hash_table
+    HASH_BUCKETS = 7919 //TODO: tune it. prime number or power of 2 ? see https://en.wikipedia.org/wiki/Hash_table
 };
 
 /**
@@ -27,7 +27,8 @@ typedef struct hash_entry {
  */
 typedef struct {
     int             length;
-    hash_entry_t    **buckets;
+    //hash_entry_t    **buckets;            //heap
+    hash_entry_t    *buckets[HASH_BUCKETS]; //stack
 } hash_table_t;
 
 
@@ -39,6 +40,7 @@ static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
 static adh_node_t *         symbol_node_array[MAX_CODE_BITS] = {0};
 static hash_table_t         map_weight_nodes = {0};
+static long                 collision = 0;
 
 //
 // private methods
@@ -516,15 +518,17 @@ void print_sub_tree(const adh_node_t *node, int depth)
  * @return the index
  */
 inline unsigned int hash_get_index(adh_weight_t weight) {
-    return weight % HASH_SIZE;
+    return weight % HASH_BUCKETS;
 }
 
 /**
  * initialize the hash table
  */
 void hash_init() {
-    map_weight_nodes.length = HASH_SIZE;
-    map_weight_nodes.buckets = calloc(HASH_SIZE, HASH_SIZE * sizeof(map_weight_nodes.buckets));
+    map_weight_nodes.length = HASH_BUCKETS;
+    //moved to stack with fixed size
+    //map_weight_nodes.buckets = calloc(HASH_BUCKETS, HASH_BUCKETS * sizeof(map_weight_nodes.buckets));
+    memset(&map_weight_nodes.buckets, 0, sizeof(map_weight_nodes.buckets));
 }
 
 /**
@@ -539,7 +543,13 @@ void hash_release() {
             entry = next;
         }
     }
-    free(map_weight_nodes.buckets);
+    //moved to stack with fixed size
+    //free(map_weight_nodes.buckets);
+
+#ifdef _DEBUG
+    fprintf(stdout, "total number of collision: %ld\n", collision);
+    collision = 0;
+#endif
 }
 
 /**
@@ -611,11 +621,13 @@ adh_node_t* hash_get_value(adh_weight_t weight, adh_order_t order) {
     while(entry) {
         adh_node_t* current_node = entry->value;
 
+        if(current_node->weight != weight) {
 #ifdef _DEBUG
-        hash_check_collision(weight, hash_index, current_node);
+            collision++;
+            hash_check_collision(weight, hash_index, current_node);
 #endif
-
-        if(current_node->weight == weight && current_node->order > order && current_node != adh_root_node) {
+        }
+        else if(current_node->order > order && current_node != adh_root_node) {
             node_result = current_node;
             order = node_result->order;
         }
