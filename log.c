@@ -2,13 +2,10 @@
 
 #ifdef WIN32
 #include <windows.h>
-#elif _POSIX_C_SOURCE >= 199309L
-#include <time.h>   // for nanosleep
-#else
-#include <unistd.h> // for usleep
 #endif
 
-#include <time.h>
+#include <time.h>   // for nanosleep
+#include <unistd.h> // for usleep
 #include <ctype.h>
 
 #include "log.h"

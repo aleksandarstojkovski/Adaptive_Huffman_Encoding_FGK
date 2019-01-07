@@ -40,7 +40,10 @@ static adh_node_t *         adh_root_node = NULL;
 static adh_node_t *         adh_nyt_node = NULL;
 static adh_node_t *         symbol_node_array[MAX_CODE_BITS] = {0};
 static hash_table_t         map_weight_nodes = {0};
+
+#ifdef _DEBUG
 static long                 collision = 0;
+#endif
 
 //
 // private methods
