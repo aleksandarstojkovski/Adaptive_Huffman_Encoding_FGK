@@ -151,8 +151,6 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
     ts.tv_sec = milliseconds / 1000;
     ts.tv_nsec = (milliseconds % 1000) * 1000000;
     nanosleep(&ts, NULL);
-#else
-    usleep(milliseconds * 1000);
 #endif
 }
 
