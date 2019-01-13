@@ -3,7 +3,7 @@
 
 CC = gcc
 CFLAGS = -std=c99 -O3 -lm -Wall
-OUTFILE = test_fgk
+OUTFILE = test_adaptive_huffmann
 DEPS = ../*.h
 OBJ = ../log.c ../adhuff_decompress.c ../bin_io.c ../adhuff_compress.c  ../adhuff_common.c test.c
 
