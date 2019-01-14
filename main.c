@@ -11,8 +11,8 @@
  */
 void printUsage() {
     puts("Usage:");
-    puts("\tto compress a file   :   ./adaptive_huffman -c <input_file> <output_file>");
-    puts("\tto decompress a file :   ./adaptive_huffman -d <input_file> <output_file>");
+    puts("\tto compress a file   :  ./adaptive_huffman -c <input_file> <output_file>");
+    puts("\tto decompress a file :  ./adaptive_huffman -d <input_file> <output_file>");
 }
 
 /**
