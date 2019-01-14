@@ -10,9 +10,9 @@
  * Print usage
  */
 void printUsage() {
-    puts("usage:");
-    puts("\tto compress a file: algo -c <filename_to_compress> <file");
-    puts("\tto decompress a file: algo -d <filename_to_decompress>");
+    puts("Usage:");
+    puts("\tto compress a file: ./adaptive_huffman -c <filename_to_compress> <output_file>");
+    puts("\tto decompress a file: ./adaptive_huffman -d <filename_to_decompress> <output_file>");
 }
 
 /**
