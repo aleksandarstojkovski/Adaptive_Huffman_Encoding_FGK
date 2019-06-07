@@ -1,7 +1,7 @@
 # Adaptive Huffman Encoding (FGK)
 
 ## Description
-Test for SUPSI project
+Implementation of Adaptive Huffman Encoding in C.
 
 ## Compilation
 `
